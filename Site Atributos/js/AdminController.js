@@ -11,15 +11,18 @@ const AdminController = (() => {
         // Abas
         masterAttributesTab: document.getElementById('master-attributes-tab'),
         requiredAttributesTab: document.getElementById('required-attributes-tab'),
+        secondaryAttributesTab: document.getElementById('secondary-attributes-tab'), // <--- NOVO
         recommendedCombosTab: document.getElementById('recommended-combos-tab'),
         toolsTab: document.getElementById('tools-tab'),
-        // Botões
+        // Botões de Adicionar
         addMasterAttributeBtn: document.getElementById('add-master-attribute-btn'),
         addRequiredAttributeBtn: document.getElementById('add-required-attribute-btn'),
+        addSecondaryAttributeBtn: document.getElementById('add-secondary-attribute-btn'), // <--- NOVO
         addComboBtn: document.getElementById('add-combo-btn'),
-        // Listas
+        // Listas (Containers)
         masterAttributesList: document.getElementById('master-attributes-list'),
         requiredAttributesList: document.getElementById('required-attributes-list'),
+        secondaryAttributesList: document.getElementById('secondary-attributes-list'), // <--- NOVO
         recommendedCombosList: document.getElementById('recommended-combos-list'),
         // Ferramentas
         importDataFile: document.getElementById('import-data-file'),
@@ -32,64 +35,58 @@ const AdminController = (() => {
 
     // --- Lógica de Navegação das Abas ---
 
-    /**
-     * Alterna a aba ativa no painel admin.
-     * @param {string} tabId - O ID da aba (ex: 'master-attributes').
-     */
     const switchTab = (tabId) => {
         currentTab = tabId;
         
-        // 1. Esconde todo o conteúdo e desativa todos os botões da aba
+        // 1. Esconde todo o conteúdo
         document.querySelectorAll('.admin-tab-content').forEach(content => {
             content.classList.add('hidden');
         });
+        // 2. Reseta botões
         document.querySelectorAll('.admin-tab').forEach(btn => {
             btn.classList.remove('bg-indigo-50', 'text-indigo-700');
             btn.classList.add('text-gray-600', 'hover:bg-gray-50');
         });
 
-        // 2. Mostra o conteúdo da aba selecionada e ativa o botão
+        // 3. Mostra conteúdo ativo
         const selectedContent = document.getElementById(`${tabId}-tab`);
         if (selectedContent) {
             selectedContent.classList.remove('hidden');
         }
 
+        // 4. Ativa botão
         const selectedBtn = document.querySelector(`.admin-tab[data-tab="${tabId}"]`);
         if (selectedBtn) {
             selectedBtn.classList.add('bg-indigo-50', 'text-indigo-700');
             selectedBtn.classList.remove('text-gray-600', 'hover:bg-gray-50');
         }
 
-        // 3. Atualiza a renderização específica da aba
         refreshAdminView();
     };
 
     // --- Renderização Geral ---
 
-    /**
-     * Recarrega os dados e renderiza as listas na aba ativa.
-     */
     const refreshAdminView = () => {
         const masterAttributes = StorageService.loadMasterAttributes();
         const requiredAttributes = StorageService.loadRequiredAttributes();
+        const secondaryAttributes = StorageService.loadSecondaryAttributes(); // <--- NOVO
         const combos = StorageService.loadRecommendedCombos();
 
         if (currentTab === 'master-attributes') {
             Renderer.renderMasterAttributesList(masterAttributes);
         } else if (currentTab === 'required-attributes') {
             Renderer.renderRequiredAttributesList(requiredAttributes, masterAttributes);
+        } else if (currentTab === 'secondary-attributes') {
+            // Renderiza a lista de secundários (precisaremos atualizar o Renderer para ter essa função)
+            Renderer.renderSecondaryAttributesList(secondaryAttributes, masterAttributes); 
         } else if (currentTab === 'recommended-combos') {
             Renderer.renderRecommendedCombosList(combos, masterAttributes);
         }
     };
     
-    // --- Funções Auxiliares de Modal ---
-    
     const closeModal = (modalId = 'admin-modal') => {
         const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.remove();
-        }
+        if (modal) modal.remove();
     };
 
     // --- CRUD Atributos Mestres ---
@@ -141,6 +138,31 @@ const AdminController = (() => {
             refreshAdminView();
         }
     };
+
+    // --- CRUD Atributos Secundários (NOVO) ---
+
+    const handleSaveSecondaryAttribute = (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const attribute_id = parseInt(form.querySelector('#secondary-attr-id').value);
+
+        if (!attribute_id) {
+            alert('Selecione um atributo mestre.');
+            return;
+        }
+
+        // Assume que AdminService terá essa função (criaremos em breve)
+        AdminService.addSecondaryAttribute(attribute_id);
+        closeModal();
+        refreshAdminView();
+    };
+
+    const handleDeleteSecondaryAttribute = (id) => {
+        if (confirm("Remover da lista de Secundários/Suporte?")) {
+            AdminService.deleteSecondaryAttribute(id);
+            refreshAdminView();
+        }
+    };
     
     // --- CRUD Combos Recomendados ---
 
@@ -179,7 +201,7 @@ const AdminController = (() => {
         }
     };
 
-    // --- Funções de Ferramentas (Import/Export/Clear) ---
+    // --- Ferramentas ---
 
     const handleExportData = () => {
         const data = StorageService.exportAllData();
@@ -202,7 +224,7 @@ const AdminController = (() => {
             return;
         }
 
-        if (!confirm('ATENÇÃO: A importação irá SOBRESCREVER TODOS os dados mestres e builds salvas. Deseja continuar?')) {
+        if (!confirm('ATENÇÃO: A importação irá SOBRESCREVER TODOS os dados. Deseja continuar?')) {
             return;
         }
 
@@ -213,10 +235,9 @@ const AdminController = (() => {
                 StorageService.importAllData(importedData);
                 alert('Dados importados com sucesso! Recarregando painel.');
                 refreshAdminView();
-                // Limpa o input de arquivo para permitir nova importação do mesmo arquivo
                 fileInput.value = ''; 
             } catch (e) {
-                alert('Erro ao processar o arquivo JSON. Verifique o formato.');
+                alert('Erro ao processar o arquivo JSON.');
                 console.error('Erro de importação:', e);
             }
         };
@@ -224,19 +245,19 @@ const AdminController = (() => {
     };
 
     const handleClearAllData = () => {
-        if (confirm("ALERTA MÁXIMO: Você está prestes a limpar TODAS as builds, atributos e configurações. ESTA AÇÃO É IRREVERSÍVEL. Deseja prosseguir?")) {
+        if (confirm("ALERTA MÁXIMO: Limpar TUDO? Essa ação é irreversível.")) {
             StorageService.clearAllData();
-            alert('Todos os dados foram apagados. Recarregando o painel.');
+            alert('Dados apagados. Recarregando.');
             refreshAdminView();
         }
     };
 
-    // --- Inicialização (Adição de Listeners) ---
+    // --- Listeners ---
 
     const attachListeners = () => {
         if (!DOM.adminView) return;
 
-        // 1. Navegação por Abas
+        // 1. Navegação
         DOM.tabsContainer.addEventListener('click', (e) => {
             const tabBtn = e.target.closest('.admin-tab');
             if (tabBtn) {
@@ -244,21 +265,20 @@ const AdminController = (() => {
             }
         });
 
-        // 2. CRUD Master Attributes (ADICIONAR)
+        // 2. Master Attributes
         DOM.addMasterAttributeBtn.addEventListener('click', () => {
             Renderer.renderMasterAttributeModal();
-            Renderer.attachModalCloseListeners(); // <--- ADICIONADO AQUI
+            Renderer.attachModalCloseListeners();
             document.getElementById('master-attribute-form').addEventListener('submit', handleSaveMasterAttribute);
             document.getElementById('close-admin-modal-btn').addEventListener('click', closeModal);
         });
 
-        // CRUD Master Attributes (EDITAR)
         DOM.masterAttributesList.addEventListener('click', (e) => {
             const id = e.target.dataset.id;
             if (e.target.dataset.action === 'edit-master-attr') {
                 const attr = StorageService.loadMasterAttributes().find(a => a.id === parseInt(id));
                 Renderer.renderMasterAttributeModal(attr);
-                Renderer.attachModalCloseListeners(); // <--- ADICIONADO AQUI
+                Renderer.attachModalCloseListeners();
                 document.getElementById('master-attribute-form').addEventListener('submit', handleSaveMasterAttribute);
                 document.getElementById('close-admin-modal-btn').addEventListener('click', closeModal);
             } else if (e.target.dataset.action === 'delete-master-attr') {
@@ -266,11 +286,11 @@ const AdminController = (() => {
             }
         });
         
-        // 3. CRUD Required Attributes (ADICIONAR)
+        // 3. Required Attributes
         DOM.addRequiredAttributeBtn.addEventListener('click', () => {
             const masterAttributes = StorageService.loadMasterAttributes();
             Renderer.renderRequiredAttributeModal(masterAttributes);
-            Renderer.attachModalCloseListeners(); // <--- ADICIONADO AQUI
+            Renderer.attachModalCloseListeners();
             document.getElementById('required-attribute-form').addEventListener('submit', handleSaveRequiredAttribute);
             document.getElementById('close-admin-modal-btn').addEventListener('click', closeModal);
         });
@@ -281,16 +301,35 @@ const AdminController = (() => {
             }
         });
 
-        // 4. CRUD Recommended Combos (ADICIONAR)
+        // 4. Secondary Attributes (NOVO)
+        if (DOM.addSecondaryAttributeBtn) {
+            DOM.addSecondaryAttributeBtn.addEventListener('click', () => {
+                const masterAttributes = StorageService.loadMasterAttributes();
+                // Renderiza modal de secundário (precisaremos criar no Renderer)
+                Renderer.renderSecondaryAttributeModal(masterAttributes); 
+                Renderer.attachModalCloseListeners();
+                document.getElementById('secondary-attribute-form').addEventListener('submit', handleSaveSecondaryAttribute);
+                document.getElementById('close-admin-modal-btn').addEventListener('click', closeModal);
+            });
+        }
+
+        if (DOM.secondaryAttributesList) {
+            DOM.secondaryAttributesList.addEventListener('click', (e) => {
+                if (e.target.dataset.action === 'delete-secondary-attr') {
+                    handleDeleteSecondaryAttribute(parseInt(e.target.dataset.id));
+                }
+            });
+        }
+
+        // 5. Combos
         DOM.addComboBtn.addEventListener('click', () => {
             const masterAttributes = StorageService.loadMasterAttributes();
             Renderer.renderRecommendedComboModal(masterAttributes);
-            Renderer.attachModalCloseListeners(); // <--- ADICIONADO AQUI
+            Renderer.attachModalCloseListeners();
             document.getElementById('combo-form').addEventListener('submit', handleSaveCombo);
             document.getElementById('close-admin-modal-btn').addEventListener('click', closeModal);
         });
         
-        // CRUD Recommended Combos (EDITAR)
         DOM.recommendedCombosList.addEventListener('click', (e) => {
             const id = e.target.dataset.id;
             const masterAttributes = StorageService.loadMasterAttributes();
@@ -298,7 +337,7 @@ const AdminController = (() => {
             if (e.target.dataset.action === 'edit-combo') {
                 const combo = StorageService.loadRecommendedCombos().find(c => c.id === parseInt(id));
                 Renderer.renderRecommendedComboModal(masterAttributes, combo);
-                Renderer.attachModalCloseListeners(); // <--- ADICIONADO AQUI
+                Renderer.attachModalCloseListeners();
                 document.getElementById('combo-form').addEventListener('submit', handleSaveCombo);
                 document.getElementById('close-admin-modal-btn').addEventListener('click', closeModal);
             } else if (e.target.dataset.action === 'delete-combo') {
@@ -306,12 +345,11 @@ const AdminController = (() => {
             }
         });
 
-        // 5. Ferramentas
+        // 6. Ferramentas e Modal Close
         DOM.exportAllDataBtn.addEventListener('click', handleExportData);
         DOM.importDataBtn.addEventListener('click', handleImportData);
         DOM.clearAllDataBtn.addEventListener('click', handleClearAllData);
 
-        // Listener global para fechar modais se clicado no botão de fechar (X)
         document.getElementById('modals-container').addEventListener('click', (e) => {
             if (e.target.id === 'close-admin-modal-btn') {
                 closeModal();
@@ -319,11 +357,7 @@ const AdminController = (() => {
         });
     };
 
-    /**
-     * Ponto de entrada para a view admin.
-     */
     const initAdminView = () => {
-        // Garante que a primeira aba esteja ativa e renderizada
         switchTab(currentTab); 
         attachListeners();
     };

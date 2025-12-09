@@ -20,7 +20,6 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Cores dos Elementos */
         .text-fogo { color: #dc2626; }
         .bg-fogo-100 { background-color: #fee2e2; }
         .text-gelo { color: #3b82f6; }
@@ -29,8 +28,6 @@
         .bg-luz-100 { background-color: #fef3c7; }
         .text-veneno { color: #10b981; }
         .bg-veneno-100 { background-color: #d1fae5; }
-
-        /* Utilitários */
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
     </style>
@@ -117,30 +114,43 @@
 
             <section id="admin-view" class="hidden">
                 <h2 class="text-3xl font-bold mb-6 text-gray-800">🛠️ Painel de Administração de Dados</h2>
-                <div class="flex border-b border-gray-300 mb-6">
-                    <button data-tab="master-attributes" class="admin-tab px-4 py-2 border-r border-gray-300 text-sm font-medium bg-indigo-50 text-indigo-700">Atributos Mestres</button>
-                    <button data-tab="required-attributes" class="admin-tab px-4 py-2 border-r border-gray-300 text-sm font-medium text-gray-600 hover:bg-gray-50">Atributos Requeridos</button>
-                    <button data-tab="recommended-combos" class="admin-tab px-4 py-2 border-r border-gray-300 text-sm font-medium text-gray-600 hover:bg-gray-50">Combos Recomendados</button>
-                    <button data-tab="tools" class="admin-tab px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50">Ferramentas</button>
+                
+                <div class="flex border-b border-gray-300 mb-6 overflow-x-auto">
+                    <button data-tab="master-attributes" class="admin-tab px-4 py-2 border-r border-gray-300 text-sm font-medium bg-indigo-50 text-indigo-700 whitespace-nowrap">Atributos Mestres</button>
+                    <button data-tab="required-attributes" class="admin-tab px-4 py-2 border-r border-gray-300 text-sm font-medium text-gray-600 hover:bg-gray-50 whitespace-nowrap">Atributos Requeridos</button>
+                    <button data-tab="secondary-attributes" class="admin-tab px-4 py-2 border-r border-gray-300 text-sm font-medium text-gray-600 hover:bg-gray-50 whitespace-nowrap">Atributos Secundários</button>
+                    <button data-tab="recommended-combos" class="admin-tab px-4 py-2 border-r border-gray-300 text-sm font-medium text-gray-600 hover:bg-gray-50 whitespace-nowrap">Combos Recomendados</button>
+                    <button data-tab="tools" class="admin-tab px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 whitespace-nowrap">Ferramentas</button>
                 </div>
 
                 <div id="admin-content-area" class="bg-white p-6 rounded-xl shadow-lg">
+                    
                     <div id="master-attributes-tab" class="admin-tab-content">
                         <h3 class="text-xl font-semibold mb-4">Gerenciar Atributos Mestres (Gemas)</h3>
                         <button id="add-master-attribute-btn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700 mb-4">+ Adicionar Novo Atributo</button>
                         <div id="master-attributes-list"><p class="text-gray-500">Carregando atributos...</p></div>
                     </div>
+
                     <div id="required-attributes-tab" class="admin-tab-content hidden">
                         <h3 class="text-xl font-semibold mb-4">Definir Atributos PvP Essenciais</h3>
                         <p class="text-sm text-gray-600 mb-3">Lista de atributos que toda build PvP deve ter para passar na checagem.</p>
                         <button id="add-required-attribute-btn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700 mb-4">+ Adicionar Atributo Requerido</button>
                         <div id="required-attributes-list"><p class="text-gray-500">Carregando requisitos...</p></div>
                     </div>
+
+                    <div id="secondary-attributes-tab" class="admin-tab-content hidden">
+                        <h3 class="text-xl font-semibold mb-4">Definir Atributos Secundários (Suporte)</h3>
+                        <p class="text-sm text-gray-600 mb-3">Atributos úteis que evitam que a gema seja marcada como inútil.</p>
+                        <button id="add-secondary-attribute-btn" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 mb-4">+ Adicionar Secundário</button>
+                        <div id="secondary-attributes-list"><p class="text-gray-500">Carregando secundários...</p></div>
+                    </div>
+
                     <div id="recommended-combos-tab" class="admin-tab-content hidden">
                         <h3 class="text-xl font-semibold mb-4">Gerenciar Combos de Gemas</h3>
                         <button id="add-combo-btn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700 mb-4">+ Adicionar Novo Combo</button>
                         <div id="recommended-combos-list"><p class="text-gray-500">Carregando combos...</p></div>
                     </div>
+
                     <div id="tools-tab" class="admin-tab-content hidden">
                         <h3 class="text-xl font-semibold mb-4">Ferramentas de Importação/Exportação</h3>
                         <div class="space-y-4">
@@ -162,8 +172,7 @@
                 </div>
             </section>
 
-            <section id="report-view" class="hidden">
-                </section>
+            <section id="report-view" class="hidden"></section>
 
             <section id="help-view" class="hidden">
                 <div class="max-w-4xl mx-auto">
@@ -184,7 +193,7 @@
                             <ul class="text-sm text-gray-700 space-y-2 list-disc list-inside">
                                 <li>Vá na aba <strong>Admin</strong>.</li>
                                 <li>Cadastre os <strong>Atributos Mestres</strong>.</li>
-                                <li>Defina os <strong>Requisitos</strong>.</li>
+                                <li>Defina os <strong>Requisitos</strong> e <strong>Secundários</strong>.</li>
                             </ul>
                         </div>
 

@@ -1,123 +1,168 @@
 /**
+ * js/AnalysisEngine.js
  * Módulo responsável por aplicar as regras de negócio PvP e gerar a análise.
  * NÃO TOCA NO DOM NEM NO localStorage diretamente. Apenas processa dados.
  */
 const AnalysisEngine = (() => {
 
+    // Define a hierarquia de qualidade para desempate de duplicatas
+    const REMODEL_WEIGHTS = {
+        'comum': 1,
+        'normal': 1, // Caso use 'normal' em vez de 'comum'
+        'raro': 2,
+        'épico': 3,
+        'epico': 3,
+        'legendário': 4,
+        'legendario': 4,
+        'mítico': 5,
+        'mitico': 5
+    };
+
+    /**
+     * Retorna o peso numérico da remodelação.
+     */
+    const getRemodelWeight = (remodelString) => {
+        if (!remodelString) return 0;
+        const key = remodelString.toLowerCase().trim();
+        return REMODEL_WEIGHTS[key] || 0;
+    };
+
     /**
      * Valida se a seleção de um atributo para uma gema é válida com base na exclusividade de elemento.
-     * @param {number} attributeId - ID do atributo selecionado.
-     * @param {string} gemElement - Elemento da gema (fogo, gelo, luz, veneno).
-     * @param {Array} masterAttributes - Lista completa de atributos mestres.
-     * @returns {boolean} True se válido, False se houver bloqueio.
      */
     const validateElementExclusivity = (attributeId, gemElement, masterAttributes) => {
         const attr = masterAttributes.find(a => a.id === attributeId);
-        
         if (!attr || !attr.default_element) {
             // Atributo global ou não encontrado: sempre permitido.
             return true;
         }
-        
         // Bloqueio: Atributo exclusivo selecionado em gema de elemento errado.
-        // Ex: "Tirano (Fogo)" não pode entrar em uma gema de "Gelo".
         return attr.default_element === gemElement;
     };
     
     /**
      * Executa a análise completa da build do personagem.
-     * @param {object} characterBuild - O objeto JSON da build (personagem e artefatos).
-     * @param {Array} masterAttributes - Lista de atributos mestres.
-     * @param {Array} requiredAttributes - Lista de atributos obrigatórios PvP.
-     * @param {Array} recommendedCombos - Lista de combos recomendados.
-     * @returns {object} O objeto de análise contendo status, faltantes, inúteis, etc.
+     * Agora suporta atributos secundários e lógica de duplicatas.
      */
-    const runAnalysis = (characterBuild, masterAttributes, requiredAttributes, recommendedCombos) => {
+    const runAnalysis = (characterBuild, masterAttributes, requiredAttributes, secondaryAttributes, recommendedCombos) => {
         
         // Mapeia IDs dos requisitos para verificação rápida
         const requiredIds = new Set(requiredAttributes.map(req => req.attribute_id));
+        // Mapeia IDs dos secundários (se a lista for fornecida)
+        const secondaryIds = new Set(secondaryAttributes ? secondaryAttributes.map(sec => sec.attribute_id) : []);
         
         const analysisResult = {
-            present_attributes: new Map(), // Map<Attribute ID, Array<Location>>
-            missing_attributes: [],
-            dispensable_gems: [],
-            invalid_placements: [],
+            present_attributes: new Map(), // Map<Attribute ID, Array<Location>> (Válidos e Únicos)
+            missing_attributes: [],        // Requeridos que faltam
+            secondary_present: [],         // Secundários presentes (Válidos e Únicos)
+            duplicates_to_remove: [],      // Duplicatas Piores (Troca Urgente)
+            useless_gems: [],              // Inúteis (Troca Urgente) ou Inválidos
+            invalid_placements: [],        // (Opcional, pode ser mesclado com useless)
             combo_status: []
         };
         
-        const allPresentIds = new Set();
+        // Mapa temporário para agrupar ocorrências por ID de atributo
+        // Chave: ID do Atributo -> Valor: Array de objetos de ocorrência
+        const equippedMap = new Map();
         
         // 1. ITERAR SOBRE ARTEFATOS E GEMAS DA BUILD
         if (characterBuild.artifacts) {
-            characterBuild.artifacts.forEach((artifact, aIndex) => {
+            characterBuild.artifacts.forEach((artifact) => {
                 if (!artifact) return;
                 
                 artifact.gems.forEach((gem, gIndex) => {
                     if (!gem) return; // Slot vazio
                     
-                    // AdminService deve estar disponível globalmente ou passamos elementos hardcoded
                     const elements = ["fogo", "gelo", "luz", "veneno"];
                     const gemElement = elements[gIndex];
-                    let gemHasRequired = false;
                     
                     if (gem.attributes && gem.attributes.length > 0) {
-                        
                         gem.attributes.forEach(gemAttr => {
                             const attrId = gemAttr.attribute_id;
                             const masterAttr = masterAttributes.find(a => a.id === attrId);
                             
                             if (!masterAttr) return; 
                             
-                            const location = {
-                                artifact_name: artifact.name || `Artefato ${artifact.position}`,
-                                element: gemElement,
-                                rarity: gem.rarity,
+                            const occurrence = {
+                                attr_id: attrId,
+                                attr_name: masterAttr.name,
+                                // Checagem de elemento
+                                element_valid: validateElementExclusivity(attrId, gemElement, masterAttributes),
                                 remodel: gemAttr.remodel,
-                                position: `A${artifact.position}-${gemElement.toUpperCase().charAt(0)}`
+                                weight: getRemodelWeight(gemAttr.remodel),
+                                tier: gemAttr.tier,
+                                location: {
+                                    artifact_name: artifact.name || `Artefato ${artifact.position}`,
+                                    element: gemElement,
+                                    position: `A${artifact.position}-${gemElement.toUpperCase().charAt(0)}`
+                                }
                             };
 
-                            // A) CHECAGEM DE EXCLUSIVIDADE (Auditoria)
-                            if (!validateElementExclusivity(attrId, gemElement, masterAttributes)) {
-                                analysisResult.invalid_placements.push({
-                                    attribute: masterAttr.name,
-                                    location: location
-                                });
-                                // Se inválido, optamos por não contar como "presente" para forçar correção
-                                return; 
+                            if (!equippedMap.has(attrId)) {
+                                equippedMap.set(attrId, []);
                             }
-                            
-                            // B) CHECAGEM DE OBRIGATORIEDADE
-                            if (requiredIds.has(attrId)) {
-                                gemHasRequired = true;
-                                allPresentIds.add(attrId);
-                                
-                                if (!analysisResult.present_attributes.has(attrId)) {
-                                    analysisResult.present_attributes.set(attrId, []);
-                                }
-                                analysisResult.present_attributes.get(attrId).push(location);
-                            }
-                        });
-                    }
-                    
-                    // C) CHECAGEM DE GEMA INÚTIL
-                    // Se a gema tem atributos, mas NENHUM deles está na lista de "Requeridos"
-                    if (!gemHasRequired && gem.attributes && gem.attributes.length > 0) {
-                        analysisResult.dispensable_gems.push({
-                            element: gemElement,
-                            location: {
-                                artifact_name: artifact.name || `Artefato ${artifact.position}`,
-                                position: `A${artifact.position}-${gemElement.toUpperCase().charAt(0)}`
-                            },
-                            reason: "Não contém nenhum atributo da lista 'Essencial'."
+                            equippedMap.get(attrId).push(occurrence);
                         });
                     }
                 });
             });
         }
+
+        // 2. PROCESSAR OCORRÊNCIAS (DETECTAR DUPLICATAS E CLASSIFICAR)
+        const allValidPresentIds = new Set();
+
+        equippedMap.forEach((occurrences, attrId) => {
+            // Ordena as ocorrências por peso (do maior para o menor)
+            // Se houver empate, mantém a ordem original (estabilidade do sort varia, mas ok para este caso)
+            occurrences.sort((a, b) => b.weight - a.weight);
+
+            // O primeiro da lista é o "Melhor" (Keeper)
+            const keeper = occurrences[0];
+
+            // Verifica se o Keeper é válido (elemento correto)
+            if (keeper.element_valid) {
+                // Classifica o Keeper
+                if (requiredIds.has(attrId)) {
+                    // É Requerido
+                    if (!analysisResult.present_attributes.has(attrId)) {
+                        analysisResult.present_attributes.set(attrId, []);
+                    }
+                    analysisResult.present_attributes.get(attrId).push(keeper.location);
+                    allValidPresentIds.add(attrId);
+                } else if (secondaryIds.has(attrId)) {
+                    // É Secundário
+                    analysisResult.secondary_present.push(keeper);
+                } else {
+                    // É Válido, mas não é Requerido nem Secundário -> Inútil
+                    analysisResult.useless_gems.push({
+                        ...keeper,
+                        reason: "Atributo não listado como Essencial ou Suporte."
+                    });
+                }
+            } else {
+                // Keeper inválido por elemento -> Marca como inútil/inválido
+                analysisResult.useless_gems.push({
+                    ...keeper,
+                    reason: "Elemento Incompatível (Bloqueado)."
+                });
+            }
+
+            // Todos os outros (índice 1 em diante) são Duplicatas que devem ser removidas
+            for (let i = 1; i < occurrences.length; i++) {
+                const duplicate = occurrences[i];
+                // Adiciona à lista de remoção com uma dica de quem ficou no lugar
+                analysisResult.duplicates_to_remove.push({
+                    ...duplicate,
+                    keeper_location: keeper.location.position,
+                    keeper_remodel: keeper.remodel,
+                    reason: `Duplicado. Mantenha o de ${keeper.location.position} (${keeper.remodel}).`
+                });
+            }
+        });
         
-        // 2. IDENTIFICAR ATRIBUTOS FALTANTES
+        // 3. IDENTIFICAR ATRIBUTOS FALTANTES (REQUERIDOS)
         requiredAttributes.forEach(req => {
-            if (!allPresentIds.has(req.attribute_id)) {
+            if (!allValidPresentIds.has(req.attribute_id)) {
                 const masterAttr = masterAttributes.find(a => a.id === req.attribute_id);
                 if (masterAttr) {
                     analysisResult.missing_attributes.push({
@@ -129,25 +174,27 @@ const AnalysisEngine = (() => {
             }
         });
         
-        // 3. CHECAGEM DE COMBOS
-        recommendedCombos.forEach(combo => {
-            let presentCount = 0;
-            combo.attribute_ids.forEach(attrId => {
-                if (allPresentIds.has(attrId)) {
-                    presentCount++;
+        // 4. CHECAGEM DE COMBOS
+        if (recommendedCombos) {
+            recommendedCombos.forEach(combo => {
+                let presentCount = 0;
+                combo.attribute_ids.forEach(attrId => {
+                    if (allValidPresentIds.has(attrId)) {
+                        presentCount++;
+                    }
+                });
+                
+                const completeness = (presentCount / combo.attribute_ids.length) * 100;
+                
+                if (completeness > 0) {
+                    analysisResult.combo_status.push({
+                        name: combo.name,
+                        completeness: completeness,
+                        missing_items: combo.attribute_ids.filter(id => !allValidPresentIds.has(id))
+                    });
                 }
             });
-            
-            const completeness = (presentCount / combo.attribute_ids.length) * 100;
-            
-            if (completeness > 0) {
-                analysisResult.combo_status.push({
-                    name: combo.name,
-                    completeness: completeness,
-                    missing_items: combo.attribute_ids.filter(id => !allPresentIds.has(id))
-                });
-            }
-        });
+        }
         
         return analysisResult;
     };
@@ -157,14 +204,12 @@ const AnalysisEngine = (() => {
      */
     const generateSuggestion = (missingAttr, characterBuild) => {
         const elements = ["fogo", "gelo", "luz", "veneno"];
-        
-        // Procura um slot vazio que aceite este atributo
         let bestSlot = null;
         
         if (characterBuild.artifacts) {
             for (const artifact of characterBuild.artifacts) {
                 if (!artifact) continue;
-                for (let i = 0; i < 4; i++) { // 4 slots fixos
+                for (let i = 0; i < 4; i++) { 
                     const gem = artifact.gems[i];
                     const element = elements[i];
                     

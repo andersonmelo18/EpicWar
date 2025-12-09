@@ -5,36 +5,30 @@
  */
 const AdminService = (() => {
 
-    // --- Constantes Globais (Usadas pelo Renderer e Controllers) ---
+    // --- Constantes Globais ---
     const ELEMENTS = ['fogo', 'gelo', 'luz', 'veneno'];
-    
-    // Raridades de Gema (conforme usado no Renderer)
-    const RARITIES = ['Comum', 'Raro', 'Épico', 'Legendário']; 
+    const RARITIES = ['Comum', 'Raro', 'Épico', 'Legendário', 'Mítico']; 
     
     // Níveis de Remodelação/Qualidade de atributo
-    const REMODELS = ['normal', 'raro', 'perfeito', 'epico', 'lendario', 'mitico'];
+    const REMODELS = ['comum', 'raro', 'épico', 'legendário', 'mítico'];
 
     // --- Inicialização ---
 
     const initializeMasterData = () => {
-        // Apenas garante que o StorageService preparou o terreno
-        // Se quiser adicionar dados de exemplo (seed), faria aqui.
         StorageService.initializeDefaultData();
     };
 
     // --- Lógica: Atributos Mestres ---
 
     const saveMasterAttribute = (attrData) => {
-        const attributes = StorageService.loadMasterAttributes();
+        let attributes = StorageService.loadMasterAttributes();
         
         if (attrData.id) {
-            // Edição: Encontra e substitui
+            // Edição
             const index = attributes.findIndex(a => a.id === attrData.id);
-            if (index !== -1) {
-                attributes[index] = attrData;
-            }
+            if (index !== -1) attributes[index] = attrData;
         } else {
-            // Criação: Gera ID novo e adiciona
+            // Criação
             attrData.id = Date.now();
             attributes.push(attrData);
         }
@@ -48,14 +42,25 @@ const AdminService = (() => {
         attributes = attributes.filter(a => a.id !== id);
         StorageService.saveMasterAttributes(attributes);
         
-        // Opcional: Limpar também dos Requisitos se for deletado
-        // (Isso mantém a integridade dos dados)
+        // Limpeza em cascata (remove de requeridos e secundários)
+        cleanUpDeletedAttribute(id);
+    };
+
+    /**
+     * Remove referências a um atributo mestre deletado de outras listas.
+     */
+    const cleanUpDeletedAttribute = (masterId) => {
+        // Remove dos requeridos
         let required = StorageService.loadRequiredAttributes();
         const initialReqLength = required.length;
-        required = required.filter(r => r.attribute_id !== id);
-        if (required.length !== initialReqLength) {
-            StorageService.saveRequiredAttributes(required);
-        }
+        required = required.filter(r => r.attribute_id !== masterId);
+        if (required.length !== initialReqLength) StorageService.saveRequiredAttributes(required);
+
+        // Remove dos secundários
+        let secondary = StorageService.loadSecondaryAttributes();
+        const initialSecLength = secondary.length;
+        secondary = secondary.filter(s => s.attribute_id !== masterId);
+        if (secondary.length !== initialSecLength) StorageService.saveSecondaryAttributes(secondary);
     };
 
     // --- Lógica: Atributos Requeridos ---
@@ -69,12 +74,19 @@ const AdminService = (() => {
             return;
         }
 
-        const newReq = {
+        // Evita conflito com secundários (não pode ser os dois)
+        const secondary = StorageService.loadSecondaryAttributes();
+        if (secondary.some(s => s.attribute_id === attributeId)) {
+            if(!confirm("Este atributo está na lista de Secundários. Deseja movê-lo para Essencial?")) return;
+            // Remove do secundário
+            deleteSecondaryAttributeByAttrId(attributeId);
+        }
+
+        required.push({
             id: Date.now(),
             attribute_id: attributeId
-        };
+        });
         
-        required.push(newReq);
         StorageService.saveRequiredAttributes(required);
     };
 
@@ -84,19 +96,54 @@ const AdminService = (() => {
         StorageService.saveRequiredAttributes(required);
     };
 
+    // --- Lógica: Atributos Secundários (NOVO) ---
+
+    const addSecondaryAttribute = (attributeId) => {
+        const secondary = StorageService.loadSecondaryAttributes();
+        
+        // Validação 1: Duplicata
+        if (secondary.some(s => s.attribute_id === attributeId)) {
+            alert("Este atributo já está na lista de secundários.");
+            return;
+        }
+
+        // Validação 2: Conflito com Essencial
+        const required = StorageService.loadRequiredAttributes();
+        if (required.some(r => r.attribute_id === attributeId)) {
+            alert("Este atributo já é um Requisito Essencial. Remova-o de lá primeiro.");
+            return;
+        }
+
+        secondary.push({
+            id: Date.now(),
+            attribute_id: attributeId
+        });
+        
+        StorageService.saveSecondaryAttributes(secondary);
+    };
+
+    const deleteSecondaryAttribute = (id) => {
+        let secondary = StorageService.loadSecondaryAttributes();
+        secondary = secondary.filter(s => s.id !== id);
+        StorageService.saveSecondaryAttributes(secondary);
+    };
+
+    // Helper interno para mover de lista
+    const deleteSecondaryAttributeByAttrId = (attrId) => {
+        let secondary = StorageService.loadSecondaryAttributes();
+        secondary = secondary.filter(s => s.attribute_id !== attrId);
+        StorageService.saveSecondaryAttributes(secondary);
+    };
+
     // --- Lógica: Combos Recomendados ---
 
     const saveRecommendedCombo = (comboData) => {
-        const combos = StorageService.loadRecommendedCombos();
+        let combos = StorageService.loadRecommendedCombos();
 
         if (comboData.id) {
-            // Edição
             const index = combos.findIndex(c => c.id === comboData.id);
-            if (index !== -1) {
-                combos[index] = comboData;
-            }
+            if (index !== -1) combos[index] = comboData;
         } else {
-            // Criação
             comboData.id = Date.now();
             combos.push(comboData);
         }
@@ -110,26 +157,17 @@ const AdminService = (() => {
         StorageService.saveRecommendedCombos(combos);
     };
 
-    // --- Exportação Pública ---
-
     return {
-        // Constantes
         ELEMENTS,
         RARITIES,
         REMODELS,
-        
-        // Inicialização
         initializeMasterData,
-
-        // Atributos Mestres
-        saveMasterAttribute, // <--- A função que estava faltando!
+        saveMasterAttribute,
         deleteMasterAttribute,
-
-        // Atributos Requeridos
         addRequiredAttribute,
         deleteRequiredAttribute,
-
-        // Combos
+        addSecondaryAttribute,    // <--- NOVO
+        deleteSecondaryAttribute, // <--- NOVO
         saveRecommendedCombo,
         deleteRecommendedCombo
     };
