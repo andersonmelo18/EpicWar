@@ -17,92 +17,96 @@ const StorageService = (() => {
     // =================================================================
 
     const DEFAULT_MASTER_ATTRIBUTES = [
-
-        // ===========================
-        // 🔥 ESSENCIAIS (principais)
-        // ===========================
+        // ============================
+        // TIER 3 (já estavam corretos)
+        // ============================
         { "id": 1765207358906, "name": "Tirano", "tier": 3, "default_element": "fogo" },
         { "id": 1765207381869, "name": "Benção de Deus", "tier": 3, "default_element": "luz" },
         { "id": 1765207392607, "name": "Enfraquecer Tirano", "tier": 3, "default_element": "gelo" },
         { "id": 1765207399175, "name": "Hades", "tier": 3, "default_element": "veneno" },
-
         { "id": 1765209396487, "name": "Redução de Dano de Tropas", "tier": 3, "default_element": null },
         { "id": 1765209408922, "name": "Dano de Tropas", "tier": 3, "default_element": null },
         { "id": 1765209428018, "name": "Capacidade de Herói", "tier": 3, "default_element": null },
         { "id": 1765209440788, "name": "Poder da Unidade", "tier": 3, "default_element": null },
         { "id": 1765209450240, "name": "Supressão", "tier": 3, "default_element": null },
         { "id": 1765209460385, "name": "Atenuar Supressão", "tier": 3, "default_element": null },
-
+        { "id": 1765209473208, "name": "Taxa de Produção de Primavera", "tier": 3, "default_element": null },
         { "id": 1765209489771, "name": "Todo Poder das Gemas de Fogo", "tier": 3, "default_element": "fogo" },
         { "id": 1765209502309, "name": "Todo Poder das Gemas de Luz", "tier": 3, "default_element": "luz" },
         { "id": 1765209515940, "name": "Todo Poder das Gemas de Gelo", "tier": 3, "default_element": "gelo" },
         { "id": 1765209526407, "name": "Todo Poder das Gemas de Veneno", "tier": 3, "default_element": "veneno" },
 
+        // ============================
+        // TIER 2 — ORGANIZADO POR ELEMENTO
+        // ============================
+
+        // 🔥 FOGO
+        { "id": 1765209574691, "name": "Dano de Contra Ataque", "tier": 2, "default_element": "fogo" },
+        { "id": 1765241953547, "name": "Capacidade de Tropa do Héroi de Fogo", "tier": 2, "default_element": "fogo" },
+        { "id": 1765241986990, "name": "Todo Poder das Tropas de Fogo", "tier": 2, "default_element": "fogo" },
+
+        // ❄️ GELO
+        { "id": 1765209594158, "name": "Dano de Contra Ataque Recebido", "tier": 2, "default_element": "gelo" },
+        { "id": 1765242126023, "name": "Capacidade da Tropa do Herói de Gelo", "tier": 2, "default_element": "gelo" },
+        { "id": 1765242162340, "name": "Todo Poder das Tropas de Gelo", "tier": 2, "default_element": "gelo" },
+
+        // 🌟 LUZ
+        { "id": 1765242269786, "name": "Todo Poder das Tropas de Luz", "tier": 2, "default_element": "luz" },
+        { "id": 1765242365946, "name": "Capacidade da Tropa do Herói de Luz", "tier": 2, "default_element": "luz" },
+        { "id": 1765242474029, "name": "Redução de Dano das Tropas de Guarnição", "tier": 2, "default_element": "luz" },
+
+        // 🐍 VENENO
+        { "id": 1765242279296, "name": "Todo Poder das Tropas de Veneno", "tier": 2, "default_element": "veneno" },
+        { "id": 1765242373115, "name": "Capacidade da Tropa do Herói de Veneno", "tier": 2, "default_element": "veneno" },
+        { "id": 1765242530809, "name": "Dano de Cerco das Tropas", "tier": 2, "default_element": "veneno" },
+
+        // ⚪ SEM ELEMENTO
         { "id": 1765209543487, "name": "Guardião", "tier": 2, "default_element": null },
         { "id": 1765209555857, "name": "Sede de Sangue", "tier": 2, "default_element": null },
-        { "id": 1765209574691, "name": "Dano de Contra Ataque", "tier": 2, "default_element": "fogo" },
-        { "id": 1765209594158, "name": "Dano de Contra Ataque Recebido", "tier": 2, "default_element": "gelo" },
+        { "id": 1765209628027, "name": "Capacidade dos mortos da Primavera", "tier": 2, "default_element": null },
+        { "id": 1765209654779, "name": "Capacidade de Fonte de Renovação de Primavera", "tier": 2, "default_element": null },
+        { "id": 1765241906546, "name": "Dano de Reunião de Tropas", "tier": 2, "default_element": null },
 
+        // ============================
+        // TIER 1 — ORGANIZADO POR ELEMENTO
+        // ============================
+
+        // 🔥 FOGO
+        { "id": 1765209744548, "name": "Capacidade das Tropas De Fogo", "tier": 1, "default_element": "fogo" },
+        { "id": 1765242804900, "name": "Todo Poder de Fogo do Herói", "tier": 1, "default_element": "fogo" },
+        { "id": 1765242564023, "name": "Assalto do Herói de Fogo", "tier": 1, "default_element": "fogo" },
+        { "id": 1765242640084, "name": "Hp do Herói de Fogo", "tier": 1, "default_element": "fogo" },
+
+        // ❄️ GELO
+        { "id": 1765209778637, "name": "Capacidade das Tropas De Gelo", "tier": 1, "default_element": "gelo" },
+        { "id": 1765242199773, "name": "Todo Poder de Gelo do Herói", "tier": 1, "default_element": "gelo" },
+        { "id": 1765242570170, "name": "Assalto do Herói de Gelo", "tier": 1, "default_element": "gelo" },
+        { "id": 1765242645605, "name": "Hp do Herói de Gelo", "tier": 1, "default_element": "gelo" },
+
+        // 🌟 LUZ
+        { "id": 1765209798209, "name": "Capacidade das Tropas De Luz", "tier": 1, "default_element": "luz" },
+        { "id": 1765242226305, "name": "Todo Poder de Luz do Herói", "tier": 1, "default_element": "luz" },
+        { "id": 1765242611661, "name": "Assalto do Herói de Luz", "tier": 1, "default_element": "luz" },
+        { "id": 1765242651617, "name": "Hp do Herói de Luz", "tier": 1, "default_element": "luz" },
+
+        // 🐍 VENENO
+        { "id": 1765209789078, "name": "Capacidade das Tropas De Veneno", "tier": 1, "default_element": "veneno" },
+        { "id": 1765242247346, "name": "Todo Poder de Veneno do Herói", "tier": 1, "default_element": "veneno" },
+        { "id": 1765242589125, "name": "Assalto do Herói de Veneno", "tier": 1, "default_element": "veneno" },
+        { "id": 1765242657266, "name": "Hp do Herói de Veneno", "tier": 1, "default_element": "veneno" },
+
+        // ⚪ SEM ELEMENTO
         { "id": 1765209673667, "name": "Revival", "tier": 1, "default_element": null },
         { "id": 1765209681040, "name": "Enfraquecer Revival", "tier": 1, "default_element": null },
         { "id": 1765209686619, "name": "Massacre", "tier": 1, "default_element": null },
         { "id": 1765209694646, "name": "Enfraquecer Massacre", "tier": 1, "default_element": null },
-
-        // ===========================
-        // ⭐ SECUNDÁRIOS
-        // ===========================
-        { "id": 1765209744548, "name": "Capacidade das Tropas De Fogo", "tier": 1, "default_element": "fogo" },
-        { "id": 1765209778637, "name": "Capacidade das Tropas De Gelo", "tier": 1, "default_element": "gelo" },
-        { "id": 1765209789078, "name": "Capacidade das Tropas De Veneno", "tier": 1, "default_element": "veneno" },
-        { "id": 1765209798209, "name": "Capacidade das Tropas De Luz", "tier": 1, "default_element": "luz" },
-
-        { "id": 1765241906546, "name": "Dano de Reunião de Tropas", "tier": 2, "default_element": null },
-
-        { "id": 1765241953547, "name": "Capacidade de Tropa do Héroi de Fogo", "tier": 2, "default_element": "fogo" },
-        { "id": 1765242126023, "name": "Capacidade da Tropa do Herói de Gelo", "tier": 2, "default_element": "gelo" },
-        { "id": 1765242365946, "name": "Capacidade da Tropa do Herói de Luz", "tier": 2, "default_element": "luz" },
-        { "id": 1765242373115, "name": "Capacidade da Tropa do Herói de Veneno", "tier": 2, "default_element": "veneno" },
-
-        { "id": 1765241986990, "name": "Todo Poder das Tropas de Fogo", "tier": 2, "default_element": "fogo" },
-        { "id": 1765242162340, "name": "Todo Poder das Tropas de Gelo", "tier": 2, "default_element": "gelo" },
-        { "id": 1765242269786, "name": "Todo Poder das Tropas de Luz", "tier": 2, "default_element": "luz" },
-        { "id": 1765242279296, "name": "Todo Poder das Tropas de Veneno", "tier": 2, "default_element": "veneno" },
-
-        { "id": 1765242199773, "name": "Todo Poder de Gelo do Herói", "tier": 1, "default_element": "gelo" },
-        { "id": 1765242226305, "name": "Todo Poder de Luz do Herói", "tier": 1, "default_element": "luz" },
-        { "id": 1765242247346, "name": "Todo Poder de Veneno do Herói", "tier": 1, "default_element": "veneno" },
-        { "id": 1765242804900, "name": "Todo Poder de Fogo do Herói", "tier": 1, "default_element": "fogo" },
-
-        { "id": 1765242474029, "name": "Redução de Dano das Tropas de Guarnição", "tier": 2, "default_element": "luz" },
-        { "id": 1765242530809, "name": "Dano de Cerco das Tropas", "tier": 2, "default_element": "veneno" },
-
-        // ===========================
-        // ⚙️ OUTROS / SOBRANDO
-        // ===========================
-        { "id": 1765209473208, "name": "Taxa de Produção de Primavera", "tier": 3, "default_element": null },
-        { "id": 1765209628027, "name": "Capacidade dos mortos da Primavera", "tier": 2, "default_element": null },
-        { "id": 1765209654779, "name": "Capacidade de Fonte de Renovação de Primavera", "tier": 2, "default_element": null },
-
         { "id": 1765209705989, "name": "Recrutamento Rápido", "tier": 1, "default_element": null },
-
-        { "id": 1765242564023, "name": "Assalto do Herói de Fogo", "tier": 1, "default_element": "fogo" },
-        { "id": 1765242570170, "name": "Assalto do Herói de Gelo", "tier": 1, "default_element": "gelo" },
-        { "id": 1765242589125, "name": "Assalto do Herói de Veneno", "tier": 1, "default_element": "veneno" },
-        { "id": 1765242611661, "name": "Assalto do Herói de Luz", "tier": 1, "default_element": "luz" },
-
-        { "id": 1765242640084, "name": "Hp do Herói de Fogo", "tier": 1, "default_element": "fogo" },
-        { "id": 1765242645605, "name": "Hp do Herói de Gelo", "tier": 1, "default_element": "gelo" },
-        { "id": 1765242651617, "name": "Hp do Herói de Luz", "tier": 1, "default_element": "luz" },
-        { "id": 1765242657266, "name": "Hp do Herói de Veneno", "tier": 1, "default_element": "veneno" },
-
         { "id": 1765242702345, "name": "Ouro Adicional", "tier": 1, "default_element": null },
         { "id": 1765242708490, "name": "Madeira Adicional", "tier": 1, "default_element": null },
         { "id": 1765242713476, "name": "Cristal Adicional", "tier": 1, "default_element": null },
         { "id": 1765242717943, "name": "Comida Adicional", "tier": 1, "default_element": null },
-
         { "id": 1765243349367, "name": "Dano Garantido", "tier": 1, "default_element": null },
         { "id": 1765243357237, "name": "Redução Dano Garantido", "tier": 1, "default_element": null }
-
     ];
 
     const DEFAULT_REQUIRED_ATTRIBUTES = [
@@ -131,7 +135,108 @@ const StorageService = (() => {
     ];
 
     // NOVO: Lista vazia por padrão para secundários (você poderá preencher via Admin depois)
-    const DEFAULT_SECONDARY_ATTRIBUTES = [];
+    const DEFAULT_SECONDARY_ATTRIBUTES = [
+        {
+            "id": 1765329578326,
+            "attribute_id": 1765243349367
+        },
+        {
+            "id": 1765329585252,
+            "attribute_id": 1765243357237
+        },
+        {
+            "id": 1765329592693,
+            "attribute_id": 1765209705989
+        },
+        {
+            "id": 1765329607653,
+            "attribute_id": 1765242247346
+        },
+        {
+            "id": 1765329618025,
+            "attribute_id": 1765209789078
+        },
+        {
+            "id": 1765329626001,
+            "attribute_id": 1765242226305
+        },
+        {
+            "id": 1765329633078,
+            "attribute_id": 1765209798209
+        },
+        {
+            "id": 1765329640373,
+            "attribute_id": 1765242162340
+        },
+        {
+            "id": 1765329651351,
+            "attribute_id": 1765209778637
+        },
+        {
+            "id": 1765329658598,
+            "attribute_id": 1765242804900
+        },
+        {
+            "id": 1765329669206,
+            "attribute_id": 1765209744548
+        },
+        {
+            "id": 1765329681986,
+            "attribute_id": 1765241906546
+        },
+        {
+            "id": 1765329695218,
+            "attribute_id": 1765209654779
+        },
+        {
+            "id": 1765329699444,
+            "attribute_id": 1765209628027
+        },
+        {
+            "id": 1765329716523,
+            "attribute_id": 1765242530809
+        },
+        {
+            "id": 1765329729774,
+            "attribute_id": 1765242373115
+        },
+        {
+            "id": 1765329737719,
+            "attribute_id": 1765242279296
+        },
+        {
+            "id": 1765329750291,
+            "attribute_id": 1765242474029
+        },
+        {
+            "id": 1765329755550,
+            "attribute_id": 1765242365946
+        },
+        {
+            "id": 1765329775287,
+            "attribute_id": 1765242269786
+        },
+        {
+            "id": 1765329815245,
+            "attribute_id": 1765242126023
+        },
+        {
+            "id": 1765329902726,
+            "attribute_id": 1765241986990
+        },
+        {
+            "id": 1765329906485,
+            "attribute_id": 1765241953547
+        },
+        {
+            "id": 1765329913797,
+            "attribute_id": 1765209473208
+        },
+        {
+            "id": 1765330000569,
+            "attribute_id": 1765242199773
+        }
+    ];
 
     const DEFAULT_RECOMMENDED_COMBOS = [];
 
