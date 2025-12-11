@@ -54,6 +54,7 @@ const AnalysisEngine = (() => {
         const analysisResult = {
             present_attributes: new Map(), // Map<Attribute ID, Array<Location>> (Válidos e Únicos)
             missing_attributes: [],        // Requeridos que faltam
+            missing_secondaries: [],       // Secundários que faltam (NOVO)
             secondary_present: [],         // Secundários presentes (Válidos e Únicos)
             duplicates_to_remove: [],      // Duplicatas Piores (Troca Urgente)
             useless_gems: [],              // Inúteis (Troca Urgente) ou Inválidos
@@ -127,11 +128,21 @@ const AnalysisEngine = (() => {
                     if (!analysisResult.present_attributes.has(attrId)) {
                         analysisResult.present_attributes.set(attrId, []);
                     }
-                    analysisResult.present_attributes.get(attrId).push(keeper.location);
+                    
+                    // --- CORREÇÃO DO UNDEFINED ---
+                    // Antes: analysisResult.present_attributes.get(attrId).push(keeper.location);
+                    // Agora: Mesclamos location com remodel para que o PDF consiga ler
+                    analysisResult.present_attributes.get(attrId).push({
+                        ...keeper.location,
+                        remodel: keeper.remodel
+                    });
+                    // -----------------------------
+
                     allValidPresentIds.add(attrId);
                 } else if (secondaryIds.has(attrId)) {
                     // É Secundário
                     analysisResult.secondary_present.push(keeper);
+                    allValidPresentIds.add(attrId); // Adiciona aos presentes para cálculo de secundários faltantes
                 } else {
                     // É Válido, mas não é Requerido nem Secundário -> Inútil
                     analysisResult.useless_gems.push({
@@ -168,11 +179,29 @@ const AnalysisEngine = (() => {
                     analysisResult.missing_attributes.push({
                         attribute: masterAttr.name,
                         id: masterAttr.id,
+                        tier: masterAttr.tier, // Importante para o PDF
                         required_element: masterAttr.default_element
                     });
                 }
             }
         });
+
+        // 5. IDENTIFICAR SECUNDÁRIOS FALTANTES (NOVO)
+        if (secondaryAttributes) {
+            secondaryAttributes.forEach(sec => {
+                if (!allValidPresentIds.has(sec.attribute_id)) {
+                    const masterAttr = masterAttributes.find(a => a.id === sec.attribute_id);
+                    if (masterAttr) {
+                        analysisResult.missing_secondaries.push({
+                            attribute: masterAttr.name,
+                            id: masterAttr.id,
+                            tier: masterAttr.tier, // Importante para o PDF
+                            required_element: masterAttr.default_element
+                        });
+                    }
+                }
+            });
+        }
         
         // 4. CHECAGEM DE COMBOS
         if (recommendedCombos) {

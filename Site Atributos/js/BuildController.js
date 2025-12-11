@@ -88,7 +88,7 @@ const BuildController = (() => {
         document.getElementById('char-name').value = currentBuild.name || '';
         document.getElementById('char-class').value = currentBuild.class || '';
         document.getElementById('artifact-count').value = currentBuild.artifacts.length;
-        renderBuildEditor(); 
+        renderBuildEditor();
     };
 
     const updateArtifactCount = (count) => {
@@ -229,7 +229,7 @@ const BuildController = (() => {
         if (artifact) {
             loadDependencies();
             Renderer.renderGemModal(artifact, currentSlotIndex, gem, masterAttributes);
-            Renderer.attachModalCloseListeners(); 
+            Renderer.attachModalCloseListeners();
             setupGemModalListeners(artifact.gems[currentSlotIndex]);
         }
     };
@@ -366,7 +366,7 @@ const BuildController = (() => {
             if (attrId) gemAttributes.push({ attribute_id: attrId, remodel: remodel, tier: tier });
         });
         if (gemAttributes.length === 0) { alert("Selecione pelo menos 1 atributo."); return; }
-        
+
         const newGem = {
             element: AdminService.ELEMENTS[currentSlotIndex],
             rarity: form.querySelector('#gem-rarity').value,
@@ -408,22 +408,27 @@ const BuildController = (() => {
         currentBuild.id = savedBuild.id;
 
         alert(`Build "${currentBuild.name}" salva com sucesso!`);
-        App.showDashboard(); 
+        App.showDashboard();
     };
 
+    // --- RELATÓRIO FINAL E EXPORTAÇÃO ---
+
     const generateFinalReport = () => {
+        // Atualiza dados atuais antes de gerar
         const nameInput = document.getElementById('char-name');
         const classInput = document.getElementById('char-class');
         if (nameInput) currentBuild.name = nameInput.value;
         if (classInput) currentBuild.class = classInput.value;
 
+        // Executa análise
         const analysis = AnalysisEngine.runAnalysis(currentBuild, masterAttributes, requiredAttributes, secondaryAttributes, recommendedCombos);
-        
+
         App.showView('report');
         const reportView = document.getElementById('report-view');
-        
+
         if (!reportView) { alert("View de relatório não encontrada."); return; }
 
+        // --- HTML DO RELATÓRIO ---
         let html = `
             <div class="bg-white p-8 rounded-xl shadow-2xl">
                 <h2 class="text-3xl font-bold text-indigo-700 mb-2">Relatório: "${currentBuild.name || 'Sem Nome'}"</h2>
@@ -435,7 +440,7 @@ const BuildController = (() => {
                     </div>
                     <div class="p-4 bg-blue-50 rounded-lg">
                         <h4 class="font-bold text-blue-800 text-sm">Secundários</h4>
-                        <p class="text-2xl font-extrabold text-blue-600">${analysis.secondary_present.length}</p>
+                        <p class="text-2xl font-extrabold text-blue-600">${analysis.secondary_present.length}/${secondaryAttributes.length}</p>
                     </div>
                     <div class="p-4 bg-orange-50 rounded-lg">
                         <h4 class="font-bold text-orange-800 text-sm">Duplicatas</h4>
@@ -494,10 +499,10 @@ const BuildController = (() => {
                         <div>
                             <h5 class="font-semibold text-indigo-600">Essenciais (${analysis.present_attributes.size})</h5>
                             <ul class="list-disc list-inside text-gray-600">
-                                ${Array.from(analysis.present_attributes).map(([id, locations]) => { 
-                                    const attr = masterAttributes.find(a => a.id === id); 
-                                    return attr ? `<li>${attr.name} (${locations[0].remodel})</li>` : ''; 
-                                }).join('')}
+                                ${Array.from(analysis.present_attributes).map(([id, locations]) => {
+            const attr = masterAttributes.find(a => a.id === id);
+            return attr ? `<li>${attr.name} (${locations[0].remodel})</li>` : '';
+        }).join('')}
                             </ul>
                         </div>
                         <div>
@@ -510,15 +515,18 @@ const BuildController = (() => {
                 </div>
 
                 <div class="flex justify-end space-x-4 mt-8 pt-4 border-t">
-                    <button id="export-pdf-btn" class="bg-red-600 text-white px-6 py-3 rounded hover:bg-red-700">PDF</button>
-                    <button id="export-csv-btn" class="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700">CSV</button>
-                    <button id="share-link-btn" class="bg-purple-600 text-white px-6 py-3 rounded hover:bg-purple-700">Link</button>
+                    <button id="save-report-draft-btn" class="bg-gray-500 text-white px-6 py-3 rounded hover:bg-gray-600 shadow-md transition duration-150">Salvar Rascunho</button>
+                    <button id="export-pdf-btn" class="bg-red-600 text-white px-6 py-3 rounded hover:bg-red-700 shadow-md transition duration-150">PDF</button>
+                    <button id="export-csv-btn" class="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 shadow-md transition duration-150">CSV</button>
+                    <button id="share-link-btn" class="bg-purple-600 text-white px-6 py-3 rounded hover:bg-purple-700 shadow-md transition duration-150">Link</button>
                 </div>
                 <p id="share-link-output" class="mt-4 text-center text-sm hidden"></p>
             </div>
         `;
         reportView.innerHTML = html;
 
+        // LISTENERS
+        document.getElementById('save-report-draft-btn').addEventListener('click', () => saveCurrentBuild(true)); // <--- NOVO LISTENER
         document.getElementById('export-pdf-btn').addEventListener('click', () => handleExport('pdf', analysis));
         document.getElementById('export-csv-btn').addEventListener('click', () => handleExport('csv', analysis));
         document.getElementById('share-link-btn').addEventListener('click', handleShareLink);
@@ -543,88 +551,178 @@ const BuildController = (() => {
             const doc = new jsPDF();
             let y = 10;
 
+            const checkPageBreak = (spaceNeeded = 20) => {
+                if (y + spaceNeeded > 280) {
+                    doc.addPage();
+                    y = 10;
+                }
+            };
+
+            // --- TÍTULO ---
             doc.setFontSize(18);
+            doc.setTextColor(0, 0, 0);
             doc.text(`Relatório: ${currentBuild.name}`, 10, y);
             y += 10;
             
             // --- RESUMO ---
             doc.setFontSize(12);
-            doc.text("Resumo:", 10, y);
-            y += 7;
+            doc.text("Resumo da Análise:", 10, y);
+            y += 8;
+            
             doc.setFontSize(10);
             doc.text(`Essenciais: ${analysis.present_attributes.size}/${requiredAttributes.length}`, 10, y);
             y += 5;
-            doc.text(`Secundários: ${analysis.secondary_present.length}`, 10, y);
+            
+            // --- MUDANÇA AQUI (X/Y) ---
+            doc.text(`Secundários Presentes: ${analysis.secondary_present.length}/${secondaryAttributes.length}`, 10, y);
             y += 5;
+            // --------------------------
+
             doc.text(`Duplicatas Ruins: ${analysis.duplicates_to_remove.length}`, 10, y);
             y += 5;
             doc.text(`Inúteis: ${analysis.useless_gems.length}`, 10, y);
             y += 10;
 
-            // --- FALTANTES ---
+            // --- 1. FALTANDO ESSENCIAIS ---
             if (analysis.missing_attributes.length > 0) {
-                doc.setTextColor(200,0,0); // Red
-                doc.text("FALTANDO (ESSENCIAIS):", 10, y);
-                y += 5;
-                doc.setTextColor(0,0,0);
+                checkPageBreak();
+                doc.setFontSize(12);
+                doc.setTextColor(200, 0, 0); // Vermelho
+                doc.text("FALTANDO ESSENCIAIS (Prioridade):", 10, y);
+                y += 6;
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                
                 analysis.missing_attributes.forEach(m => {
-                    doc.text(`- ${m.attribute}`, 15, y);
+                    checkPageBreak();
+                    const attrInfo = masterAttributes.find(a => a.id === m.id);
+                    const tierInfo = attrInfo ? `(Lv${attrInfo.tier})` : '';
+                    doc.text(`- ${m.attribute} ${tierInfo}`, 15, y);
                     y += 5;
                 });
                 y += 5;
             }
 
-            // --- DUPLICATAS (REMOVER) ---
+            // --- 2. FALTANDO SECUNDÁRIAS ---
+            if (analysis.missing_secondaries && analysis.missing_secondaries.length > 0) {
+                checkPageBreak();
+                doc.setFontSize(12);
+                doc.setTextColor(0, 0, 150); // Azul Escuro
+                doc.text("FALTANDO SECUNDÁRIAS (Opcional/Melhoria):", 10, y);
+                y += 6;
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                
+                analysis.missing_secondaries.forEach(m => {
+                    checkPageBreak();
+                    const attrInfo = masterAttributes.find(a => a.id === m.id);
+                    const tierInfo = attrInfo ? `(Lv${attrInfo.tier})` : '';
+                    doc.text(`- ${m.attribute} ${tierInfo}`, 15, y);
+                    y += 5;
+                });
+                y += 5;
+            }
+
+            // --- 3. DUPLICATAS ---
             if (analysis.duplicates_to_remove.length > 0) {
-                doc.setTextColor(200,100,0); // Orange
+                checkPageBreak();
+                doc.setFontSize(12);
+                doc.setTextColor(200, 100, 0); // Laranja
                 doc.text("REMOVER DUPLICATAS:", 10, y);
-                y += 5;
-                doc.setTextColor(0,0,0);
+                y += 6;
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                
                 analysis.duplicates_to_remove.forEach(d => {
-                    doc.text(`- ${d.attr_name} (${d.location.position}) -> ${d.reason}`, 15, y);
+                    checkPageBreak();
+                    const attrInfo = masterAttributes.find(a => a.id === d.attr_id);
+                    const tierInfo = attrInfo ? `(Lv${attrInfo.tier})` : '';
+                    doc.text(`- ${d.attr_name} ${tierInfo} em ${d.location.position}`, 15, y);
+                    doc.setFontSize(8);
+                    doc.setTextColor(100, 100, 100);
+                    y += 4;
+                    doc.text(`  Motivo: ${d.reason}`, 15, y);
+                    doc.setFontSize(10);
+                    doc.setTextColor(0, 0, 0);
                     y += 5;
                 });
                 y += 5;
             }
 
-            // --- INÚTEIS (REMOVER) ---
+            // --- 4. INÚTEIS ---
             if (analysis.useless_gems.length > 0) {
-                doc.setTextColor(180,180,0); // Dark Yellow
-                doc.text("GEMS INÚTEIS/INVÁLIDAS:", 10, y);
-                y += 5;
-                doc.setTextColor(0,0,0);
+                checkPageBreak();
+                doc.setFontSize(12);
+                doc.setTextColor(180, 180, 0); // Amarelo Escuro
+                doc.text("GEMS INÚTEIS/INVÁLIDAS (Trocar):", 10, y);
+                y += 6;
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                
                 analysis.useless_gems.forEach(u => {
-                    doc.text(`- ${u.attr_name} em ${u.location.position}`, 15, y);
+                    checkPageBreak();
+                    const attrInfo = masterAttributes.find(a => a.id === u.attr_id);
+                    const tierInfo = attrInfo ? `(Lv${attrInfo.tier})` : '';
+                    doc.text(`- ${u.attr_name} ${tierInfo} em ${u.location.position}`, 15, y);
                     y += 5;
                 });
                 y += 5;
             }
 
-            // --- INVENTÁRIO (PRESENTES) ---
-            doc.setTextColor(0,100,0); // Green
-            doc.text("INVENTÁRIO (ESSENCIAIS):", 10, y);
-            y += 5;
-            doc.setTextColor(0,0,0);
+            // --- 5. INVENTÁRIO (ESSENCIAIS) ---
+            checkPageBreak();
+            doc.setFontSize(12);
+            doc.setTextColor(0, 100, 0); // Verde
+            doc.text("ATRIBUTOS ESSENCIAIS EQUIPADOS:", 10, y);
+            y += 6;
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
             
             analysis.present_attributes.forEach((locations, id) => {
+                checkPageBreak();
                 const attr = masterAttributes.find(a => a.id === id);
                 if (attr) {
-                    doc.text(`- ${attr.name} (${locations[0].remodel})`, 15, y);
+                    doc.text(`- ${attr.name} (Lv${attr.tier}): ${locations[0].remodel}`, 15, y);
                     y += 5;
                 }
             });
             y += 5;
 
+            // --- 5.1. INVENTÁRIO (SECUNDÁRIOS) ---
             if (analysis.secondary_present.length > 0) {
-                doc.setTextColor(0,0,150); // Blue
-                doc.text("INVENTÁRIO (SECUNDÁRIOS):", 10, y);
-                y += 5;
-                doc.setTextColor(0,0,0);
+                checkPageBreak();
+                doc.setFontSize(12);
+                doc.setTextColor(0, 0, 150); // Azul
+                doc.text("ATRIBUTOS SECUNDÁRIOS EQUIPADOS:", 10, y);
+                y += 6;
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+
                 analysis.secondary_present.forEach(s => {
-                    doc.text(`- ${s.attr_name} (${s.remodel})`, 15, y);
+                    checkPageBreak();
+                    doc.text(`- ${s.attr_name} (Lv${s.tier}): ${s.remodel} [${s.location.position}]`, 15, y);
                     y += 5;
                 });
+                y += 5;
             }
+
+            // --- 6. OBSERVAÇÕES ---
+            checkPageBreak(40);
+            doc.setDrawColor(200, 200, 200);
+            doc.line(10, y, 200, y);
+            y += 8;
+            
+            doc.setFontSize(14);
+            doc.setTextColor(0, 0, 0);
+            doc.text("Observações & Dicas:", 10, y);
+            y += 6;
+            
+            doc.setFontSize(10);
+            doc.setTextColor(80, 80, 80);
+            
+            const globalNotes = StorageService.loadGlobalNotes();
+            const splitNotes = doc.splitTextToSize(globalNotes, 180);
+            doc.text(splitNotes, 10, y);
 
             doc.save(`${buildName}.pdf`);
 

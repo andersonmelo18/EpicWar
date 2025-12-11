@@ -11,24 +11,26 @@ const AdminController = (() => {
         // Abas
         masterAttributesTab: document.getElementById('master-attributes-tab'),
         requiredAttributesTab: document.getElementById('required-attributes-tab'),
-        secondaryAttributesTab: document.getElementById('secondary-attributes-tab'), // <--- NOVO
+        secondaryAttributesTab: document.getElementById('secondary-attributes-tab'),
         recommendedCombosTab: document.getElementById('recommended-combos-tab'),
         toolsTab: document.getElementById('tools-tab'),
         // Botões de Adicionar
         addMasterAttributeBtn: document.getElementById('add-master-attribute-btn'),
         addRequiredAttributeBtn: document.getElementById('add-required-attribute-btn'),
-        addSecondaryAttributeBtn: document.getElementById('add-secondary-attribute-btn'), // <--- NOVO
+        addSecondaryAttributeBtn: document.getElementById('add-secondary-attribute-btn'),
         addComboBtn: document.getElementById('add-combo-btn'),
+        saveNotesBtn: document.getElementById('save-notes-btn'), // <--- NOVO
         // Listas (Containers)
         masterAttributesList: document.getElementById('master-attributes-list'),
         requiredAttributesList: document.getElementById('required-attributes-list'),
-        secondaryAttributesList: document.getElementById('secondary-attributes-list'), // <--- NOVO
+        secondaryAttributesList: document.getElementById('secondary-attributes-list'),
         recommendedCombosList: document.getElementById('recommended-combos-list'),
         // Ferramentas
         importDataFile: document.getElementById('import-data-file'),
         importDataBtn: document.getElementById('import-data-btn'),
         exportAllDataBtn: document.getElementById('export-all-data-btn'),
         clearAllDataBtn: document.getElementById('clear-all-data-btn'),
+        globalNotesArea: document.getElementById('global-notes') // <--- NOVO
     };
 
     let currentTab = 'master-attributes';
@@ -38,23 +40,19 @@ const AdminController = (() => {
     const switchTab = (tabId) => {
         currentTab = tabId;
         
-        // 1. Esconde todo o conteúdo
         document.querySelectorAll('.admin-tab-content').forEach(content => {
             content.classList.add('hidden');
         });
-        // 2. Reseta botões
         document.querySelectorAll('.admin-tab').forEach(btn => {
             btn.classList.remove('bg-indigo-50', 'text-indigo-700');
             btn.classList.add('text-gray-600', 'hover:bg-gray-50');
         });
 
-        // 3. Mostra conteúdo ativo
         const selectedContent = document.getElementById(`${tabId}-tab`);
         if (selectedContent) {
             selectedContent.classList.remove('hidden');
         }
 
-        // 4. Ativa botão
         const selectedBtn = document.querySelector(`.admin-tab[data-tab="${tabId}"]`);
         if (selectedBtn) {
             selectedBtn.classList.add('bg-indigo-50', 'text-indigo-700');
@@ -69,7 +67,7 @@ const AdminController = (() => {
     const refreshAdminView = () => {
         const masterAttributes = StorageService.loadMasterAttributes();
         const requiredAttributes = StorageService.loadRequiredAttributes();
-        const secondaryAttributes = StorageService.loadSecondaryAttributes(); // <--- NOVO
+        const secondaryAttributes = StorageService.loadSecondaryAttributes();
         const combos = StorageService.loadRecommendedCombos();
 
         if (currentTab === 'master-attributes') {
@@ -77,7 +75,6 @@ const AdminController = (() => {
         } else if (currentTab === 'required-attributes') {
             Renderer.renderRequiredAttributesList(requiredAttributes, masterAttributes);
         } else if (currentTab === 'secondary-attributes') {
-            // Renderiza a lista de secundários (precisaremos atualizar o Renderer para ter essa função)
             Renderer.renderSecondaryAttributesList(secondaryAttributes, masterAttributes); 
         } else if (currentTab === 'recommended-combos') {
             Renderer.renderRecommendedCombosList(combos, masterAttributes);
@@ -139,7 +136,7 @@ const AdminController = (() => {
         }
     };
 
-    // --- CRUD Atributos Secundários (NOVO) ---
+    // --- CRUD Atributos Secundários ---
 
     const handleSaveSecondaryAttribute = (e) => {
         e.preventDefault();
@@ -151,7 +148,6 @@ const AdminController = (() => {
             return;
         }
 
-        // Assume que AdminService terá essa função (criaremos em breve)
         AdminService.addSecondaryAttribute(attribute_id);
         closeModal();
         refreshAdminView();
@@ -235,6 +231,8 @@ const AdminController = (() => {
                 StorageService.importAllData(importedData);
                 alert('Dados importados com sucesso! Recarregando painel.');
                 refreshAdminView();
+                // Recarrega notas também
+                if (DOM.globalNotesArea) DOM.globalNotesArea.value = StorageService.loadGlobalNotes();
                 fileInput.value = ''; 
             } catch (e) {
                 alert('Erro ao processar o arquivo JSON.');
@@ -249,6 +247,7 @@ const AdminController = (() => {
             StorageService.clearAllData();
             alert('Dados apagados. Recarregando.');
             refreshAdminView();
+            if (DOM.globalNotesArea) DOM.globalNotesArea.value = StorageService.loadGlobalNotes();
         }
     };
 
@@ -301,11 +300,11 @@ const AdminController = (() => {
             }
         });
 
-        // 4. Secondary Attributes (NOVO)
+        // 4. Secondary Attributes
+        // Agora verificamos se o botão existe no DOM (agora existe!)
         if (DOM.addSecondaryAttributeBtn) {
             DOM.addSecondaryAttributeBtn.addEventListener('click', () => {
                 const masterAttributes = StorageService.loadMasterAttributes();
-                // Renderiza modal de secundário (precisaremos criar no Renderer)
                 Renderer.renderSecondaryAttributeModal(masterAttributes); 
                 Renderer.attachModalCloseListeners();
                 document.getElementById('secondary-attribute-form').addEventListener('submit', handleSaveSecondaryAttribute);
@@ -349,6 +348,15 @@ const AdminController = (() => {
         DOM.exportAllDataBtn.addEventListener('click', handleExportData);
         DOM.importDataBtn.addEventListener('click', handleImportData);
         DOM.clearAllDataBtn.addEventListener('click', handleClearAllData);
+        
+        // Listener para Salvar Notas
+        if (DOM.saveNotesBtn) {
+            DOM.saveNotesBtn.addEventListener('click', () => {
+                const text = DOM.globalNotesArea ? DOM.globalNotesArea.value : '';
+                StorageService.saveGlobalNotes(text);
+                alert("Observações atualizadas com sucesso!");
+            });
+        }
 
         document.getElementById('modals-container').addEventListener('click', (e) => {
             if (e.target.id === 'close-admin-modal-btn') {
@@ -358,6 +366,11 @@ const AdminController = (() => {
     };
 
     const initAdminView = () => {
+        // Carrega notas salvas ao abrir
+        if (DOM.globalNotesArea && StorageService.loadGlobalNotes) {
+            DOM.globalNotesArea.value = StorageService.loadGlobalNotes();
+        }
+        
         switchTab(currentTab); 
         attachListeners();
     };

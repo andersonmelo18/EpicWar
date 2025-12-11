@@ -152,8 +152,15 @@
                     </div>
 
                     <div id="tools-tab" class="admin-tab-content hidden">
-                        <h3 class="text-xl font-semibold mb-4">Ferramentas de Importação/Exportação</h3>
-                        <div class="space-y-4">
+                        <h3 class="text-xl font-semibold mb-4">Ferramentas e Configurações</h3>
+                        
+                        <div class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <label for="global-notes" class="block text-sm font-bold text-yellow-800 mb-2">Observações Gerais (Aparecerá no final do PDF)</label>
+                            <textarea id="global-notes" rows="4" class="w-full p-2 border rounded-md text-sm border-yellow-300 focus:ring-yellow-500 focus:border-yellow-500" placeholder="Escreva dicas para os jogadores aqui..."></textarea>
+                            <button id="save-notes-btn" class="mt-2 bg-yellow-600 text-white px-4 py-2 rounded text-sm hover:bg-yellow-700 transition duration-150">Salvar Observações</button>
+                        </div>
+
+                        <div class="space-y-4 pt-4 border-t border-gray-200">
                             <div>
                                 <label for="import-data-file" class="block text-sm font-medium text-gray-700">Importar Todos os Dados (JSON)</label>
                                 <input type="file" id="import-data-file" accept=".json" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />

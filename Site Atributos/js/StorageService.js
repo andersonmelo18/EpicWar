@@ -9,7 +9,9 @@ const StorageService = (() => {
         MASTER_ATTRIBUTES: 'master_attributes',
         REQUIRED_ATTRIBUTES: 'required_attributes',
         SECONDARY_ATTRIBUTES: 'secondary_attributes', // <--- NOVO: Chave para secundários
-        RECOMMENDED_COMBOS: 'recommended_combos'
+        RECOMMENDED_COMBOS: 'recommended_combos',
+        GLOBAL_NOTES: 'global_pvp_notes' // <--- NOVO: Chave para notas globais
+
     };
 
     // =================================================================
@@ -321,8 +323,9 @@ const StorageService = (() => {
             builds: loadAllBuilds(),
             masterAttributes: loadMasterAttributes(),
             requiredAttributes: loadRequiredAttributes(),
-            secondaryAttributes: loadSecondaryAttributes(), // <--- Exportar também
+            secondaryAttributes: loadSecondaryAttributes(),
             recommendedCombos: loadRecommendedCombos(),
+            globalNotes: loadGlobalNotes(), // <--- VOCÊ ESQUECEU ESTA LINHA
             exportedAt: new Date().toISOString()
         };
     };
@@ -331,14 +334,19 @@ const StorageService = (() => {
         if (jsonData.builds) saveData(KEYS.BUILDS, jsonData.builds);
         if (jsonData.masterAttributes) saveData(KEYS.MASTER_ATTRIBUTES, jsonData.masterAttributes);
         if (jsonData.requiredAttributes) saveData(KEYS.REQUIRED_ATTRIBUTES, jsonData.requiredAttributes);
-        if (jsonData.secondaryAttributes) saveData(KEYS.SECONDARY_ATTRIBUTES, jsonData.secondaryAttributes); // <--- Importar
+        if (jsonData.secondaryAttributes) saveData(KEYS.SECONDARY_ATTRIBUTES, jsonData.secondaryAttributes);
         if (jsonData.recommendedCombos) saveData(KEYS.RECOMMENDED_COMBOS, jsonData.recommendedCombos);
+        if (jsonData.globalNotes) saveGlobalNotes(jsonData.globalNotes); // <--- VOCÊ ESQUECEU ESTA LINHA
     };
 
     const clearAllData = () => {
         localStorage.clear();
         initializeDefaultData();
     };
+
+    // 2. Adicione essas funções no final, antes do return:
+    const loadGlobalNotes = () => localStorage.getItem(KEYS.GLOBAL_NOTES) || "Dicas gerais para PvP: Mantenha seus atributos essenciais em dia.";
+    const saveGlobalNotes = (text) => localStorage.setItem(KEYS.GLOBAL_NOTES, text);
 
     return {
         initializeDefaultData,
@@ -357,6 +365,8 @@ const StorageService = (() => {
         saveRecommendedCombos,
         exportAllData,
         importAllData,
-        clearAllData
+        clearAllData,
+        loadGlobalNotes,
+        saveGlobalNotes
     };
 })();
