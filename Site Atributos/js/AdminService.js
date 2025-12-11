@@ -166,8 +166,8 @@ const AdminService = (() => {
         deleteMasterAttribute,
         addRequiredAttribute,
         deleteRequiredAttribute,
-        addSecondaryAttribute,    // <--- NOVO
-        deleteSecondaryAttribute, // <--- NOVO
+        addSecondaryAttribute,    // <--- Função Exportada
+        deleteSecondaryAttribute, // <--- Função Exportada
         saveRecommendedCombo,
         deleteRecommendedCombo
     };

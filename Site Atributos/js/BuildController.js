@@ -88,7 +88,7 @@ const BuildController = (() => {
         document.getElementById('char-name').value = currentBuild.name || '';
         document.getElementById('char-class').value = currentBuild.class || '';
         document.getElementById('artifact-count').value = currentBuild.artifacts.length;
-        renderBuildEditor();
+        renderBuildEditor(); 
     };
 
     const updateArtifactCount = (count) => {
@@ -158,7 +158,7 @@ const BuildController = (() => {
 
     const runRealTimeAnalysis = () => {
         if (!currentBuild || !currentBuild.artifacts || currentBuild.artifacts.length === 0) {
-            document.getElementById('analysis-summary').innerHTML = '<p class="text-gray-500">Comece adicionando um artefato.</p>';
+            document.getElementById('analysis-summary').innerHTML = '<p class="text-slate-500 italic text-center py-4">Comece adicionando um artefato.</p>';
             return;
         }
         const analysis = AnalysisEngine.runAnalysis(currentBuild, masterAttributes, requiredAttributes, secondaryAttributes, recommendedCombos);
@@ -171,45 +171,64 @@ const BuildController = (() => {
 
         const requiredCount = requiredAttributes.length;
         const presentCount = analysis.present_attributes.size;
+        
+        // Barra de Progresso Visual
+        const percent = requiredCount > 0 ? Math.round((presentCount / requiredCount) * 100) : 0;
+        const barColor = percent === 100 ? 'bg-green-500' : (percent > 50 ? 'bg-indigo-500' : 'bg-orange-500');
 
-        html += `<p class="font-bold text-lg border-b pb-2 mb-3">Progresso: <span class="${presentCount === requiredCount ? 'text-green-600' : 'text-orange-500'}">${presentCount}/${requiredCount}</span> Essenciais</p>`;
+        html += `
+            <div class="mb-6">
+                <div class="flex justify-between items-end mb-2">
+                    <span class="font-bold text-slate-700 text-sm uppercase tracking-wide">Progresso Essencial</span>
+                    <span class="text-sm font-bold ${percent === 100 ? 'text-green-600' : 'text-slate-600'}">${percent}%</span>
+                </div>
+                <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+                    <div class="${barColor} h-3 rounded-full transition-all duration-700 ease-out shadow-sm" style="width: ${percent}%"></div>
+                </div>
+                <p class="text-xs text-slate-500 mt-1 text-right font-medium">${presentCount}/${requiredCount} Concluídos</p>
+            </div>
+        `;
 
         if (analysis.missing_attributes.length > 0) {
-            html += `<h4 class="font-semibold text-red-600 mt-2 text-sm">❌ Faltam Essenciais (${analysis.missing_attributes.length}):</h4>`;
-            html += `<ul class="list-disc list-inside space-y-1 text-xs text-gray-700">`;
-            analysis.missing_attributes.slice(0, 5).forEach(m => {
+            html += `<div class="bg-red-50 border border-red-100 rounded-lg p-3 mb-3">
+                <h4 class="font-bold text-red-700 text-xs uppercase mb-2 flex items-center gap-1">❌ Faltam Essenciais (${analysis.missing_attributes.length})</h4>
+                <ul class="space-y-1">`;
+            analysis.missing_attributes.slice(0, 3).forEach(m => {
                 const elementText = m.required_element ? m.required_element.toUpperCase() : 'GLOBAL';
-                html += `<li>${m.attribute} (${elementText})</li>`;
+                html += `<li class="text-xs text-red-600 truncate">• ${m.attribute} <span class="opacity-75">(${elementText})</span></li>`;
             });
-            html += `</ul>`;
+            if (analysis.missing_attributes.length > 3) html += `<li class="text-xs text-red-500 italic ml-2">+ mais ${analysis.missing_attributes.length - 3}...</li>`;
+            html += `</ul></div>`;
         }
 
         if (analysis.duplicates_to_remove.length > 0) {
-            html += `<h4 class="font-semibold text-orange-600 mt-3 text-sm">⚠️ Duplicatas Ruins (${analysis.duplicates_to_remove.length}):</h4>`;
-            html += `<ul class="list-disc list-inside space-y-1 text-xs text-gray-700">`;
-            analysis.duplicates_to_remove.slice(0, 3).forEach(d => {
-                html += `<li>${d.attr_name} em ${d.location.position} (${d.remodel})</li>`;
+            html += `<div class="bg-orange-50 border border-orange-100 rounded-lg p-3 mb-3">
+                <h4 class="font-bold text-orange-700 text-xs uppercase mb-2 flex items-center gap-1">⚠️ Duplicatas (${analysis.duplicates_to_remove.length})</h4>
+                <ul class="space-y-1">`;
+            analysis.duplicates_to_remove.slice(0, 2).forEach(d => {
+                html += `<li class="text-xs text-orange-800 truncate">• ${d.attr_name} em ${d.location.position}</li>`;
             });
-            html += `</ul>`;
+            html += `</ul></div>`;
         }
 
         if (analysis.useless_gems.length > 0) {
-            html += `<h4 class="font-semibold text-yellow-600 mt-3 text-sm">♻️ Inúteis/Inválidos (${analysis.useless_gems.length}):</h4>`;
-            html += `<ul class="list-disc list-inside space-y-1 text-xs text-gray-700">`;
-            analysis.useless_gems.slice(0, 3).forEach(u => {
-                html += `<li>${u.attr_name} em ${u.location.position}</li>`;
+            html += `<div class="bg-yellow-50 border border-yellow-100 rounded-lg p-3 mb-3">
+                <h4 class="font-bold text-yellow-700 text-xs uppercase mb-2 flex items-center gap-1">♻️ Inúteis/Inválidos (${analysis.useless_gems.length})</h4>
+                <ul class="space-y-1">`;
+            analysis.useless_gems.slice(0, 2).forEach(u => {
+                html += `<li class="text-xs text-yellow-800 truncate">• ${u.attr_name} em ${u.location.position}</li>`;
             });
-            html += `</ul>`;
+            html += `</ul></div>`;
         }
 
         if (analysis.present_attributes.size > 0 || analysis.secondary_present.length > 0) {
-            html += `<div class="mt-4 pt-2 border-t border-gray-100">`;
-            html += `<span class="text-xs font-semibold text-green-600">✅ ${analysis.present_attributes.size} Essenciais</span> | `;
-            html += `<span class="text-xs font-semibold text-blue-600">🔹 ${analysis.secondary_present.length} Secundários</span>`;
+            html += `<div class="mt-4 pt-3 border-t border-slate-100 flex justify-between text-xs font-semibold">`;
+            html += `<span class="text-green-600 flex items-center gap-1">✅ ${analysis.present_attributes.size} Essenciais</span>`;
+            html += `<span class="text-blue-600 flex items-center gap-1">💎 ${analysis.secondary_present.length} Suporte</span>`;
             html += `</div>`;
         }
 
-        summaryDiv.innerHTML = html || '<p class="text-gray-500">Adicione Gemas...</p>';
+        summaryDiv.innerHTML = html;
     };
 
     // --- Modal e Gemas ---
@@ -229,7 +248,7 @@ const BuildController = (() => {
         if (artifact) {
             loadDependencies();
             Renderer.renderGemModal(artifact, currentSlotIndex, gem, masterAttributes);
-            Renderer.attachModalCloseListeners();
+            Renderer.attachModalCloseListeners(); 
             setupGemModalListeners(artifact.gems[currentSlotIndex]);
         }
     };
@@ -250,16 +269,15 @@ const BuildController = (() => {
             `<option value="${a.id}" data-tier="${a.tier}">${a.name}</option>`
         ).join('');
 
-        attrSelect.innerHTML = `<option value="">Selecione um Atributo</option>` + attributeOptions;
+        attrSelect.innerHTML = `<option value="">Selecione...</option>` + attributeOptions;
     };
 
     const setupGemModalListeners = (existingGem) => {
         const modal = document.getElementById('gem-edit-modal');
         if (!modal) return;
 
-        modal.querySelector('#close-gem-modal-btn').addEventListener('click', closeModal);
-        modal.addEventListener('click', (e) => { if (e.target.id === 'gem-edit-modal') closeModal(); });
-
+        modal.querySelector('#close-gem-modal-btn').addEventListener('click', Renderer.closeCurrentModal);
+        
         const removeBtn = modal.querySelector('#remove-gem-btn');
         if (removeBtn && existingGem) {
             removeBtn.addEventListener('click', handleRemoveGem);
@@ -268,14 +286,16 @@ const BuildController = (() => {
         modal.querySelector('#gem-form').addEventListener('submit', handleSaveGem);
         modal.querySelector('#add-attribute-row-btn').addEventListener('click', handleAddAttributeRow);
 
-        modal.querySelector('#attributes-container').addEventListener('click', (e) => {
-            if (e.target.classList.contains('remove-attribute-btn')) {
+        const attrsContainer = modal.querySelector('#attributes-container');
+        
+        attrsContainer.addEventListener('click', (e) => {
+            if (e.target.closest('.remove-attribute-btn')) {
                 e.target.closest('.attribute-row').remove();
                 updateAddAttributeButton();
             }
         });
 
-        modal.querySelector('#attributes-container').addEventListener('change', (e) => {
+        attrsContainer.addEventListener('change', (e) => {
             if (e.target.classList.contains('attribute-tier')) {
                 const container = e.target.closest('.attribute-row');
                 updateAttributeOptionsByTier(container);
@@ -285,6 +305,7 @@ const BuildController = (() => {
                 handleAttributeSelectChange(e);
             }
         });
+        
         updateAddAttributeButton();
     };
 
@@ -306,37 +327,39 @@ const BuildController = (() => {
         const currentRows = container.querySelectorAll('.attribute-row').length;
         if (currentRows < 3) {
             const newIndex = currentRows;
-            const newRow = document.createElement('div');
-            newRow.className = 'attribute-row p-3 border rounded-lg bg-gray-50 mb-3';
-            newRow.setAttribute('data-attr-index', newIndex);
             const element = AdminService.ELEMENTS[currentSlotIndex];
             const defaultTier = 3;
+            
             const filteredAttributes = masterAttributes.filter(a =>
                 (!a.default_element || a.default_element === element) && a.tier === defaultTier
             );
+            
             const attributeOptions = filteredAttributes.map(a => `<option value="${a.id}" data-tier="${a.tier}">${a.name}</option>`).join('');
             const remodelOptions = AdminService.REMODELS.map(r => `<option value="${r}">${r.charAt(0).toUpperCase() + r.slice(1)}</option>`).join('');
             const tierOptions = [1, 2, 3].map(t => `<option value="${t}" ${t === defaultTier ? 'selected' : ''}>Lv${t}</option>`).join('');
 
-            newRow.innerHTML = `
-                <h5 class="font-semibold text-gray-700 mb-2">Atributo ${newIndex + 1}</h5>
-                <div class="grid grid-cols-3 gap-2">
+            const newRowHtml = `
+                <div class="attribute-row p-3 rounded-lg bg-slate-50 border border-slate-200 relative group" data-attr-index="${newIndex}">
+                    <button type="button" class="absolute top-2 right-2 text-slate-300 hover:text-red-500 remove-attribute-btn transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                    </button>
+                    <div class="grid grid-cols-12 gap-2 mb-2">
+                        <div class="col-span-3">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase">Tier</label>
+                            <select class="w-full text-xs rounded border-slate-300 py-1 attribute-tier">${tierOptions}</select>
+                        </div>
+                        <div class="col-span-9">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase">Atributo</label>
+                            <select required class="w-full text-xs rounded border-slate-300 py-1 attribute-id"><option value="">Selecione...</option>${attributeOptions}</select>
+                        </div>
+                    </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-500">Tier</label>
-                        <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-sm attribute-tier">${tierOptions}</select>
-                    </div>
-                    <div class="col-span-2">
-                        <label class="block text-xs font-medium text-gray-500">Atributo</label>
-                        <select required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-sm attribute-id"><option value="">Selecione um Atributo</option>${attributeOptions}</select>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase">Qualidade</label>
+                        <select required class="w-full text-xs rounded border-slate-300 py-1 attribute-remodel">${remodelOptions}</select>
                     </div>
                 </div>
-                <div class="mt-3">
-                    <label class="block text-xs font-medium text-gray-500">Remodelação/Qualidade</label>
-                    <select required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-sm attribute-remodel">${remodelOptions}</select>
-                </div>
-                <button type="button" class="mt-3 text-red-500 text-xs font-medium remove-attribute-btn">Remover</button>
             `;
-            container.appendChild(newRow);
+            container.insertAdjacentHTML('beforeend', newRowHtml);
             updateAddAttributeButton();
         }
     };
@@ -348,10 +371,12 @@ const BuildController = (() => {
         const currentRows = container.querySelectorAll('.attribute-row').length;
         if (currentRows >= 3) {
             button.setAttribute('disabled', 'true');
-            button.textContent = "Máximo de 3 Atributos atingido";
+            button.textContent = "Máximo atingido (3)";
+            button.classList.add('opacity-50', 'cursor-not-allowed');
         } else {
             button.removeAttribute('disabled');
-            button.textContent = "+ Adicionar Atributo (Max 3)";
+            button.textContent = "+ Adicionar Atributo";
+            button.classList.remove('opacity-50', 'cursor-not-allowed');
         }
     };
 
@@ -359,34 +384,55 @@ const BuildController = (() => {
         e.preventDefault();
         const form = e.target;
         const gemAttributes = [];
+        
         form.querySelectorAll('.attribute-row').forEach(row => {
             const attrId = parseInt(row.querySelector('.attribute-id').value);
             const remodel = row.querySelector('.attribute-remodel').value;
             const tier = parseInt(row.querySelector('.attribute-tier').value);
-            if (attrId) gemAttributes.push({ attribute_id: attrId, remodel: remodel, tier: tier });
+
+            if (attrId && remodel) {
+                const attrObj = masterAttributes.find(a => a.id === attrId);
+                gemAttributes.push({
+                    attribute_id: attrId,
+                    name: attrObj ? attrObj.name : 'Unknown',
+                    remodel: remodel,
+                    tier: tier
+                });
+            }
         });
-        if (gemAttributes.length === 0) { alert("Selecione pelo menos 1 atributo."); return; }
+
+        if (gemAttributes.length === 0) {
+            if(!confirm("Salvar gema sem atributos?")) return;
+        }
+
+        const rarity = document.getElementById('gem-rarity').value;
+        const plusLevel = parseInt(document.getElementById('gem-plus-level').value) || 0;
 
         const newGem = {
             element: AdminService.ELEMENTS[currentSlotIndex],
-            rarity: form.querySelector('#gem-rarity').value,
-            plus_level: parseInt(form.querySelector('#gem-plus-level').value),
+            rarity: rarity,
+            plus_level: plusLevel,
             attributes: gemAttributes
         };
-        const artifact = currentBuild.artifacts.find(a => a.id === currentArtifactId);
-        if (artifact) artifact.gems[currentSlotIndex] = newGem;
-        closeModal();
-        renderArtifactCards();
-        runRealTimeAnalysis();
+
+        const artifactIndex = currentBuild.artifacts.findIndex(a => a.id === currentArtifactId);
+        if (artifactIndex !== -1) {
+            currentBuild.artifacts[artifactIndex].gems[currentSlotIndex] = newGem;
+            renderArtifactCards();
+            runRealTimeAnalysis();
+            Renderer.closeCurrentModal();
+        }
     };
 
     const handleRemoveGem = () => {
-        if (confirm("Remover gema?")) {
-            const artifact = currentBuild.artifacts.find(a => a.id === currentArtifactId);
-            if (artifact) artifact.gems[currentSlotIndex] = null;
-            closeModal();
-            renderArtifactCards();
-            runRealTimeAnalysis();
+        if(confirm("Remover gema?")) {
+            const artifactIndex = currentBuild.artifacts.findIndex(a => a.id === currentArtifactId);
+            if (artifactIndex !== -1) {
+                currentBuild.artifacts[artifactIndex].gems[currentSlotIndex] = null;
+                renderArtifactCards();
+                runRealTimeAnalysis();
+                Renderer.closeCurrentModal();
+            }
         }
     };
 
@@ -396,150 +442,200 @@ const BuildController = (() => {
     };
 
     const saveCurrentBuild = (isDraft = false) => {
-        currentBuild.name = document.getElementById('char-name').value;
-        currentBuild.class = document.getElementById('char-class').value;
-
-        if (!currentBuild.name && !isDraft) {
-            alert("O nome do personagem é obrigatório para salvar a build.");
+        const nameInput = document.getElementById('char-name');
+        if (!nameInput.value && !isDraft) {
+            alert("Por favor, dê um nome ao personagem.");
             return;
         }
+        
+        currentBuild.name = nameInput.value || 'Rascunho Sem Nome';
+        currentBuild.class = document.getElementById('char-class').value;
+        
+        document.querySelectorAll('.artifact-input[data-field="level"]').forEach(input => {
+            const id = parseInt(input.dataset.artifactId);
+            const art = currentBuild.artifacts.find(a => a.id === id);
+            if(art) art.level = parseInt(input.value) || 0;
+        });
 
-        const savedBuild = StorageService.saveBuild(currentBuild);
-        currentBuild.id = savedBuild.id;
+        document.querySelectorAll('.artifact-input[data-field="name"]').forEach(input => {
+            const id = parseInt(input.dataset.artifactId);
+            const art = currentBuild.artifacts.find(a => a.id === id);
+            if(art) art.name = input.value;
+        });
 
-        alert(`Build "${currentBuild.name}" salva com sucesso!`);
-        App.showDashboard();
+        const saved = StorageService.saveBuild(currentBuild);
+        currentBuild = saved;
+        
+        if (isDraft) {
+            alert("Rascunho salvo!");
+        } else {
+            alert(`Build "${currentBuild.name}" salva com sucesso!`);
+            App.showView('dashboard');
+        }
+    };
+
+    const handleShareLink = () => {
+        const json = JSON.stringify(currentBuild);
+        const b64 = btoa(unescape(encodeURIComponent(json)));
+        const url = `${window.location.origin}${window.location.pathname}#import=${b64}`;
+        
+        navigator.clipboard.writeText(url).then(() => {
+            alert("Link copiado para a área de transferência!");
+        }, () => {
+            const output = document.getElementById('share-link-output');
+            output.textContent = url;
+            output.classList.remove('hidden');
+        });
     };
 
     // --- RELATÓRIO FINAL E EXPORTAÇÃO ---
 
     const generateFinalReport = () => {
-        // Atualiza dados atuais antes de gerar
         const nameInput = document.getElementById('char-name');
         const classInput = document.getElementById('char-class');
         if (nameInput) currentBuild.name = nameInput.value;
         if (classInput) currentBuild.class = classInput.value;
 
-        // Executa análise
         const analysis = AnalysisEngine.runAnalysis(currentBuild, masterAttributes, requiredAttributes, secondaryAttributes, recommendedCombos);
-
+        
         App.showView('report');
         const reportView = document.getElementById('report-view');
-
+        
         if (!reportView) { alert("View de relatório não encontrada."); return; }
 
-        // --- HTML DO RELATÓRIO ---
         let html = `
-            <div class="bg-white p-8 rounded-xl shadow-2xl">
-                <h2 class="text-3xl font-bold text-indigo-700 mb-2">Relatório: "${currentBuild.name || 'Sem Nome'}"</h2>
+            <div class="glass-panel p-8 rounded-2xl shadow-xl max-w-5xl mx-auto border-t-8 border-indigo-600">
+                <div class="flex justify-between items-center mb-8 pb-4 border-b border-slate-200">
+                    <div>
+                        <h2 class="text-3xl font-extrabold text-slate-800">Relatório de Análise</h2>
+                        <p class="text-indigo-600 font-medium text-lg">${currentBuild.name || 'Sem Nome'} <span class="text-slate-400 text-sm">(${currentBuild.class || 'Sem Classe'})</span></p>
+                    </div>
+                    <div class="text-4xl">📊</div>
+                </div>
                 
-                <div class="grid md:grid-cols-4 gap-4 mb-8 border-b pb-4">
-                    <div class="p-4 bg-indigo-50 rounded-lg">
-                        <h4 class="font-bold text-indigo-800 text-sm">Essenciais</h4>
-                        <p class="text-2xl font-extrabold text-indigo-600">${analysis.present_attributes.size}/${requiredAttributes.length}</p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+                    <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-indigo-500 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
+                        <span class="text-3xl mb-2">🛡️</span>
+                        <span class="text-xs text-slate-500 uppercase font-bold tracking-wider">Essenciais</span>
+                        <span class="text-2xl font-black text-indigo-600">${analysis.present_attributes.size}/${requiredAttributes.length}</span>
                     </div>
-                    <div class="p-4 bg-blue-50 rounded-lg">
-                        <h4 class="font-bold text-blue-800 text-sm">Secundários</h4>
-                        <p class="text-2xl font-extrabold text-blue-600">${analysis.secondary_present.length}/${secondaryAttributes.length}</p>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-blue-400 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
+                        <span class="text-3xl mb-2">💎</span>
+                        <span class="text-xs text-slate-500 uppercase font-bold tracking-wider">Suporte</span>
+                        <span class="text-2xl font-black text-blue-500">${analysis.secondary_present.length}/${secondaryAttributes.length}</span>
                     </div>
-                    <div class="p-4 bg-orange-50 rounded-lg">
-                        <h4 class="font-bold text-orange-800 text-sm">Duplicatas</h4>
-                        <p class="text-2xl font-extrabold text-orange-600">${analysis.duplicates_to_remove.length}</p>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-orange-400 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
+                        <span class="text-3xl mb-2">⚠️</span>
+                        <span class="text-xs text-slate-500 uppercase font-bold tracking-wider">Duplicatas</span>
+                        <span class="text-2xl font-black text-orange-500">${analysis.duplicates_to_remove.length}</span>
                     </div>
-                    <div class="p-4 bg-red-50 rounded-lg">
-                        <h4 class="font-bold text-red-800 text-sm">Inúteis</h4>
-                        <p class="text-2xl font-extrabold text-red-600">${analysis.useless_gems.length}</p>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-red-500 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
+                        <span class="text-3xl mb-2">🗑️</span>
+                        <span class="text-xs text-slate-500 uppercase font-bold tracking-wider">Inúteis</span>
+                        <span class="text-2xl font-black text-red-600">${analysis.useless_gems.length}</span>
                     </div>
                 </div>
                 
-                <h3 class="text-xl font-bold mb-4 mt-6">Ações Recomendadas</h3>
+                <h3 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">🔍 Diagnóstico Detalhado</h3>
 
                 ${analysis.missing_attributes.length > 0 ? `
-                    <div class="mb-6">
-                        <h4 class="font-semibold text-red-600 mb-2">❌ Atributos Essenciais Faltando:</h4>
-                        <ul class="space-y-2">
+                    <div class="mb-8">
+                        <h4 class="font-bold text-red-600 mb-3 flex items-center gap-2">
+                            <span class="bg-red-100 p-1 rounded">❌</span> Faltam Atributos Essenciais
+                        </h4>
+                        <div class="grid md:grid-cols-2 gap-3">
                             ${analysis.missing_attributes.map(m => `
-                                <li class="bg-red-50 p-3 rounded border-l-4 border-red-500">
-                                    <span class="font-bold">${m.attribute}</span>
-                                    <p class="text-sm mt-1">${AnalysisEngine.generateSuggestion(m, currentBuild)}</p>
-                                </li>`).join('')}
-                        </ul>
+                                <div class="bg-red-50 p-4 rounded-lg border-l-4 border-red-500 shadow-sm">
+                                    <span class="font-bold text-red-900 block">${m.attribute}</span>
+                                    <p class="text-xs text-red-700 mt-1 flex gap-1 items-start">
+                                        <span>💡</span> ${AnalysisEngine.generateSuggestion(m, currentBuild)}
+                                    </p>
+                                </div>`).join('')}
+                        </div>
                     </div>
-                ` : '<p class="text-green-600 font-bold mb-4">✅ Todos os atributos essenciais encontrados!</p>'}
+                ` : `
+                    <div class="bg-green-50 p-4 rounded-xl border border-green-200 mb-8 flex items-center gap-3">
+                        <span class="text-2xl">🎉</span>
+                        <div>
+                            <h4 class="font-bold text-green-800">Build Aprovada!</h4>
+                            <p class="text-sm text-green-700">Todos os atributos essenciais foram encontrados.</p>
+                        </div>
+                    </div>
+                `}
 
                 ${analysis.duplicates_to_remove.length > 0 ? `
-                    <div class="mb-6">
-                        <h4 class="font-semibold text-orange-600 mb-2">⚠️ Duplicatas (Remover Piores):</h4>
+                    <div class="mb-8">
+                        <h4 class="font-bold text-orange-600 mb-3 flex items-center gap-2">
+                            <span class="bg-orange-100 p-1 rounded">⚠️</span> Duplicatas (Remover Piores)
+                        </h4>
                         <ul class="space-y-2">
                             ${analysis.duplicates_to_remove.map(d => `
-                                <li class="bg-orange-50 p-3 rounded border-l-4 border-orange-500 text-sm">
-                                    <span class="font-bold">Remover:</span> ${d.attr_name} em ${d.location.position} (${d.remodel}) <br>
-                                    <span class="italic text-gray-600">${d.reason}</span>
+                                <li class="bg-orange-50 p-3 rounded-lg border border-orange-200 text-sm text-orange-900 flex justify-between items-center">
+                                    <span><strong>${d.attr_name}</strong> em ${d.location.position} (${d.remodel})</span>
+                                    <span class="text-xs bg-white px-2 py-1 rounded text-orange-600 border border-orange-100 font-medium">Trocar</span>
                                 </li>`).join('')}
                         </ul>
                     </div>
                 ` : ''}
 
                 ${analysis.useless_gems.length > 0 ? `
-                    <div class="mb-6">
-                        <h4 class="font-semibold text-yellow-600 mb-2">♻️ Atributos Inúteis/Inválidos:</h4>
+                    <div class="mb-8">
+                        <h4 class="font-bold text-yellow-600 mb-3 flex items-center gap-2">
+                            <span class="bg-yellow-100 p-1 rounded">♻️</span> Atributos Inúteis/Inválidos
+                        </h4>
                         <ul class="space-y-2">
                             ${analysis.useless_gems.map(u => `
-                                <li class="bg-yellow-50 p-3 rounded border-l-4 border-yellow-500 text-sm">
-                                    <span class="font-bold">${u.attr_name}</span> em ${u.location.position} <br>
-                                    <span class="italic text-gray-600">${u.reason}</span>
+                                <li class="bg-yellow-50 p-3 rounded-lg border border-yellow-200 text-sm text-yellow-900 flex justify-between items-center">
+                                    <span><strong>${u.attr_name}</strong> em ${u.location.position}</span>
+                                    <span class="text-xs italic text-yellow-600">${u.reason}</span>
                                 </li>`).join('')}
                         </ul>
                     </div>
                 ` : ''}
 
-                <div class="mt-8 pt-4 border-t">
-                    <h4 class="font-bold text-gray-700 mb-2">Inventário da Build</h4>
-                    <div class="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                            <h5 class="font-semibold text-indigo-600">Essenciais (${analysis.present_attributes.size})</h5>
-                            <ul class="list-disc list-inside text-gray-600">
-                                ${Array.from(analysis.present_attributes).map(([id, locations]) => {
-            const attr = masterAttributes.find(a => a.id === id);
-            return attr ? `<li>${attr.name} (${locations[0].remodel})</li>` : '';
-        }).join('')}
+                <div class="mt-10 pt-6 border-t border-slate-200">
+                    <h4 class="font-bold text-slate-700 mb-4">📋 Inventário Atual da Build</h4>
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div class="bg-indigo-50 p-5 rounded-xl border border-indigo-100">
+                            <h5 class="font-bold text-indigo-800 mb-3 flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-indigo-500"></span> Essenciais (${analysis.present_attributes.size})
+                            </h5>
+                            <ul class="text-sm space-y-2 text-slate-700">
+                                ${Array.from(analysis.present_attributes).map(([id, locations]) => { 
+                                    const attr = masterAttributes.find(a => a.id === id); 
+                                    return attr ? `<li class="flex justify-between border-b border-indigo-100 pb-1"><span>${attr.name}</span> <span class="font-mono text-xs text-indigo-500 bg-white px-1 rounded">${locations[0].remodel}</span></li>` : ''; 
+                                }).join('')}
                             </ul>
                         </div>
-                        <div>
-                            <h5 class="font-semibold text-blue-600">Secundários (${analysis.secondary_present.length})</h5>
-                            <ul class="list-disc list-inside text-gray-600">
-                                ${analysis.secondary_present.map(s => `<li>${s.attr_name} (${s.remodel})</li>`).join('')}
+                        <div class="bg-blue-50 p-5 rounded-xl border border-blue-100">
+                            <h5 class="font-bold text-blue-800 mb-3 flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-blue-500"></span> Secundários (${analysis.secondary_present.length})
+                            </h5>
+                            <ul class="text-sm space-y-2 text-slate-700">
+                                ${analysis.secondary_present.map(s => `<li class="flex justify-between border-b border-blue-100 pb-1"><span>${s.attr_name}</span> <span class="font-mono text-xs text-blue-500 bg-white px-1 rounded">${s.remodel}</span></li>`).join('')}
                             </ul>
                         </div>
                     </div>
                 </div>
 
-                <div class="flex justify-end space-x-4 mt-8 pt-4 border-t">
-                    <button id="save-report-draft-btn" class="bg-gray-500 text-white px-6 py-3 rounded hover:bg-gray-600 shadow-md transition duration-150">Salvar Rascunho</button>
-                    <button id="export-pdf-btn" class="bg-red-600 text-white px-6 py-3 rounded hover:bg-red-700 shadow-md transition duration-150">PDF</button>
-                    <button id="export-csv-btn" class="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 shadow-md transition duration-150">CSV</button>
-                    <button id="share-link-btn" class="bg-purple-600 text-white px-6 py-3 rounded hover:bg-purple-700 shadow-md transition duration-150">Link</button>
+                <div class="flex flex-wrap justify-end gap-4 mt-10 pt-6 border-t border-slate-200">
+                    <button id="save-report-draft-btn" class="btn-hover bg-white border border-slate-300 text-slate-600 px-6 py-3 rounded-xl font-bold shadow-sm hover:bg-slate-50">Salvar Rascunho</button>
+                    <button id="export-csv-btn" class="btn-hover bg-blue-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700">Exportar CSV</button>
+                    <button id="export-pdf-btn" class="btn-hover bg-gradient-to-r from-red-600 to-red-500 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-red-200 hover:to-red-600 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                        Baixar PDF
+                    </button>
+                    <button id="share-link-btn" class="btn-hover bg-purple-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-purple-200 hover:bg-purple-700">Link</button>
                 </div>
-                <p id="share-link-output" class="mt-4 text-center text-sm hidden"></p>
+                <p id="share-link-output" class="mt-4 text-center text-xs text-slate-400 hidden bg-slate-100 p-2 rounded select-all"></p>
             </div>
         `;
         reportView.innerHTML = html;
 
-        // LISTENERS
-        document.getElementById('save-report-draft-btn').addEventListener('click', () => saveCurrentBuild(true)); // <--- NOVO LISTENER
+        document.getElementById('save-report-draft-btn').addEventListener('click', () => saveCurrentBuild(true));
         document.getElementById('export-pdf-btn').addEventListener('click', () => handleExport('pdf', analysis));
         document.getElementById('export-csv-btn').addEventListener('click', () => handleExport('csv', analysis));
         document.getElementById('share-link-btn').addEventListener('click', handleShareLink);
-    };
-
-    const handleShareLink = () => {
-        const buildJsonString = JSON.stringify(currentBuild);
-        const base64Payload = btoa(buildJsonString);
-        const shareUrl = `${window.location.origin}/#import=${base64Payload}`;
-        const outputElement = document.getElementById('share-link-output');
-        outputElement.textContent = `Link: ${shareUrl}`;
-        outputElement.classList.remove('hidden');
-        navigator.clipboard.writeText(shareUrl);
     };
 
     const handleExport = (type, analysis) => {
@@ -573,10 +669,8 @@ const BuildController = (() => {
             doc.text(`Essenciais: ${analysis.present_attributes.size}/${requiredAttributes.length}`, 10, y);
             y += 5;
             
-            // --- MUDANÇA AQUI (X/Y) ---
             doc.text(`Secundários Presentes: ${analysis.secondary_present.length}/${secondaryAttributes.length}`, 10, y);
             y += 5;
-            // --------------------------
 
             doc.text(`Duplicatas Ruins: ${analysis.duplicates_to_remove.length}`, 10, y);
             y += 5;

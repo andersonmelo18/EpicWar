@@ -19,7 +19,7 @@ const AdminController = (() => {
         addRequiredAttributeBtn: document.getElementById('add-required-attribute-btn'),
         addSecondaryAttributeBtn: document.getElementById('add-secondary-attribute-btn'),
         addComboBtn: document.getElementById('add-combo-btn'),
-        saveNotesBtn: document.getElementById('save-notes-btn'), // <--- NOVO
+        saveNotesBtn: document.getElementById('save-notes-btn'), 
         // Listas (Containers)
         masterAttributesList: document.getElementById('master-attributes-list'),
         requiredAttributesList: document.getElementById('required-attributes-list'),
@@ -30,33 +30,40 @@ const AdminController = (() => {
         importDataBtn: document.getElementById('import-data-btn'),
         exportAllDataBtn: document.getElementById('export-all-data-btn'),
         clearAllDataBtn: document.getElementById('clear-all-data-btn'),
-        globalNotesArea: document.getElementById('global-notes') // <--- NOVO
+        globalNotesArea: document.getElementById('global-notes') 
     };
 
     let currentTab = 'master-attributes';
 
-    // --- Lógica de Navegação das Abas ---
+    // --- Lógica de Navegação das Abas (VISUAL MODERNO) ---
 
     const switchTab = (tabId) => {
         currentTab = tabId;
         
+        // Esconde todos os conteúdos
         document.querySelectorAll('.admin-tab-content').forEach(content => {
             content.classList.add('hidden');
         });
+
+        // Reseta estilo de todos os botões (para o estado inativo)
         document.querySelectorAll('.admin-tab').forEach(btn => {
-            btn.classList.remove('bg-indigo-50', 'text-indigo-700');
-            btn.classList.add('text-gray-600', 'hover:bg-gray-50');
+            // Remove classes ativas
+            btn.classList.remove('text-indigo-600', 'border-indigo-600', 'bg-white', 'font-semibold');
+            // Adiciona classes inativas
+            btn.classList.add('text-slate-500', 'border-transparent', 'font-medium');
         });
 
+        // Mostra o conteúdo selecionado
         const selectedContent = document.getElementById(`${tabId}-tab`);
         if (selectedContent) {
             selectedContent.classList.remove('hidden');
         }
 
+        // Ativa o botão selecionado
         const selectedBtn = document.querySelector(`.admin-tab[data-tab="${tabId}"]`);
         if (selectedBtn) {
-            selectedBtn.classList.add('bg-indigo-50', 'text-indigo-700');
-            selectedBtn.classList.remove('text-gray-600', 'hover:bg-gray-50');
+            selectedBtn.classList.remove('text-slate-500', 'border-transparent', 'font-medium');
+            selectedBtn.classList.add('text-indigo-600', 'border-indigo-600', 'bg-white', 'font-semibold');
         }
 
         refreshAdminView();
@@ -231,7 +238,6 @@ const AdminController = (() => {
                 StorageService.importAllData(importedData);
                 alert('Dados importados com sucesso! Recarregando painel.');
                 refreshAdminView();
-                // Recarrega notas também
                 if (DOM.globalNotesArea) DOM.globalNotesArea.value = StorageService.loadGlobalNotes();
                 fileInput.value = ''; 
             } catch (e) {
@@ -301,7 +307,6 @@ const AdminController = (() => {
         });
 
         // 4. Secondary Attributes
-        // Agora verificamos se o botão existe no DOM (agora existe!)
         if (DOM.addSecondaryAttributeBtn) {
             DOM.addSecondaryAttributeBtn.addEventListener('click', () => {
                 const masterAttributes = StorageService.loadMasterAttributes();
@@ -346,10 +351,18 @@ const AdminController = (() => {
 
         // 6. Ferramentas e Modal Close
         DOM.exportAllDataBtn.addEventListener('click', handleExportData);
-        DOM.importDataBtn.addEventListener('click', handleImportData);
+        
+        // Novo listener para o botão de upload customizado
+        const mockImportBtn = document.getElementById('import-mock-btn');
+        if (mockImportBtn) {
+            mockImportBtn.addEventListener('click', () => DOM.importDataFile.click());
+        }
+        
+        // Listener original do input file (caso mude)
+        DOM.importDataFile.addEventListener('change', handleImportData);
+
         DOM.clearAllDataBtn.addEventListener('click', handleClearAllData);
         
-        // Listener para Salvar Notas
         if (DOM.saveNotesBtn) {
             DOM.saveNotesBtn.addEventListener('click', () => {
                 const text = DOM.globalNotesArea ? DOM.globalNotesArea.value : '';
@@ -366,11 +379,9 @@ const AdminController = (() => {
     };
 
     const initAdminView = () => {
-        // Carrega notas salvas ao abrir
         if (DOM.globalNotesArea && StorageService.loadGlobalNotes) {
             DOM.globalNotesArea.value = StorageService.loadGlobalNotes();
         }
-        
         switchTab(currentTab); 
         attachListeners();
     };
