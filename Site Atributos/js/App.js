@@ -16,14 +16,11 @@ const App = (() => {
         // Resetar estilos
         Object.values(NAV_BUTTONS).forEach(btn => {
             if (btn) {
-                // Remove estilos ativos antigos
                 btn.classList.remove('text-indigo-600', 'bg-indigo-50', 'text-white', 'bg-indigo-700');
                 
                 if (btn.id === 'nav-new-char') {
-                    // Estilo padrão do botão CTA
                     btn.classList.add('text-white', 'bg-gradient-to-r', 'from-indigo-600', 'to-indigo-700');
                 } else {
-                    // Estilo padrão dos links
                     btn.classList.add('text-slate-600');
                 }
             }
@@ -52,14 +49,14 @@ const App = (() => {
             const el = VIEWS[key];
             if (el) {
                 el.classList.add('hidden');
-                el.classList.remove('animate-fade-in'); // Reseta animação para poder tocar de novo
+                el.classList.remove('animate-fade-in'); 
             }
         });
         
         // Mostra a selecionada com Animação
         if (VIEWS[viewId]) {
             VIEWS[viewId].classList.remove('hidden');
-            VIEWS[viewId].classList.add('animate-fade-in'); // <--- Animação aqui
+            VIEWS[viewId].classList.add('animate-fade-in'); 
             updateNavStyle(viewId);
         }
 
@@ -79,8 +76,7 @@ const App = (() => {
     const showEditor = () => showView('editor');
     const showHelp = () => showView('help');
 
-    // --- Métodos Públicos para onclick no HTML (Renderer.js) ---
-    // Esses métodos precisam ser expostos no return para que "onclick='App.loadBuild(1)'" funcione
+    // --- Métodos Públicos para onclick no HTML ---
     const loadBuild = (id) => {
         BuildController.loadBuildForEditing(id);
         showView('editor');
@@ -119,7 +115,6 @@ const App = (() => {
 
     // --- Configuração Visual ---
 
-    // Injeta CSS de animação dinamicamente
     const addGlobalAnimationStyles = () => {
         if (!document.getElementById('app-animations')) {
             const style = document.createElement('style');
@@ -132,6 +127,7 @@ const App = (() => {
                 .animate-fade-in {
                     animation: fadeIn 0.3s ease-out forwards;
                 }
+                .cursor-wait { cursor: wait; }
             `;
             document.head.appendChild(style);
         }
@@ -141,7 +137,39 @@ const App = (() => {
 
     const setupListeners = () => {
         if (NAV_BUTTONS['dashboard']) NAV_BUTTONS['dashboard'].addEventListener('click', showDashboard);
-        if (NAV_BUTTONS['admin']) NAV_BUTTONS['admin'].addEventListener('click', () => showView('admin'));
+        
+        // --- PROTEÇÃO DE SENHA AQUI ---
+        if (NAV_BUTTONS['admin']) {
+            NAV_BUTTONS['admin'].addEventListener('click', () => {
+                const isLogged = sessionStorage.getItem('admin_session_active');
+
+                if (isLogged === 'true') {
+                    // Já logado nesta sessão
+                    if (typeof AdminController !== 'undefined') AdminController.initAdminView();
+                    showView('admin');
+                } else {
+                    // Requer Login (Modal)
+                    if (typeof Renderer !== 'undefined' && Renderer.renderLoginModal) {
+                        Renderer.renderLoginModal(() => {
+                            sessionStorage.setItem('admin_session_active', 'true');
+                            if (typeof AdminController !== 'undefined') AdminController.initAdminView();
+                            showView('admin');
+                        });
+                    } else {
+                        // Fallback caso Renderer não tenha carregado ainda (segurança)
+                        const pass = prompt("Digite a senha de administrador:");
+                        if (pass === StorageService.getAdminPassword()) {
+                            sessionStorage.setItem('admin_session_active', 'true');
+                            showView('admin');
+                        } else {
+                            alert("Senha incorreta.");
+                        }
+                    }
+                }
+            });
+        }
+        // ------------------------------
+
         if (NAV_BUTTONS['help']) NAV_BUTTONS['help'].addEventListener('click', showHelp);
         
         if (NAV_BUTTONS['newChar']) {
@@ -151,13 +179,6 @@ const App = (() => {
             });
         }
 
-        // Listener Global para botões no Dashboard (Event Delegation)
-        // Isso é necessário porque os cards são criados dinamicamente pelo Renderer.js
-        /* NOTA: Como adicionamos métodos públicos 'loadBuild' e 'deleteBuild' no return,
-           os onclicks diretos no HTML gerado pelo Renderer (onclick="App.loadBuild(...)")
-           vão funcionar nativamente, tornando este listener redundante mas seguro manter.
-        */
-        
         // Listeners do Editor
         const runBtn = document.getElementById('run-full-analysis-btn');
         if (runBtn) {
@@ -167,7 +188,7 @@ const App = (() => {
                 runBtn.disabled = true;
                 runBtn.classList.add('opacity-75', 'cursor-wait');
 
-                await new Promise(resolve => setTimeout(resolve, 600)); // Pequeno delay visual
+                await new Promise(resolve => setTimeout(resolve, 600)); 
 
                 BuildController.generateFinalReport();
 
@@ -204,7 +225,7 @@ const App = (() => {
             'newChar': document.getElementById('nav-new-char')
         };
 
-        addGlobalAnimationStyles(); // Injeta CSS de animação
+        addGlobalAnimationStyles(); 
         StorageService.initializeDefaultData(); 
         setupListeners();
         
@@ -220,8 +241,8 @@ const App = (() => {
     
     return {
         showView,
-        loadBuild,   // Exposto para uso no HTML (Renderer.js)
-        deleteBuild, // Exposto para uso no HTML (Renderer.js)
+        loadBuild,   
+        deleteBuild, 
         showDashboard,
         showReport,
         showEditor,

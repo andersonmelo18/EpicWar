@@ -30,7 +30,9 @@ const AdminController = (() => {
         importDataBtn: document.getElementById('import-data-btn'),
         exportAllDataBtn: document.getElementById('export-all-data-btn'),
         clearAllDataBtn: document.getElementById('clear-all-data-btn'),
-        globalNotesArea: document.getElementById('global-notes') 
+        globalNotesArea: document.getElementById('global-notes'),
+        changePasswordBtn: document.getElementById('change-password-btn'),
+        newPasswordInput: document.getElementById('new-admin-password') 
     };
 
     let currentTab = 'master-attributes';
@@ -370,6 +372,20 @@ const AdminController = (() => {
                 alert("Observações atualizadas com sucesso!");
             });
         }
+
+        // Listener para Trocar Senha (ADICIONADO)
+        if (DOM.changePasswordBtn) {
+            DOM.changePasswordBtn.addEventListener('click', () => {
+                const newPass = DOM.newPasswordInput.value;
+                if (newPass && newPass.length >= 3) {
+                    StorageService.setAdminPassword(newPass);
+                    alert("Senha de administrador alterada com sucesso!");
+                    DOM.newPasswordInput.value = '';
+                } else {
+                    alert("A senha deve ter pelo menos 3 caracteres.");
+                }
+            });
+        } 
 
         document.getElementById('modals-container').addEventListener('click', (e) => {
             if (e.target.id === 'close-admin-modal-btn') {

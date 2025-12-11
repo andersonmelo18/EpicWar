@@ -348,6 +348,16 @@ const StorageService = (() => {
     const loadGlobalNotes = () => localStorage.getItem(KEYS.GLOBAL_NOTES) || "Dicas gerais para PvP: Mantenha seus atributos essenciais em dia.";
     const saveGlobalNotes = (text) => localStorage.setItem(KEYS.GLOBAL_NOTES, text);
 
+    // --- SEGURANÇA (NOVO) ---
+    const getAdminPassword = () => {
+        // Retorna a senha salva ou 'admin' como padrão
+        return localStorage.getItem('app_admin_password') || 'admin';
+    };
+
+    const setAdminPassword = (newPassword) => {
+        localStorage.setItem('app_admin_password', newPassword);
+    };
+
     return {
         initializeDefaultData,
         loadAllBuilds,
@@ -367,6 +377,9 @@ const StorageService = (() => {
         importAllData,
         clearAllData,
         loadGlobalNotes,
-        saveGlobalNotes
+        saveGlobalNotes,
+        // Novos exports:
+        getAdminPassword,
+        setAdminPassword
     };
 })();

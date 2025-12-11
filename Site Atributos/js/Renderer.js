@@ -48,10 +48,10 @@ const Renderer = (() => {
     const renderBuildCard = (build) => {
         const lastUpdated = build.lastUpdated ? new Date(build.lastUpdated).toLocaleDateString('pt-BR') : 'Hoje';
         const artifactCount = build.artifacts ? build.artifacts.length : 0;
-        
+
         // Conta gemas
         let gemCount = 0;
-        if(build.artifacts) build.artifacts.forEach(a => a.gems.forEach(g => { if(g) gemCount++ }));
+        if (build.artifacts) build.artifacts.forEach(a => a.gems.forEach(g => { if (g) gemCount++ }));
 
         return `
             <div class="card-modern p-5 flex flex-col justify-between h-full relative overflow-hidden group">
@@ -107,11 +107,11 @@ const Renderer = (() => {
             const gem = artifact.gems[index];
             const config = ELEMENT_CONFIG[element];
             let content;
-            
+
             if (gem) {
                 const mainAttr = gem.attributes[0];
                 const rarityClass = getRarityColor(gem.rarity);
-                
+
                 // Busca nome do atributo (requer acesso ao StorageService se disponível)
                 const masterAttributes = typeof StorageService !== 'undefined' ? StorageService.loadMasterAttributes() : [];
                 const attrObj = masterAttributes.find(a => a.id === mainAttr.attribute_id);
@@ -255,7 +255,7 @@ const Renderer = (() => {
         if (!gem || !gem.attributes || gem.attributes.length === 0) return '';
 
         return gem.attributes.map((attr, index) => {
-            const filteredAttributes = masterAttributes.filter(a => 
+            const filteredAttributes = masterAttributes.filter(a =>
                 a.tier === attr.tier && (!a.default_element || a.default_element === gemElement)
             );
 
@@ -263,11 +263,11 @@ const Renderer = (() => {
                 `<option value="${a.id}" data-tier="${a.tier}" ${a.id === attr.attribute_id ? 'selected' : ''}>${a.name}</option>`
             ).join('');
 
-            const remodelOptions = REMODELS.map(r => 
+            const remodelOptions = REMODELS.map(r =>
                 `<option value="${r}" ${r === attr.remodel ? 'selected' : ''}>${r.charAt(0).toUpperCase() + r.slice(1)}</option>`
             ).join('');
-            
-            const tierOptions = [1, 2, 3].map(t => 
+
+            const tierOptions = [1, 2, 3].map(t =>
                 `<option value="${t}" ${t === attr.tier ? 'selected' : ''}>Lv${t}</option>`
             ).join('');
 
@@ -323,7 +323,7 @@ const Renderer = (() => {
                 </div>
             </div>
         `).join('');
-        
+
         container.innerHTML = html;
     };
 
@@ -436,7 +436,7 @@ const Renderer = (() => {
     const renderMasterAttributeModal = (attr = null) => {
         const elementOptions = ELEMENTS.map(e => `<option value="${e}" ${attr?.default_element === e ? 'selected' : ''}>${e.toUpperCase()}</option>`).join('');
         const tierOptions = [1, 2, 3].map(t => `<option value="${t}" ${attr?.tier === t ? 'selected' : ''}>Tier ${t}</option>`).join('');
-        
+
         const modalHtml = `
             <div id="admin-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                 <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
@@ -539,6 +539,64 @@ const Renderer = (() => {
         }
     };
 
+    // --- MODAL DE LOGIN (NOVO) ---
+
+    const renderLoginModal = (onSuccess) => {
+        const modalHtml = `
+            <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden p-8 text-center border border-slate-200">
+                    <div class="mb-6 bg-indigo-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto text-3xl">
+                        🔒
+                    </div>
+                    <h3 class="text-2xl font-extrabold text-slate-800 mb-2">Acesso Restrito</h3>
+                    <p class="text-slate-500 text-sm mb-6">Esta área é reservada para administradores.</p>
+                    
+                    <form id="login-form" class="space-y-4">
+                        <div>
+                            <input type="password" id="login-password" placeholder="Digite a senha..." class="w-full text-center text-lg tracking-widest rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-3 transition-colors" autofocus>
+                        </div>
+                        <p id="login-error" class="text-red-500 text-xs font-bold hidden animate-bounce">Senha Incorreta!</p>
+                        
+                        <button type="submit" class="w-full btn-hover bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all">
+                            Desbloquear
+                        </button>
+                    </form>
+                    <button id="cancel-login-btn" class="mt-4 text-slate-400 text-sm hover:text-slate-600 underline">Cancelar</button>
+                </div>
+            </div>
+        `;
+        document.getElementById('modals-container').innerHTML = modalHtml;
+
+        // Lógica do Modal
+        const form = document.getElementById('login-form');
+        const input = document.getElementById('login-password');
+        const errorMsg = document.getElementById('login-error');
+
+        input.focus();
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const typed = input.value;
+            const correct = StorageService.getAdminPassword(); // Pega a senha real
+
+            if (typed === correct) {
+                // Sucesso!
+                document.getElementById('modals-container').innerHTML = ''; // Fecha modal
+                onSuccess(); // Executa a função de liberar acesso
+            } else {
+                // Erro
+                errorMsg.classList.remove('hidden');
+                input.value = '';
+                input.classList.add('border-red-500', 'ring-1', 'ring-red-500');
+                input.focus();
+            }
+        });
+
+        document.getElementById('cancel-login-btn').addEventListener('click', () => {
+            document.getElementById('modals-container').innerHTML = '';
+        });
+    };
+
     return {
         renderBuildCard,
         renderArtifactCard,
@@ -551,6 +609,7 @@ const Renderer = (() => {
         renderSecondaryAttributeModal,
         renderRecommendedCombosList,
         renderRecommendedComboModal,
+        renderLoginModal,
         closeCurrentModal,
         attachModalCloseListeners
     };
