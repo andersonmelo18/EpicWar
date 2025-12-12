@@ -1,5 +1,7 @@
 /**
+ * js/Renderer.js
  * Módulo responsável por gerar o HTML dinâmico com visual moderno.
+ * Corrige referências ao AdminService e aplica novas regras de cores (Grade/Qualidade).
  */
 const Renderer = (() => {
 
@@ -28,19 +30,19 @@ const Renderer = (() => {
         return `<span class="badge-element ${config.badge} gap-1">${config.icon} ${element}</span>`;
     };
 
-    // MUDANÇA 1: Cores da REMODELAÇÃO (Texto do Atributo)
+    // 1. Cores da REMODELAÇÃO (Texto do Atributo)
     const getQualityColor = (remodel) => {
         switch (remodel?.toLowerCase()) {
-            case 'comum': return 'text-slate-500'; // "Branco"/Cinza
+            case 'comum': return 'text-slate-500'; // Cinza
             case 'raro': return 'text-green-600 font-medium'; // Verde
             case 'épico': return 'text-orange-500 font-bold'; // Laranja
             case 'legendário': return 'text-red-600 font-bold'; // Vermelho
-            case 'mítico': return 'text-yellow-500 font-extrabold uppercase tracking-wide drop-shadow-sm'; // Amarelo/Dourado
+            case 'mítico': return 'text-yellow-500 font-extrabold uppercase tracking-wide drop-shadow-sm'; // Amarelo
             default: return 'text-slate-700';
         }
     };
 
-    // MUDANÇA 2: Cores da RARIDADE/GRADE (Badge do Topo)
+    // 2. Cores da RARIDADE/GRADE (Badge do Topo)
     const getGradeBadge = (rarity) => {
         const gradeMap = {
             'B': 'bg-blue-100 text-blue-800 border border-blue-200',   // Azul
@@ -58,10 +60,9 @@ const Renderer = (() => {
     const renderBuildCard = (build) => {
         const lastUpdated = build.lastUpdated ? new Date(build.lastUpdated).toLocaleDateString('pt-BR') : 'Hoje';
         const artifactCount = build.artifacts ? build.artifacts.length : 0;
-
-        // Conta gemas
+        
         let gemCount = 0;
-        if (build.artifacts) build.artifacts.forEach(a => a.gems.forEach(g => { if (g) gemCount++ }));
+        if(build.artifacts) build.artifacts.forEach(a => a.gems.forEach(g => { if(g) gemCount++ }));
 
         return `
             <div class="card-modern p-5 flex flex-col justify-between h-full relative overflow-hidden group">
@@ -107,32 +108,32 @@ const Renderer = (() => {
     // --- EDITOR DE ARTEFATOS ---
 
     const renderArtifactCard = (artifact, buildId) => {
-        // Lógica visual: Artefato cheio ganha destaque verde
         const gemsFilled = artifact.gems.filter(g => g).length;
         const isComplete = gemsFilled === 4;
         const statusBorder = isComplete ? 'border-green-500' : 'border-slate-200';
         const progressDot = isComplete ? 'bg-green-500' : 'bg-slate-300';
 
+        // CORREÇÃO: Usar AdminService.ELEMENTS
         const slotsHtml = AdminService.ELEMENTS.map((element, index) => {
             const gem = artifact.gems[index];
-
+            
             let content;
-
+            
             if (gem) {
                 const masterAttributes = typeof StorageService !== 'undefined' ? StorageService.loadMasterAttributes() : [];
-
-                // Lista de Atributos com cor baseada na Remodelação (getQualityColor)
+                
+                // Atributos com cor baseada na Qualidade (Remodel)
                 const attributesList = gem.attributes.map(attr => {
                     const attrObj = masterAttributes.find(a => a.id === attr.attribute_id);
                     const name = attrObj ? attrObj.name : 'Desc.';
                     const colorClass = getQualityColor(attr.remodel);
-
+                    
                     return `<div class="truncate text-[10px] ${colorClass}" title="${name} (${attr.remodel})">
                                 • ${name}
                             </div>`;
                 }).join('');
 
-                // Cabeçalho da Gema com Badge da Raridade (Grade)
+                // Badge de Raridade (Grade)
                 content = `
                     <div class="w-full text-left overflow-hidden">
                         <div class="flex justify-between items-center w-full mb-1">
@@ -199,9 +200,14 @@ const Renderer = (() => {
     // --- MODAIS ---
 
     const renderGemModal = (artifact, slotIndex, gem, masterAttributes) => {
-        const element = ELEMENTS[slotIndex];
+        // CORREÇÃO: Usar AdminService.ELEMENTS e AdminService.RARITIES
+        const element = AdminService.ELEMENTS[slotIndex];
         const config = ELEMENT_CONFIG[element];
         const initialAttributesHtml = renderGemAttributes(gem, element, masterAttributes);
+
+        const rarityOptions = AdminService.RARITIES.map(r => 
+            `<option value="${r}" ${gem?.rarity === r ? 'selected' : ''}>${r}</option>`
+        ).join('');
 
         const modalHtml = `
             <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity">
@@ -224,9 +230,9 @@ const Renderer = (() => {
                             
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Raridade</label>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Raridade (Grade)</label>
                                     <select id="gem-rarity" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2 text-sm">
-                                        ${REMODELS.map(r => `<option value="${r.charAt(0).toUpperCase() + r.slice(1)}" ${gem?.rarity === (r.charAt(0).toUpperCase() + r.slice(1)) ? 'selected' : ''}>${r.charAt(0).toUpperCase() + r.slice(1)}</option>`).join('')}
+                                        ${rarityOptions}
                                     </select>
                                 </div>
                                 <div>
@@ -268,7 +274,7 @@ const Renderer = (() => {
         if (!gem || !gem.attributes || gem.attributes.length === 0) return '';
 
         return gem.attributes.map((attr, index) => {
-            const filteredAttributes = masterAttributes.filter(a =>
+            const filteredAttributes = masterAttributes.filter(a => 
                 a.tier === attr.tier && (!a.default_element || a.default_element === gemElement)
             );
 
@@ -276,12 +282,12 @@ const Renderer = (() => {
                 `<option value="${a.id}" data-tier="${a.tier}" ${a.id === attr.attribute_id ? 'selected' : ''}>${a.name}</option>`
             ).join('');
 
-            // MUDANÇA: Usa AdminService.REMODELS para preencher o select de qualidade
-            const remodelOptions = AdminService.REMODELS.map(r =>
+            // CORREÇÃO: Usar AdminService.REMODELS para Qualidade
+            const remodelOptions = AdminService.REMODELS.map(r => 
                 `<option value="${r}" ${r === attr.remodel ? 'selected' : ''}>${r.charAt(0).toUpperCase() + r.slice(1)}</option>`
             ).join('');
-
-            const tierOptions = [1, 2, 3].map(t =>
+            
+            const tierOptions = [1, 2, 3].map(t => 
                 `<option value="${t}" ${t === attr.tier ? 'selected' : ''}>Lv${t}</option>`
             ).join('');
 
@@ -314,14 +320,68 @@ const Renderer = (() => {
         }).join('');
     };
 
-    // --- ADMIN ---
+    // --- LOGIN MODAL ---
+
+    const renderLoginModal = (onSuccess) => {
+        const modalHtml = `
+            <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden p-8 text-center border border-slate-200">
+                    <div class="mb-6 bg-indigo-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto text-3xl">
+                        🔒
+                    </div>
+                    <h3 class="text-2xl font-extrabold text-slate-800 mb-2">Acesso Restrito</h3>
+                    <p class="text-slate-500 text-sm mb-6">Esta área é reservada para administradores.</p>
+                    
+                    <form id="login-form" class="space-y-4">
+                        <div>
+                            <input type="password" id="login-password" placeholder="Digite a senha..." class="w-full text-center text-lg tracking-widest rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-3 transition-colors" autofocus>
+                        </div>
+                        <p id="login-error" class="text-red-500 text-xs font-bold hidden animate-bounce">Senha Incorreta!</p>
+                        
+                        <button type="submit" class="w-full btn-hover bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all">
+                            Desbloquear
+                        </button>
+                    </form>
+                    <button id="cancel-login-btn" class="mt-4 text-slate-400 text-sm hover:text-slate-600 underline">Cancelar</button>
+                </div>
+            </div>
+        `;
+        document.getElementById('modals-container').innerHTML = modalHtml;
+
+        const form = document.getElementById('login-form');
+        const input = document.getElementById('login-password');
+        const errorMsg = document.getElementById('login-error');
+
+        input.focus();
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const typed = input.value;
+            const correct = StorageService.getAdminPassword();
+
+            if (typed === correct) {
+                document.getElementById('modals-container').innerHTML = '';
+                onSuccess();
+            } else {
+                errorMsg.classList.remove('hidden');
+                input.value = '';
+                input.classList.add('border-red-500', 'ring-1', 'ring-red-500');
+                input.focus();
+            }
+        });
+
+        document.getElementById('cancel-login-btn').addEventListener('click', () => {
+            document.getElementById('modals-container').innerHTML = '';
+        });
+    };
+
+    // --- ADMIN RENDERERS (Atualizados para usar AdminService) ---
 
     const renderMasterAttributesList = (attributes) => {
         const container = document.getElementById('master-attributes-list');
         if (!container) return;
         if (attributes.length === 0) { container.innerHTML = '<p class="text-slate-400 text-sm text-center py-4">Nenhum atributo cadastrado.</p>'; return; }
 
-        // Ordena
         const sorted = [...attributes].sort((a, b) => b.tier - a.tier || a.name.localeCompare(b.name));
 
         const html = sorted.map(attr => `
@@ -337,13 +397,8 @@ const Renderer = (() => {
                 </div>
             </div>
         `).join('');
-
         container.innerHTML = html;
     };
-
-    // (As funções renderRequiredAttributesList, renderSecondaryAttributesList, renderRecommendedCombosList 
-    // seguem a mesma lógica visual moderna acima. O código ficaria muito extenso se repetisse tudo, 
-    // mas a lógica é usar as classes 'bg-white', 'border', 'rounded-lg' e ícones SVG.)
 
     const renderRequiredAttributesList = (requiredAttributes, masterAttributes) => {
         const container = document.getElementById('required-attributes-list');
@@ -368,26 +423,6 @@ const Renderer = (() => {
     };
 
     const renderSecondaryAttributesList = (secondaryAttributes, masterAttributes) => {
-        // (Lógica de criação da aba se não existir mantida do passo anterior)
-        let tabContent = document.getElementById('secondary-attributes-tab');
-        if (!tabContent) {
-            const adminArea = document.getElementById('admin-content-area');
-            const newTabDiv = document.createElement('div');
-            newTabDiv.id = 'secondary-attributes-tab';
-            newTabDiv.className = 'admin-tab-content hidden';
-            newTabDiv.innerHTML = `
-                <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h3 class="text-xl font-bold text-slate-700">Atributos Secundários</h3>
-                        <p class="text-sm text-slate-500">Opcionais para suporte.</p>
-                    </div>
-                    <button id="add-secondary-attribute-btn" class="btn-hover bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md">+ Adicionar</button>
-                </div>
-                <div id="secondary-attributes-list" class="space-y-2"></div>
-            `;
-            adminArea.appendChild(newTabDiv);
-        }
-
         const container = document.getElementById('secondary-attributes-list');
         if (!container) return;
         if (secondaryAttributes.length === 0) { container.innerHTML = '<p class="text-slate-400 text-sm italic">Lista vazia.</p>'; return; }
@@ -437,20 +472,10 @@ const Renderer = (() => {
         container.innerHTML = html;
     };
 
-    // --- MODAIS GERAIS (Estrutura compartilhada) ---
-    // (As funções renderMasterAttributeModal, renderRequiredAttributeModal, etc. 
-    // usam a mesma estrutura HTML do 'renderGemModal' acima, apenas mudando o form.
-    // Para economizar espaço, a lógica é a mesma: 
-    // container: fixed inset-0 bg-slate-900/60 backdrop-blur-sm 
-    // card: bg-white rounded-2xl shadow-2xl)
-
-    // ... (Mantém as funções de modal do Admin com a nova estrutura de classes CSS) ...
-    // Vou incluir uma genérica para garantir que funcione se você copiar tudo:
-
     const renderMasterAttributeModal = (attr = null) => {
-        const elementOptions = ELEMENTS.map(e => `<option value="${e}" ${attr?.default_element === e ? 'selected' : ''}>${e.toUpperCase()}</option>`).join('');
+        const elementOptions = AdminService.ELEMENTS.map(e => `<option value="${e}" ${attr?.default_element === e ? 'selected' : ''}>${e.toUpperCase()}</option>`).join('');
         const tierOptions = [1, 2, 3].map(t => `<option value="${t}" ${attr?.tier === t ? 'selected' : ''}>Tier ${t}</option>`).join('');
-
+        
         const modalHtml = `
             <div id="admin-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                 <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
@@ -472,7 +497,6 @@ const Renderer = (() => {
         document.getElementById('modals-container').innerHTML = modalHtml;
     };
 
-    // (Repita a estrutura de modal moderna para Required, Secondary e Combo)
     const renderRequiredAttributeModal = (masterAttributes) => {
         const opts = masterAttributes.map(a => `<option value="${a.id}">${a.name} (Lv${a.tier})</option>`).join('');
         const modalHtml = `
@@ -511,6 +535,9 @@ const Renderer = (() => {
 
     const renderRecommendedComboModal = (masterAttributes, combo = null) => {
         const opts = masterAttributes.map(a => `<option value="${a.id}" ${combo?.attribute_ids.includes(a.id) ? 'selected' : ''}>${a.name}</option>`).join('');
+        // Usar AdminService.RARITIES
+        const rarityOptions = AdminService.RARITIES.map(r => `<option value="${r}" ${combo?.rarity === r ? 'selected' : ''}>${r}</option>`).join('');
+
         const modalHtml = `
             <div id="admin-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                 <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
@@ -522,7 +549,7 @@ const Renderer = (() => {
                         <input type="hidden" id="combo-id" value="${combo?.id || ''}">
                         <div><label class="text-xs font-bold text-slate-500 uppercase">Nome</label><input id="combo-name" value="${combo?.name || ''}" class="w-full border-slate-300 rounded-lg text-sm mt-1"></div>
                         <div class="grid grid-cols-2 gap-4">
-                            <div><label class="text-xs font-bold text-slate-500 uppercase">Raridade</label><select id="combo-rarity" class="w-full border-slate-300 rounded-lg text-sm mt-1"><option>Comum</option><option>Raro</option><option>Épico</option><option>Legendário</option></select></div>
+                            <div><label class="text-xs font-bold text-slate-500 uppercase">Grade (Raridade)</label><select id="combo-rarity" class="w-full border-slate-300 rounded-lg text-sm mt-1">${rarityOptions}</select></div>
                             <div><label class="text-xs font-bold text-slate-500 uppercase">Nível (+)</label><input type="number" id="combo-plus-level" value="${combo?.plus_level || 0}" class="w-full border-slate-300 rounded-lg text-sm mt-1"></div>
                         </div>
                         <div><label class="text-xs font-bold text-slate-500 uppercase">Atributos (Ctrl+Click)</label><select id="combo-attributes" multiple size="5" class="w-full border-slate-300 rounded-lg text-sm mt-1">${opts}</select></div>
@@ -551,64 +578,6 @@ const Renderer = (() => {
             });
             document.addEventListener('keydown', handleEscapeKey);
         }
-    };
-
-    // --- MODAL DE LOGIN (NOVO) ---
-
-    const renderLoginModal = (onSuccess) => {
-        const modalHtml = `
-            <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
-                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden p-8 text-center border border-slate-200">
-                    <div class="mb-6 bg-indigo-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto text-3xl">
-                        🔒
-                    </div>
-                    <h3 class="text-2xl font-extrabold text-slate-800 mb-2">Acesso Restrito</h3>
-                    <p class="text-slate-500 text-sm mb-6">Esta área é reservada para administradores.</p>
-                    
-                    <form id="login-form" class="space-y-4">
-                        <div>
-                            <input type="password" id="login-password" placeholder="Digite a senha..." class="w-full text-center text-lg tracking-widest rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-3 transition-colors" autofocus>
-                        </div>
-                        <p id="login-error" class="text-red-500 text-xs font-bold hidden animate-bounce">Senha Incorreta!</p>
-                        
-                        <button type="submit" class="w-full btn-hover bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all">
-                            Desbloquear
-                        </button>
-                    </form>
-                    <button id="cancel-login-btn" class="mt-4 text-slate-400 text-sm hover:text-slate-600 underline">Cancelar</button>
-                </div>
-            </div>
-        `;
-        document.getElementById('modals-container').innerHTML = modalHtml;
-
-        // Lógica do Modal
-        const form = document.getElementById('login-form');
-        const input = document.getElementById('login-password');
-        const errorMsg = document.getElementById('login-error');
-
-        input.focus();
-
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const typed = input.value;
-            const correct = StorageService.getAdminPassword(); // Pega a senha real
-
-            if (typed === correct) {
-                // Sucesso!
-                document.getElementById('modals-container').innerHTML = ''; // Fecha modal
-                onSuccess(); // Executa a função de liberar acesso
-            } else {
-                // Erro
-                errorMsg.classList.remove('hidden');
-                input.value = '';
-                input.classList.add('border-red-500', 'ring-1', 'ring-red-500');
-                input.focus();
-            }
-        });
-
-        document.getElementById('cancel-login-btn').addEventListener('click', () => {
-            document.getElementById('modals-container').innerHTML = '';
-        });
     };
 
     return {
