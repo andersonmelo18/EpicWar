@@ -19,10 +19,6 @@ const Renderer = (() => {
         'veneno': { color: 'text-emerald-700', bg: 'bg-emerald-50', icon: ICONS.poison, badge: 'badge-veneno' }
     };
 
-    // Configurações padrão
-    const ELEMENTS = ['fogo', 'gelo', 'luz', 'veneno'];
-    const REMODELS = ['comum', 'raro', 'épico', 'legendário', 'mítico'];
-
     // --- HELPER FUNCTIONS ---
 
     const getElementBadge = (element) => {
@@ -32,15 +28,29 @@ const Renderer = (() => {
         return `<span class="badge-element ${config.badge} gap-1">${config.icon} ${element}</span>`;
     };
 
-    const getRarityColor = (rarity) => {
-        switch (rarity?.toLowerCase()) {
-            case 'comum': return 'text-slate-500';
-            case 'raro': return 'text-blue-500 font-medium';
-            case 'épico': return 'text-purple-600 font-medium';
-            case 'legendário': return 'text-orange-500 font-bold';
-            case 'mítico': return 'text-red-600 font-extrabold';
-            default: return 'text-slate-600';
+    // MUDANÇA 1: Cores da REMODELAÇÃO (Texto do Atributo)
+    const getQualityColor = (remodel) => {
+        switch (remodel?.toLowerCase()) {
+            case 'comum': return 'text-slate-500'; // "Branco"/Cinza
+            case 'raro': return 'text-green-600 font-medium'; // Verde
+            case 'épico': return 'text-orange-500 font-bold'; // Laranja
+            case 'legendário': return 'text-red-600 font-bold'; // Vermelho
+            case 'mítico': return 'text-yellow-500 font-extrabold uppercase tracking-wide drop-shadow-sm'; // Amarelo/Dourado
+            default: return 'text-slate-700';
         }
+    };
+
+    // MUDANÇA 2: Cores da RARIDADE/GRADE (Badge do Topo)
+    const getGradeBadge = (rarity) => {
+        const gradeMap = {
+            'B': 'bg-blue-100 text-blue-800 border border-blue-200',   // Azul
+            'A': 'bg-purple-100 text-purple-800 border border-purple-200', // Roxo
+            'S': 'bg-yellow-100 text-yellow-800 border border-yellow-200', // Amarelo
+            'SS': 'bg-red-100 text-red-800 border border-red-200',     // Vermelho
+            'SSR': 'bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 to-blue-500 text-white border-transparent shadow-sm' // Arco-íris
+        };
+        const style = gradeMap[rarity] || 'bg-slate-100 text-slate-500';
+        return `<span class="px-2 py-0.5 rounded text-[10px] font-black ${style}">${rarity}</span>`;
     };
 
     // --- CARDS DA DASHBOARD ---
@@ -103,31 +113,34 @@ const Renderer = (() => {
         const statusBorder = isComplete ? 'border-green-500' : 'border-slate-200';
         const progressDot = isComplete ? 'bg-green-500' : 'bg-slate-300';
 
-        const slotsHtml = ELEMENTS.map((element, index) => {
+        const slotsHtml = AdminService.ELEMENTS.map((element, index) => {
             const gem = artifact.gems[index];
-            const config = ELEMENT_CONFIG[element];
+
             let content;
 
             if (gem) {
-                const mainAttr = gem.attributes[0];
-                const rarityClass = getRarityColor(gem.rarity);
-
-                // Busca nome do atributo (requer acesso ao StorageService se disponível)
                 const masterAttributes = typeof StorageService !== 'undefined' ? StorageService.loadMasterAttributes() : [];
-                const attrObj = masterAttributes.find(a => a.id === mainAttr.attribute_id);
-                const attrName = attrObj ? attrObj.name : 'Desconhecido';
 
+                // Lista de Atributos com cor baseada na Remodelação (getQualityColor)
+                const attributesList = gem.attributes.map(attr => {
+                    const attrObj = masterAttributes.find(a => a.id === attr.attribute_id);
+                    const name = attrObj ? attrObj.name : 'Desc.';
+                    const colorClass = getQualityColor(attr.remodel);
+
+                    return `<div class="truncate text-[10px] ${colorClass}" title="${name} (${attr.remodel})">
+                                • ${name}
+                            </div>`;
+                }).join('');
+
+                // Cabeçalho da Gema com Badge da Raridade (Grade)
                 content = `
                     <div class="w-full text-left overflow-hidden">
                         <div class="flex justify-between items-center w-full mb-1">
-                            <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Tier ${mainAttr.tier}</span>
-                            <span class="text-[10px] font-bold ${rarityClass} bg-slate-50 px-1 rounded border border-slate-100">+${gem.plus_level}</span>
+                            ${getGradeBadge(gem.rarity)}
+                            <span class="text-[9px] font-bold text-slate-400 bg-slate-50 px-1 rounded border border-slate-100">+${gem.plus_level}</span>
                         </div>
-                        <div class="text-xs font-semibold text-slate-700 truncate" title="${attrName}">
-                            ${attrName}
-                        </div>
-                        <div class="text-[10px] text-slate-400 truncate">
-                            ${gem.rarity}
+                        <div class="space-y-0.5 mt-1">
+                            ${attributesList}
                         </div>
                     </div>
                 `;
@@ -263,7 +276,8 @@ const Renderer = (() => {
                 `<option value="${a.id}" data-tier="${a.tier}" ${a.id === attr.attribute_id ? 'selected' : ''}>${a.name}</option>`
             ).join('');
 
-            const remodelOptions = REMODELS.map(r =>
+            // MUDANÇA: Usa AdminService.REMODELS para preencher o select de qualidade
+            const remodelOptions = AdminService.REMODELS.map(r =>
                 `<option value="${r}" ${r === attr.remodel ? 'selected' : ''}>${r.charAt(0).toUpperCase() + r.slice(1)}</option>`
             ).join('');
 
