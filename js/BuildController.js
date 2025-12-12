@@ -12,6 +12,33 @@ const BuildController = (() => {
     let currentArtifactId = null;
     let currentSlotIndex = null;
 
+    // --- Helpers de Visual (ATUALIZADO PARA GRADES E QUALIDADE) ---
+    
+    // Define a cor do TEXTO baseado na REMODELAÇÃO (Qualidade)
+    const getQualityColorClass = (remodel) => {
+        switch (remodel?.toLowerCase()) {
+            case 'comum': return 'text-slate-500'; // Cinza
+            case 'raro': return 'text-green-600 font-medium'; // Verde
+            case 'épico': return 'text-orange-500 font-bold'; // Laranja
+            case 'legendário': return 'text-red-600 font-bold'; // Vermelho
+            case 'mítico': return 'text-yellow-500 font-extrabold uppercase drop-shadow-sm'; // Amarelo
+            default: return 'text-slate-700';
+        }
+    };
+
+    // Define o BADGE visual baseado na RARIDADE (Grade)
+    const getGradeBadgeHTML = (rarity) => {
+        const gradeMap = {
+            'B': 'bg-blue-100 text-blue-800 border border-blue-200',
+            'A': 'bg-purple-100 text-purple-800 border border-purple-200',
+            'S': 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+            'SS': 'bg-red-100 text-red-800 border border-red-200',
+            'SSR': 'bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 to-blue-500 text-white border-transparent'
+        };
+        const style = gradeMap[rarity] || 'bg-slate-100 text-slate-500';
+        return `<span class="px-1.5 py-0.5 rounded text-[10px] font-black ${style}">${rarity}</span>`;
+    };
+
     // --- Funções de Inicialização ---
 
     const loadDependencies = () => {
@@ -35,13 +62,32 @@ const BuildController = (() => {
     const refreshDashboard = () => {
         const builds = StorageService.loadAllBuilds();
         const container = document.getElementById('builds-list');
+        // Usamos uma abordagem híbrida: se o elemento no-builds-message existir, usamos ele (legado),
+        // senão, renderizamos o Hero Empty State moderno.
         const noBuildsMessage = document.getElementById('no-builds-message');
 
         if (!container) return;
 
         if (builds.length === 0) {
-            container.innerHTML = '';
-            if (noBuildsMessage) noBuildsMessage.classList.remove('hidden');
+            // HERO EMPTY STATE (Visual Moderno)
+            container.innerHTML = `
+                <div class="col-span-1 md:col-span-2 lg:col-span-3 flex flex-col items-center justify-center py-16 px-4 text-center animate-fade-in">
+                    <div class="w-32 h-32 bg-gradient-to-tr from-indigo-50 to-white rounded-full flex items-center justify-center mb-6 shadow-sm border border-indigo-50">
+                        <span class="text-6xl filter drop-shadow-sm">⚔️</span>
+                    </div>
+                    <h3 class="text-2xl font-extrabold text-slate-800 mb-2">Sua jornada começa aqui!</h3>
+                    <p class="text-slate-500 max-w-md mx-auto mb-8 leading-relaxed">Você ainda não tem builds salvas. Crie seu primeiro personagem, planeje seus artefatos e domine o PvP.</p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button onclick="document.getElementById('nav-new-char').click()" class="btn-hover bg-gradient-to-r from-indigo-600 to-indigo-700 text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-indigo-200 flex items-center justify-center gap-2 group">
+                            <span>✨</span> Criar Primeira Build
+                        </button>
+                        <button onclick="document.getElementById('nav-admin').click()" class="btn-hover bg-white text-slate-600 border border-slate-200 px-8 py-4 rounded-xl font-bold shadow-sm hover:bg-slate-50 flex items-center justify-center gap-2">
+                            <span>⚙️</span> Configurar
+                        </button>
+                    </div>
+                </div>
+            `;
+            if (noBuildsMessage) noBuildsMessage.classList.add('hidden'); // Garante que o antigo suma
             return;
         }
 
@@ -72,7 +118,9 @@ const BuildController = (() => {
         const savedBuild = StorageService.loadBuildById(buildId);
         if (savedBuild) {
             currentBuild = savedBuild;
-            document.getElementById('editor-title').textContent = `Editando: ${currentBuild.name || 'Sem Nome'}`;
+            const editorTitle = document.getElementById('editor-title');
+            if(editorTitle) editorTitle.textContent = `Editando: ${currentBuild.name || 'Sem Nome'}`;
+            
             document.getElementById('char-name').value = currentBuild.name;
             document.getElementById('char-class').value = currentBuild.class || '';
             document.getElementById('artifact-count').value = currentBuild.artifacts.length;
@@ -84,7 +132,9 @@ const BuildController = (() => {
 
     const setImportedBuild = (buildData) => {
         currentBuild = buildData;
-        document.getElementById('editor-title').textContent = `Importado: ${currentBuild.name || 'Sem Nome'}`;
+        const editorTitle = document.getElementById('editor-title');
+        if(editorTitle) editorTitle.textContent = `Importado: ${currentBuild.name || 'Sem Nome'}`;
+        
         document.getElementById('char-name').value = currentBuild.name || '';
         document.getElementById('char-class').value = currentBuild.class || '';
         document.getElementById('artifact-count').value = currentBuild.artifacts.length;
@@ -111,7 +161,9 @@ const BuildController = (() => {
     };
 
     const renderBuildEditor = () => {
-        document.getElementById('editor-title').textContent = currentBuild.name ? `Editando: ${currentBuild.name}` : 'Criar Novo Personagem';
+        const editorTitle = document.getElementById('editor-title');
+        if(editorTitle) editorTitle.textContent = currentBuild.name ? `Editando: ${currentBuild.name}` : 'Criar Novo Personagem';
+        
         document.getElementById('char-name').value = currentBuild.name || '';
         document.getElementById('char-class').value = currentBuild.class || '';
         document.getElementById('artifact-count').value = currentBuild.artifacts.length;
@@ -436,11 +488,6 @@ const BuildController = (() => {
         }
     };
 
-    const closeModal = () => {
-        if (Renderer.closeCurrentModal) Renderer.closeCurrentModal();
-        else document.getElementById('modals-container').innerHTML = '';
-    };
-
     const saveCurrentBuild = (isDraft = false) => {
         const nameInput = document.getElementById('char-name');
         if (!nameInput.value && !isDraft) {
@@ -463,6 +510,11 @@ const BuildController = (() => {
             if(art) art.name = input.value;
         });
 
+        if (!currentBuild.id) {
+            currentBuild.id = Date.now();
+        }
+        
+        currentBuild.lastUpdated = new Date().toISOString();
         const saved = StorageService.saveBuild(currentBuild);
         currentBuild = saved;
         
@@ -474,21 +526,7 @@ const BuildController = (() => {
         }
     };
 
-    const handleShareLink = () => {
-        const json = JSON.stringify(currentBuild);
-        const b64 = btoa(unescape(encodeURIComponent(json)));
-        const url = `${window.location.origin}${window.location.pathname}#import=${b64}`;
-        
-        navigator.clipboard.writeText(url).then(() => {
-            alert("Link copiado para a área de transferência!");
-        }, () => {
-            const output = document.getElementById('share-link-output');
-            output.textContent = url;
-            output.classList.remove('hidden');
-        });
-    };
-
-    // --- RELATÓRIO FINAL E EXPORTAÇÃO ---
+    // --- RELATÓRIO FINAL E EXPORTAÇÃO (ATUALIZADO COM CORES E PDF) ---
 
     const generateFinalReport = () => {
         const nameInput = document.getElementById('char-name');
@@ -503,139 +541,121 @@ const BuildController = (() => {
         
         if (!reportView) { alert("View de relatório não encontrada."); return; }
 
+        // Helper interno para nome do atributo
+        const getNm = (id) => {
+            const a = masterAttributes.find(x => x.id === id);
+            return a ? a.name : 'Desconhecido';
+        };
+
+        const renderAttrList = (list) => {
+            if (list.length === 0) return '<p class="text-slate-400 italic text-sm">Nada encontrado.</p>';
+            return list.map(item => `
+                <li class="flex justify-between items-center py-2 border-b border-slate-100 last:border-0">
+                    <span class="text-slate-700 font-medium">${getNm(item.attribute_id)}</span>
+                    <span class="text-xs bg-slate-100 px-2 py-1 rounded text-slate-500 font-mono">
+                        ${item.count > 1 ? item.count + 'x' : ''}
+                    </span>
+                </li>
+            `).join('');
+        };
+
+        const renderMissingList = (list) => {
+            if (list.length === 0) return '<p class="text-green-500 font-bold text-sm">✨ Tudo completo!</p>';
+            return list.map(m => `
+                <li class="flex items-center gap-2 py-1 text-red-500 font-medium text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    ${getNm(m.id)}
+                </li>
+            `).join('');
+        };
+
+        const globalNotes = StorageService.loadGlobalNotes() || "Sem observações.";
+
         let html = `
-            <div class="glass-panel p-8 rounded-2xl shadow-xl max-w-5xl mx-auto border-t-8 border-indigo-600">
-                <div class="flex justify-between items-center mb-8 pb-4 border-b border-slate-200">
-                    <div>
-                        <h2 class="text-3xl font-extrabold text-slate-800">Relatório de Análise</h2>
-                        <p class="text-indigo-600 font-medium text-lg">${currentBuild.name || 'Sem Nome'} <span class="text-slate-400 text-sm">(${currentBuild.class || 'Sem Classe'})</span></p>
-                    </div>
-                    <div class="text-4xl">📊</div>
-                </div>
+            <div class="max-w-5xl mx-auto space-y-8 animate-fade-in">
                 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-                    <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-indigo-500 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
-                        <span class="text-3xl mb-2">🛡️</span>
-                        <span class="text-xs text-slate-500 uppercase font-bold tracking-wider">Essenciais</span>
-                        <span class="text-2xl font-black text-indigo-600">${analysis.present_attributes.size}/${requiredAttributes.length}</span>
+                <div class="flex flex-col md:flex-row justify-between items-center bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="mb-4 md:mb-0 text-center md:text-left">
+                        <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
+                            Relatório de Build
+                        </h1>
+                        <p class="text-slate-500 mt-2 text-lg">Personagem: <strong class="text-slate-800">${currentBuild.name || 'Sem Nome'}</strong></p>
                     </div>
-                    <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-blue-400 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
-                        <span class="text-3xl mb-2">💎</span>
-                        <span class="text-xs text-slate-500 uppercase font-bold tracking-wider">Suporte</span>
-                        <span class="text-2xl font-black text-blue-500">${analysis.secondary_present.length}/${secondaryAttributes.length}</span>
-                    </div>
-                    <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-orange-400 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
-                        <span class="text-3xl mb-2">⚠️</span>
-                        <span class="text-xs text-slate-500 uppercase font-bold tracking-wider">Duplicatas</span>
-                        <span class="text-2xl font-black text-orange-500">${analysis.duplicates_to_remove.length}</span>
-                    </div>
-                    <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-red-500 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
-                        <span class="text-3xl mb-2">🗑️</span>
-                        <span class="text-xs text-slate-500 uppercase font-bold tracking-wider">Inúteis</span>
-                        <span class="text-2xl font-black text-red-600">${analysis.useless_gems.length}</span>
-                    </div>
-                </div>
-                
-                <h3 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">🔍 Diagnóstico Detalhado</h3>
-
-                ${analysis.missing_attributes.length > 0 ? `
-                    <div class="mb-8">
-                        <h4 class="font-bold text-red-600 mb-3 flex items-center gap-2">
-                            <span class="bg-red-100 p-1 rounded">❌</span> Faltam Atributos Essenciais
-                        </h4>
-                        <div class="grid md:grid-cols-2 gap-3">
-                            ${analysis.missing_attributes.map(m => `
-                                <div class="bg-red-50 p-4 rounded-lg border-l-4 border-red-500 shadow-sm">
-                                    <span class="font-bold text-red-900 block">${m.attribute}</span>
-                                    <p class="text-xs text-red-700 mt-1 flex gap-1 items-start">
-                                        <span>💡</span> ${AnalysisEngine.generateSuggestion(m, currentBuild)}
-                                    </p>
-                                </div>`).join('')}
-                        </div>
-                    </div>
-                ` : `
-                    <div class="bg-green-50 p-4 rounded-xl border border-green-200 mb-8 flex items-center gap-3">
-                        <span class="text-2xl">🎉</span>
-                        <div>
-                            <h4 class="font-bold text-green-800">Build Aprovada!</h4>
-                            <p class="text-sm text-green-700">Todos os atributos essenciais foram encontrados.</p>
-                        </div>
-                    </div>
-                `}
-
-                ${analysis.duplicates_to_remove.length > 0 ? `
-                    <div class="mb-8">
-                        <h4 class="font-bold text-orange-600 mb-3 flex items-center gap-2">
-                            <span class="bg-orange-100 p-1 rounded">⚠️</span> Duplicatas (Remover Piores)
-                        </h4>
-                        <ul class="space-y-2">
-                            ${analysis.duplicates_to_remove.map(d => `
-                                <li class="bg-orange-50 p-3 rounded-lg border border-orange-200 text-sm text-orange-900 flex justify-between items-center">
-                                    <span><strong>${d.attr_name}</strong> em ${d.location.position} (${d.remodel})</span>
-                                    <span class="text-xs bg-white px-2 py-1 rounded text-orange-600 border border-orange-100 font-medium">Trocar</span>
-                                </li>`).join('')}
-                        </ul>
-                    </div>
-                ` : ''}
-
-                ${analysis.useless_gems.length > 0 ? `
-                    <div class="mb-8">
-                        <h4 class="font-bold text-yellow-600 mb-3 flex items-center gap-2">
-                            <span class="bg-yellow-100 p-1 rounded">♻️</span> Atributos Inúteis/Inválidos
-                        </h4>
-                        <ul class="space-y-2">
-                            ${analysis.useless_gems.map(u => `
-                                <li class="bg-yellow-50 p-3 rounded-lg border border-yellow-200 text-sm text-yellow-900 flex justify-between items-center">
-                                    <span><strong>${u.attr_name}</strong> em ${u.location.position}</span>
-                                    <span class="text-xs italic text-yellow-600">${u.reason}</span>
-                                </li>`).join('')}
-                        </ul>
-                    </div>
-                ` : ''}
-
-                <div class="mt-10 pt-6 border-t border-slate-200">
-                    <h4 class="font-bold text-slate-700 mb-4">📋 Inventário Atual da Build</h4>
-                    <div class="grid md:grid-cols-2 gap-8">
-                        <div class="bg-indigo-50 p-5 rounded-xl border border-indigo-100">
-                            <h5 class="font-bold text-indigo-800 mb-3 flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-indigo-500"></span> Essenciais (${analysis.present_attributes.size})
-                            </h5>
-                            <ul class="text-sm space-y-2 text-slate-700">
-                                ${Array.from(analysis.present_attributes).map(([id, locations]) => { 
-                                    const attr = masterAttributes.find(a => a.id === id); 
-                                    return attr ? `<li class="flex justify-between border-b border-indigo-100 pb-1"><span>${attr.name}</span> <span class="font-mono text-xs text-indigo-500 bg-white px-1 rounded">${locations[0].remodel}</span></li>` : ''; 
-                                }).join('')}
-                            </ul>
-                        </div>
-                        <div class="bg-blue-50 p-5 rounded-xl border border-blue-100">
-                            <h5 class="font-bold text-blue-800 mb-3 flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-blue-500"></span> Secundários (${analysis.secondary_present.length})
-                            </h5>
-                            <ul class="text-sm space-y-2 text-slate-700">
-                                ${analysis.secondary_present.map(s => `<li class="flex justify-between border-b border-blue-100 pb-1"><span>${s.attr_name}</span> <span class="font-mono text-xs text-blue-500 bg-white px-1 rounded">${s.remodel}</span></li>`).join('')}
-                            </ul>
-                        </div>
+                    <div class="flex gap-3">
+                        <button onclick="App.showEditor()" class="btn-hover bg-slate-100 text-slate-600 px-6 py-3 rounded-xl font-bold">
+                            Voltar
+                        </button>
+                        <button id="download-pdf-btn" class="btn-hover bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-200 flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Baixar PDF
+                        </button>
                     </div>
                 </div>
 
-                <div class="flex flex-wrap justify-end gap-4 mt-10 pt-6 border-t border-slate-200">
-                    <button id="save-report-draft-btn" class="btn-hover bg-white border border-slate-300 text-slate-600 px-6 py-3 rounded-xl font-bold shadow-sm hover:bg-slate-50">Salvar Rascunho</button>
-                    <button id="export-csv-btn" class="btn-hover bg-blue-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700">Exportar CSV</button>
-                    <button id="export-pdf-btn" class="btn-hover bg-gradient-to-r from-red-600 to-red-500 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-red-200 hover:to-red-600 flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                        Baixar PDF
-                    </button>
-                    <button id="share-link-btn" class="btn-hover bg-purple-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-purple-200 hover:bg-purple-700">Link</button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="glass-panel p-6 rounded-xl border-t-4 border-green-500">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">✅ Atributos Essenciais</h3>
+                        <ul class="space-y-1">${renderAttrList(Array.from(analysis.present_attributes).map(([id, items]) => ({ attribute_id: id, count: items.length })))}</ul>
+                        <div class="mt-4 pt-4 border-t border-slate-100">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Faltam:</h4>
+                            <ul class="space-y-1">${renderMissingList(analysis.missing_attributes)}</ul>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-xl border-t-4 border-blue-500">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">💎 Suporte & Secundários</h3>
+                        <ul class="space-y-1">${renderAttrList(analysis.secondary_present.map(s => ({ attribute_id: s.attr_id, count: 1 })))}</ul>
+                    </div>
                 </div>
-                <p id="share-link-output" class="mt-4 text-center text-xs text-slate-400 hidden bg-slate-100 p-2 rounded select-all"></p>
+
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6">Detalhamento dos Artefatos</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        ${currentBuild.artifacts.map((art, i) => `
+                            <div class="border rounded-xl p-4 bg-slate-50">
+                                <h4 class="font-bold text-slate-700 mb-3 border-b pb-2">Artefato ${art.position}: ${art.name || 'Sem nome'} <span class="text-xs font-normal bg-white px-2 py-1 rounded border ml-2">Lv ${art.level}</span></h4>
+                                <div class="space-y-2">
+                                    ${art.gems.map((gem, idx) => {
+                                        if(!gem) return `<div class="text-xs text-slate-300 italic pl-2 border-l-2 border-slate-200">Slot ${AdminService.ELEMENTS[idx].toUpperCase()} Vazio</div>`;
+                                        
+                                        // Gera atributos com cores baseadas na Qualidade (Remodel)
+                                        const attrsHtml = gem.attributes.map(a => {
+                                            const colorClass = getQualityColorClass(a.remodel);
+                                            return `<span class="${colorClass} mr-2">• ${getNm(a.attribute_id)}</span>`;
+                                        }).join('');
+
+                                        return `
+                                            <div class="bg-white p-2 rounded border border-slate-200 text-xs">
+                                                <div class="flex justify-between mb-1">
+                                                    <span class="font-bold uppercase text-slate-500">${AdminService.ELEMENTS[idx]}</span>
+                                                    ${getGradeBadgeHTML(gem.rarity)}
+                                                </div>
+                                                <div class="flex flex-wrap gap-y-1">${attrsHtml}</div>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="bg-amber-50 p-6 rounded-xl border border-amber-100">
+                    <h3 class="text-lg font-bold text-amber-800 mb-2">📌 Observações Gerais</h3>
+                    <p class="text-amber-900 text-sm whitespace-pre-line leading-relaxed">${globalNotes}</p>
+                </div>
             </div>
         `;
+        
         reportView.innerHTML = html;
 
-        document.getElementById('save-report-draft-btn').addEventListener('click', () => saveCurrentBuild(true));
-        document.getElementById('export-pdf-btn').addEventListener('click', () => handleExport('pdf', analysis));
-        document.getElementById('export-csv-btn').addEventListener('click', () => handleExport('csv', analysis));
-        document.getElementById('share-link-btn').addEventListener('click', handleShareLink);
+        // Listener do PDF
+        const pdfBtn = document.getElementById('download-pdf-btn');
+        if(pdfBtn) {
+            pdfBtn.addEventListener('click', () => {
+                handleExport('pdf', analysis);
+            });
+        }
     };
 
     const handleExport = (type, analysis) => {
@@ -654,153 +674,96 @@ const BuildController = (() => {
                 }
             };
 
+            // Helper de cor para PDF (RGB) baseado na Qualidade (Remodel)
+            const setQualityColor = (remodel) => {
+                switch (remodel?.toLowerCase()) {
+                    case 'comum': doc.setTextColor(100, 116, 139); break; // Slate-500
+                    case 'raro': doc.setTextColor(22, 163, 74); break;    // Green-600
+                    case 'épico': doc.setTextColor(249, 115, 22); break;  // Orange-500
+                    case 'legendário': doc.setTextColor(220, 38, 38); break; // Red-600
+                    case 'mítico': doc.setTextColor(234, 179, 8); break;  // Yellow-500
+                    default: doc.setTextColor(51, 65, 85); 
+                }
+            };
+
+            const getNm = (id) => { const a = masterAttributes.find(x => x.id === id); return a ? a.name : '-'; };
+
             // --- TÍTULO ---
-            doc.setFontSize(18);
-            doc.setTextColor(0, 0, 0);
-            doc.text(`Relatório: ${currentBuild.name}`, 10, y);
-            y += 10;
+            doc.setFontSize(22);
+            doc.setTextColor(79, 70, 229); // Indigo
+            doc.text(`Relatório: ${currentBuild.name}`, 15, 20);
             
+            doc.setFontSize(12);
+            doc.setTextColor(100);
+            doc.text(`Classe: ${currentBuild.class || 'N/A'} | Data: ${new Date().toLocaleDateString()}`, 15, 28);
+
+            y = 40;
+
             // --- RESUMO ---
-            doc.setFontSize(12);
-            doc.text("Resumo da Análise:", 10, y);
-            y += 8;
-            
-            doc.setFontSize(10);
-            doc.text(`Essenciais: ${analysis.present_attributes.size}/${requiredAttributes.length}`, 10, y);
-            y += 5;
-            
-            doc.text(`Secundários Presentes: ${analysis.secondary_present.length}/${secondaryAttributes.length}`, 10, y);
-            y += 5;
-
-            doc.text(`Duplicatas Ruins: ${analysis.duplicates_to_remove.length}`, 10, y);
-            y += 5;
-            doc.text(`Inúteis: ${analysis.useless_gems.length}`, 10, y);
+            doc.setFontSize(14);
+            doc.setTextColor(0);
+            doc.text("Resumo de Atributos", 15, y);
             y += 10;
-
-            // --- 1. FALTANDO ESSENCIAIS ---
-            if (analysis.missing_attributes.length > 0) {
-                checkPageBreak();
-                doc.setFontSize(12);
-                doc.setTextColor(200, 0, 0); // Vermelho
-                doc.text("FALTANDO ESSENCIAIS (Prioridade):", 10, y);
-                y += 6;
-                doc.setFontSize(10);
-                doc.setTextColor(0, 0, 0);
-                
-                analysis.missing_attributes.forEach(m => {
-                    checkPageBreak();
-                    const attrInfo = masterAttributes.find(a => a.id === m.id);
-                    const tierInfo = attrInfo ? `(Lv${attrInfo.tier})` : '';
-                    doc.text(`- ${m.attribute} ${tierInfo}`, 15, y);
-                    y += 5;
-                });
-                y += 5;
-            }
-
-            // --- 2. FALTANDO SECUNDÁRIAS ---
-            if (analysis.missing_secondaries && analysis.missing_secondaries.length > 0) {
-                checkPageBreak();
-                doc.setFontSize(12);
-                doc.setTextColor(0, 0, 150); // Azul Escuro
-                doc.text("FALTANDO SECUNDÁRIAS (Opcional/Melhoria):", 10, y);
-                y += 6;
-                doc.setFontSize(10);
-                doc.setTextColor(0, 0, 0);
-                
-                analysis.missing_secondaries.forEach(m => {
-                    checkPageBreak();
-                    const attrInfo = masterAttributes.find(a => a.id === m.id);
-                    const tierInfo = attrInfo ? `(Lv${attrInfo.tier})` : '';
-                    doc.text(`- ${m.attribute} ${tierInfo}`, 15, y);
-                    y += 5;
-                });
-                y += 5;
-            }
-
-            // --- 3. DUPLICATAS ---
-            if (analysis.duplicates_to_remove.length > 0) {
-                checkPageBreak();
-                doc.setFontSize(12);
-                doc.setTextColor(200, 100, 0); // Laranja
-                doc.text("REMOVER DUPLICATAS:", 10, y);
-                y += 6;
-                doc.setFontSize(10);
-                doc.setTextColor(0, 0, 0);
-                
-                analysis.duplicates_to_remove.forEach(d => {
-                    checkPageBreak();
-                    const attrInfo = masterAttributes.find(a => a.id === d.attr_id);
-                    const tierInfo = attrInfo ? `(Lv${attrInfo.tier})` : '';
-                    doc.text(`- ${d.attr_name} ${tierInfo} em ${d.location.position}`, 15, y);
-                    doc.setFontSize(8);
-                    doc.setTextColor(100, 100, 100);
-                    y += 4;
-                    doc.text(`  Motivo: ${d.reason}`, 15, y);
-                    doc.setFontSize(10);
-                    doc.setTextColor(0, 0, 0);
-                    y += 5;
-                });
-                y += 5;
-            }
-
-            // --- 4. INÚTEIS ---
-            if (analysis.useless_gems.length > 0) {
-                checkPageBreak();
-                doc.setFontSize(12);
-                doc.setTextColor(180, 180, 0); // Amarelo Escuro
-                doc.text("GEMS INÚTEIS/INVÁLIDAS (Trocar):", 10, y);
-                y += 6;
-                doc.setFontSize(10);
-                doc.setTextColor(0, 0, 0);
-                
-                analysis.useless_gems.forEach(u => {
-                    checkPageBreak();
-                    const attrInfo = masterAttributes.find(a => a.id === u.attr_id);
-                    const tierInfo = attrInfo ? `(Lv${attrInfo.tier})` : '';
-                    doc.text(`- ${u.attr_name} ${tierInfo} em ${u.location.position}`, 15, y);
-                    y += 5;
-                });
-                y += 5;
-            }
-
-            // --- 5. INVENTÁRIO (ESSENCIAIS) ---
-            checkPageBreak();
-            doc.setFontSize(12);
-            doc.setTextColor(0, 100, 0); // Verde
-            doc.text("ATRIBUTOS ESSENCIAIS EQUIPADOS:", 10, y);
-            y += 6;
+            
             doc.setFontSize(10);
-            doc.setTextColor(0, 0, 0);
+            doc.text("Essenciais Encontrados:", 15, y);
+            y += 7;
             
             analysis.present_attributes.forEach((locations, id) => {
-                checkPageBreak();
-                const attr = masterAttributes.find(a => a.id === id);
-                if (attr) {
-                    doc.text(`- ${attr.name} (Lv${attr.tier}): ${locations[0].remodel}`, 15, y);
-                    y += 5;
-                }
-            });
-            y += 5;
-
-            // --- 5.1. INVENTÁRIO (SECUNDÁRIOS) ---
-            if (analysis.secondary_present.length > 0) {
-                checkPageBreak();
-                doc.setFontSize(12);
-                doc.setTextColor(0, 0, 150); // Azul
-                doc.text("ATRIBUTOS SECUNDÁRIOS EQUIPADOS:", 10, y);
+                doc.setTextColor(50);
+                doc.text(`• ${getNm(id)} (${locations.length}x)`, 20, y);
                 y += 6;
-                doc.setFontSize(10);
-                doc.setTextColor(0, 0, 0);
+            });
 
-                analysis.secondary_present.forEach(s => {
-                    checkPageBreak();
-                    doc.text(`- ${s.attr_name} (Lv${s.tier}): ${s.remodel} [${s.location.position}]`, 15, y);
-                    y += 5;
+            y += 5;
+            doc.setTextColor(220, 38, 38); // Vermelho
+            doc.text("Faltam:", 15, y);
+            doc.setTextColor(0);
+            y += 7;
+            
+            analysis.missing_attributes.forEach(m => {
+                doc.text(`- ${getNm(m.id)}`, 20, y);
+                y += 6;
+            });
+
+            // --- DETALHAMENTO DE GEMAS ---
+            y += 15;
+            checkPageBreak();
+            doc.setFontSize(14);
+            doc.setTextColor(0);
+            doc.text("Detalhes dos Artefatos", 15, y);
+            y += 10;
+            doc.setFontSize(10);
+
+            currentBuild.artifacts.forEach(art => {
+                checkPageBreak(30); 
+                doc.setTextColor(0, 0, 0);
+                doc.setFont(undefined, 'bold');
+                doc.text(`Artefato ${art.position}: ${art.name || 'Sem nome'}`, 15, y);
+                doc.setFont(undefined, 'normal');
+                y += 6;
+
+                art.gems.forEach((gem, idx) => {
+                    if (gem) {
+                        checkPageBreak();
+                        const elName = AdminService.ELEMENTS[idx].toUpperCase();
+                        doc.setTextColor(70);
+                        doc.text(`  [${elName}] - Grade: ${gem.rarity}`, 15, y);
+                        y += 5;
+
+                        gem.attributes.forEach(attr => {
+                            checkPageBreak();
+                            setQualityColor(attr.remodel);
+                            doc.text(`    • ${getNm(attr.attribute_id)} (${attr.remodel})`, 15, y);
+                            y += 5;
+                        });
+                        y += 2;
+                    }
                 });
                 y += 5;
-            }
+            });
 
-            // --- 6. OBSERVAÇÕES ---
+            // --- OBSERVAÇÕES ---
             checkPageBreak(40);
             doc.setDrawColor(200, 200, 200);
             doc.line(10, y, 200, y);
@@ -814,9 +777,9 @@ const BuildController = (() => {
             doc.setFontSize(10);
             doc.setTextColor(80, 80, 80);
             
-            const globalNotes = StorageService.loadGlobalNotes();
+            const globalNotes = StorageService.loadGlobalNotes() || "Sem observações.";
             const splitNotes = doc.splitTextToSize(globalNotes, 180);
-            doc.text(splitNotes, 10, y);
+            doc.text(splitNotes, 15, y);
 
             doc.save(`${buildName}.pdf`);
 
