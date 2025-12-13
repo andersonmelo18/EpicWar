@@ -7,18 +7,10 @@
 
     <title>PvP Build Analyzer 💎</title>
 
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💎</text></svg>">
-
-    <meta name="description"
-        content="Crie, analise e otimize suas builds de PvP com estatísticas detalhadas. Ferramenta para gerenciar gemas, atributos e combos.">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="PvP Build Analyzer 💎">
-    <meta property="og:description"
-        content="Planeje seus atributos, verifique requisitos PvP e exporte sua build em PDF.">
-
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💎</text></svg>">
+    <meta name="description" content="Crie, analise e otimize suas builds de PvP com estatísticas detalhadas.">
+    
     <script src="https://cdn.tailwindcss.com"></script>
-
     <link rel="stylesheet" href="css/style.css">
 </head>
 
@@ -222,7 +214,7 @@
                             <div class="max-w-2xl mx-auto space-y-8">
                                 <div class="bg-amber-50 border border-amber-200 p-6 rounded-xl">
                                     <label class="block text-sm font-bold text-amber-800 mb-2">Observações do Relatório (PDF)</label>
-                                    <textarea id="global-notes" rows="4" class="w-full p-3 border rounded-lg text-sm border-amber-300 focus:ring-amber-500 focus:border-amber-500 bg-white" placeholder="Escreva dicas finais..."></textarea>
+                                    <textarea id="global-notes" rows="4" class="w-full p-3 border rounded-lg text-sm border-amber-300 focus:ring-amber-500 focus:border-amber-500 bg-white"></textarea>
                                     <div class="mt-3 text-right">
                                         <button id="save-notes-btn" class="btn-hover bg-amber-600 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-amber-700">Salvar Notas</button>
                                     </div>
@@ -274,28 +266,20 @@
                     </div>
 
                     <div class="grid md:grid-cols-3 gap-6">
-                        <div class="card-modern p-6 border-t-4 border-indigo-500 h-full flex flex-col">
+                        <div class="card-modern p-6 border-t-4 border-indigo-500 h-full">
                             <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-4 text-xl font-bold">1</div>
-                            <h3 class="font-bold text-slate-800 mb-2 text-lg">Configure</h3>
-                            <p class="text-sm text-slate-600 flex-grow">
-                                Vá até o menu <strong>Admin</strong>. Cadastre as Gemas (Atributos Mestres), defina os Requisitos Essenciais da sua guilda e os Atributos Secundários.
-                            </p>
+                            <h3 class="font-bold text-slate-800 mb-2">Configure</h3>
+                            <p class="text-sm text-slate-600">Vá em <strong>Admin</strong> e cadastre os atributos mestres, essenciais e secundários.</p>
                         </div>
-
-                        <div class="card-modern p-6 border-t-4 border-blue-500 h-full flex flex-col">
+                        <div class="card-modern p-6 border-t-4 border-blue-500 h-full">
                             <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4 text-xl font-bold">2</div>
-                            <h3 class="font-bold text-slate-800 mb-2 text-lg">Monte a Build</h3>
-                            <p class="text-sm text-slate-600 flex-grow">
-                                Clique em <strong>+ Novo</strong>. Dê um nome ao personagem, escolha a quantidade de artefatos e preencha os slots com as gemas que você configurou.
-                            </p>
+                            <h3 class="font-bold text-slate-800 mb-2">Monte a Build</h3>
+                            <p class="text-sm text-slate-600">Crie um personagem e preencha os slots de artefatos com as gemas.</p>
                         </div>
-
-                        <div class="card-modern p-6 border-t-4 border-green-500 h-full flex flex-col">
+                        <div class="card-modern p-6 border-t-4 border-green-500 h-full">
                             <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4 text-xl font-bold">3</div>
-                            <h3 class="font-bold text-slate-800 mb-2 text-lg">Analise & Exporte</h3>
-                            <p class="text-sm text-slate-600 flex-grow">
-                                Acompanhe o feedback em tempo real na barra lateral. Quando terminar, clique em <strong>Gerar Relatório Final</strong> para salvar um PDF completo.
-                            </p>
+                            <h3 class="font-bold text-slate-800 mb-2">Analise</h3>
+                            <p class="text-sm text-slate-600">Veja o feedback em tempo real e exporte o relatório PDF para compartilhar.</p>
                         </div>
                     </div>
 
@@ -326,20 +310,17 @@
     <script src="js/AdminController.js"></script>
     <script src="js/BuildController.js"></script>
     <script src="js/App.js"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        // --- 1. LÓGICA DO MENU HAMBÚRGUER ---
+        // --- 1. MENU HAMBÚRGUER ---
         const btn = document.getElementById('mobile-menu-btn');
         const menu = document.getElementById('mobile-menu');
 
-        if (btn && menu) {
+        if(btn && menu) {
             btn.addEventListener('click', () => {
                 menu.classList.toggle('hidden');
             });
-
-            // Fecha o menu ao clicar em qualquer item dentro dele
             menu.querySelectorAll('button, a').forEach(item => {
                 item.addEventListener('click', () => {
                     menu.classList.add('hidden');
@@ -367,14 +348,21 @@
         });
 
         // --- 3. IMPORTAÇÃO ---
-        document.getElementById('import-data-file')?.addEventListener('change', function () {
-            if (this.files.length > 0) document.getElementById('import-data-btn').click();
-        });
+        const importInput = document.getElementById('import-data-file');
+        if(importInput) {
+            importInput.addEventListener('change', function () {
+                if (this.files.length > 0) {
+                    const confirmBtn = document.getElementById('import-data-btn');
+                    if(confirmBtn) confirmBtn.click();
+                }
+            });
+        }
 
         // --- 4. VIGIA DO FOGUETE ---
         document.addEventListener('DOMContentLoaded', () => {
             const listContainer = document.getElementById('builds-list');
             const emptyMessage = document.getElementById('no-builds-message');
+            
             const checkState = () => {
                 if (!listContainer || !emptyMessage) return;
                 const hasBuilds = listContainer.children.length > 0;
@@ -386,6 +374,7 @@
                     listContainer.classList.add('hidden');
                 }
             };
+            
             checkState();
             const observer = new MutationObserver(checkState);
             if (listContainer) observer.observe(listContainer, { childList: true, subtree: true });
