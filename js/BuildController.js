@@ -108,69 +108,97 @@ const BuildController = (() => {
     };
 
     const loadBuildForEditing = (buildId) => {
-        // Tenta carregar a build (alguns sistemas usam getBuildById, outros loadBuildById)
-        // Mantive o do seu snippet: loadBuildById
-        const savedBuild = StorageService.loadBuildById ? StorageService.loadBuildById(buildId) : StorageService.getBuildById(buildId);
-
+        // 1. Tenta carregar a build do Storage
+        const savedBuild = StorageService.getBuildById(buildId);
+        
         if (savedBuild) {
             currentBuild = savedBuild;
-
-            // Atualiza Título
+            
+            // 2. Muda o título e mostra a tela de edição (caso não esteja nela)
             const titleEl = document.getElementById('editor-title');
-            if (titleEl) titleEl.textContent = `Editando: ${currentBuild.name || 'Sem Nome'}`;
+            if(titleEl) titleEl.textContent = `Editando: ${currentBuild.name}`;
+            
+            // Se você tiver uma função global para trocar de tela, garanta que ela seja chamada
+            // Exemplo: App.showView('build-editor'); ou document.getElementById('build-editor-view').classList.remove('hidden');
+            document.getElementById('dashboard-view').classList.add('hidden');
+            document.getElementById('build-editor-view').classList.remove('hidden');
 
-            // Preenche Nome
-            document.getElementById('char-name').value = currentBuild.name || '';
-
-            // --- NOVOS CAMPOS: Avatar e Poder ---
+            // 3. Preenche os Dados Principais (Nome, Ícone, Poder)
+            const nameInput = document.getElementById('char-name');
             const avatarInput = document.getElementById('char-avatar');
-            if (avatarInput) {
-                // Se a build for antiga e não tiver avatar, usa a espada ⚔️ como padrão
-                avatarInput.value = currentBuild.avatar || '⚔️';
-            }
-
             const powerInput = document.getElementById('char-power');
-            if (powerInput) {
-                powerInput.value = currentBuild.power || '';
-            }
-            // ------------------------------------
-
-            // Preenche Classe (Hidden)
-            const classInput = document.getElementById('char-class');
-            if (classInput) classInput.value = currentBuild.class || 'Custom';
-
-            // Preenche Quantidade de Artefatos
             const countInput = document.getElementById('artifact-count');
-            if (countInput) {
-                countInput.value = currentBuild.artifactCount || (currentBuild.artifacts ? currentBuild.artifacts.length : 4);
+
+            if (nameInput) nameInput.value = currentBuild.name || '';
+            if (avatarInput) avatarInput.value = currentBuild.avatar || '⚔️';
+            if (powerInput) powerInput.value = currentBuild.power || '';
+            
+            // Define a quantidade de artefatos e recria os slots
+            const artCount = currentBuild.artifactCount || (currentBuild.artifacts ? currentBuild.artifacts.length : 4);
+            if (countInput) countInput.value = artCount;
+
+            // Recria o HTML dos slots (vazios)
+            if (typeof renderArtifactSlots === 'function') {
+                renderArtifactSlots(artCount);
             }
 
-            // Renderiza a tela (cria os slots de artefatos)
-            // Se a sua função se chama renderBuildEditor, use ela. Se for renderArtifactSlots, adapte aqui.
-            if (typeof renderBuildEditor === 'function') {
-                renderBuildEditor();
-            } else if (typeof renderArtifactSlots === 'function') {
-                renderArtifactSlots(parseInt(countInput.value));
-            }
-
-            // Preenche os detalhes internos dos artefatos (Nível e Nome específico do artefato)
-            // O setTimeout garante que o HTML dos slots já foi criado antes de tentar preencher
+            // 4. Preenche os Slots com os dados salvos (usando um pequeno delay para o DOM carregar)
             setTimeout(() => {
-                if (currentBuild.artifacts) {
-                    currentBuild.artifacts.forEach(art => {
-                        const nameField = document.querySelector(`.artifact-input[data-field="name"][data-artifact-id="${art.id}"]`);
-                        const levelField = document.querySelector(`.artifact-input[data-field="level"][data-artifact-id="${art.id}"]`);
+                // Pega todos os "cards" de artefato que foram desenhados na tela
+                // (Procura por divs que tenham a classe artifact-card ou inputs de nível)
+                const domLevels = document.querySelectorAll('input[data-field="level"]');
+                const domNames = document.querySelectorAll('input[data-field="name"]');
 
-                        if (nameField) nameField.value = art.name || '';
-                        if (levelField) levelField.value = art.level || '';
+                if (currentBuild.artifacts && currentBuild.artifacts.length > 0) {
+                    currentBuild.artifacts.forEach((savedArt, index) => {
+                        // Preenche Nível
+                        if (domLevels[index]) {
+                            domLevels[index].value = savedArt.level || 0;
+                            // Importante: Atualiza o atributo data-artifact-id para garantir que o save funcione depois
+                            domLevels[index].dataset.artifactId = savedArt.id; 
+                        }
+                        
+                        // Preenche Nome do Artefato
+                        if (domNames[index]) {
+                            domNames[index].value = savedArt.name || '';
+                            domNames[index].dataset.artifactId = savedArt.id;
+                        }
+
+                        // Preenche as Gemas (Visualmente)
+                        if (savedArt.gems && savedArt.gems.length > 0) {
+                            // Precisamos achar os slots de gema DESTE artefato específico (index)
+                            // Supondo que cada artefato gere 3 ou 4 slots de gema
+                            // Vamos buscar pelo ID do artefato ou pelo container pai
+                            const artifactContainer = domLevels[index].closest('.glass-panel') || domLevels[index].parentElement.parentElement;
+                            if (artifactContainer) {
+                                const gemSlots = artifactContainer.querySelectorAll('.gem-slot');
+                                savedArt.gems.forEach((gem, gIndex) => {
+                                    if (gem && gemSlots[gIndex]) {
+                                        // Chama a função do Renderer para desenhar a gema no quadradinho
+                                        // Se não tiver acesso ao Renderer aqui, fazemos manual:
+                                        const slot = gemSlots[gIndex];
+                                        slot.classList.remove('empty');
+                                        // Recria o visual da gema (ícone e cor)
+                                        slot.innerHTML = `<div class="text-2xl">${gem.icon}</div>`;
+                                        // Aplica a cor da borda baseada na raridade
+                                        slot.className = `gem-slot w-12 h-12 rounded-lg border-2 flex items-center justify-center cursor-pointer bg-slate-50 ${gem.rarity || 'common'}`;
+                                        
+                                        // Adiciona tooltip se tiver valor
+                                        if(gem.value) slot.title = `${gem.value} (${gem.rarity})`;
+                                    }
+                                });
+                            }
+                        }
                     });
                 }
-
+                
                 // Atualiza a barra lateral de estatísticas
                 if (typeof updateAnalysis === 'function') updateAnalysis();
-            }, 50);
+
+            }, 100); // 100ms de espera
 
         } else {
+            // Se deu erro ao carregar, cria um novo
             initializeNewBuild();
         }
     };
