@@ -190,15 +190,29 @@
                         PvP Build Analyzer
                     </h1>
                 </div>
-                <nav>
-                    <a href="index.html" class="btn-back">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                            viewBox="0 0 16 16">
-                            <path fill-rule="evenodd"
-                                d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
-                        </svg>
-                        Voltar ao Painel
+
+                <nav class="flex items-center space-x-1 md:space-x-4">
+
+                    <a href="index.html"
+                        class="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
+                        Dashboard
                     </a>
+
+                    <a href="events.html"
+                        class="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors flex items-center gap-1">
+                        📅 Eventos
+                    </a>
+
+                    <a href="formations.html"
+                        class="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors flex items-center gap-1">
+                        ⚔️ Marchas
+                    </a>
+
+                    <a href="index.html"
+                        class="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
+                        Admin
+                    </a>
+
                 </nav>
             </div>
         </header>
@@ -499,39 +513,39 @@
 
     <script src="js/event-dates.js"></script>
 
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        
-        // Função para formatar a data (transforma 2025-05-20 em 20/05/2025)
-        function formatDate(dateString) {
-            if (!dateString) return "A definir";
-            
-            // Quebra a data em partes (Ano, Mês, Dia) para evitar problemas de fuso horário
-            const parts = dateString.split('-'); 
-            if (parts.length !== 3) return dateString;
-            
-            return `${parts[2]}/${parts[1]}/${parts[0]}`;
-        }
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
 
-        // Verifica se o arquivo de configuração foi carregado
-        if (typeof EVENT_CONFIG === 'undefined') {
-            console.error("ERRO: O arquivo js/event-dates.js não foi encontrado ou tem erro de sintaxe.");
-            return;
-        }
+            // Função para formatar a data (transforma 2025-05-20 em 20/05/2025)
+            function formatDate(dateString) {
+                if (!dateString) return "A definir";
 
-        // Atualiza o texto do Evento de 5 Dias
-        const date5Element = document.getElementById('display-date-5');
-        if (date5Element) {
-            date5Element.textContent = formatDate(EVENT_CONFIG.event5Days.startDate);
-        }
+                // Quebra a data em partes (Ano, Mês, Dia) para evitar problemas de fuso horário
+                const parts = dateString.split('-');
+                if (parts.length !== 3) return dateString;
 
-        // Atualiza o texto do Evento de 7 Dias
-        const date7Element = document.getElementById('display-date-7');
-        if (date7Element) {
-            date7Element.textContent = formatDate(EVENT_CONFIG.event7Days.startDate);
-        }
-    });
-</script>
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+
+            // Verifica se o arquivo de configuração foi carregado
+            if (typeof EVENT_CONFIG === 'undefined') {
+                console.error("ERRO: O arquivo js/event-dates.js não foi encontrado ou tem erro de sintaxe.");
+                return;
+            }
+
+            // Atualiza o texto do Evento de 5 Dias
+            const date5Element = document.getElementById('display-date-5');
+            if (date5Element) {
+                date5Element.textContent = formatDate(EVENT_CONFIG.event5Days.startDate);
+            }
+
+            // Atualiza o texto do Evento de 7 Dias
+            const date7Element = document.getElementById('display-date-7');
+            if (date7Element) {
+                date7Element.textContent = formatDate(EVENT_CONFIG.event7Days.startDate);
+            }
+        });
+    </script>
 
 </body>
 
