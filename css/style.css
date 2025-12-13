@@ -358,9 +358,22 @@ body {
     text-align: center;
 }
 
-/* --- RARIDADE DAS GEMAS --- */
-.gem-rarity-common { border-color: #94a3b8 !important; border-width: 2px; }   /* Cinza */
-.gem-rarity-rare { border-color: #22c55e !important; border-width: 2px; }     /* Verde */
-.gem-rarity-elite { border-color: #3b82f6 !important; border-width: 2px; }    /* Azul */
-.gem-rarity-epic { border-color: #a855f7 !important; border-width: 2px; }     /* Roxo */
-.gem-rarity-legendary { border-color: #eab308 !important; border-width: 2px; }/* Dourado */
+/* --- CORES DE FUNDO DA GEMA (Raridade B, A, S, SS, SSR) --- */
+.bg-rarity-b { background-color: rgba(59, 130, 246, 0.1) !important; border-color: #3b82f6 !important; } /* Azul suave */
+.bg-rarity-a { background-color: rgba(168, 85, 247, 0.1) !important; border-color: #a855f7 !important; } /* Roxo suave */
+.bg-rarity-s { background-color: rgba(234, 179, 8, 0.1) !important; border-color: #eab308 !important; }  /* Amarelo suave */
+.bg-rarity-ss { background-color: rgba(239, 68, 68, 0.1) !important; border-color: #ef4444 !important; } /* Vermelho suave */
+.bg-rarity-ssr { 
+    background: linear-gradient(135deg, rgba(255,0,0,0.1), rgba(255,165,0,0.1), rgba(255,255,0,0.1), rgba(0,128,0,0.1), rgba(0,0,255,0.1), rgba(75,0,130,0.1), rgba(238,130,238,0.1)) !important;
+    border-color: #ec4899 !important; /* Borda rosa/mágica */
+    position: relative;
+}
+
+/* --- CORES DE TEXTO DA REMODELAÇÃO --- */
+.text-remodel-comum { color: #64748b !important; }       /* Cinza/Branco */
+.text-remodel-raro { color: #22c55e !important; }        /* Verde */
+.text-remodel-extra { color: #3b82f6 !important; }       /* Azul */
+.text-remodel-perfeito { color: #a855f7 !important; }    /* Roxo */
+.text-remodel-epico { color: #f97316 !important; }       /* Laranja */
+.text-remodel-lendario { color: #ef4444 !important; }    /* Vermelho */
+.text-remodel-mitico { color: #eab308 !important; }      /* Amarelo/Dourado */

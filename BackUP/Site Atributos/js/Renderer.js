@@ -46,72 +46,58 @@ const Renderer = (() => {
     // --- CARDS DA DASHBOARD ---
 
     const renderBuildCard = (build) => {
-        // Garante valores padrão se for build antiga ou nova
         const lastUpdated = build.lastUpdated ? new Date(build.lastUpdated).toLocaleDateString('pt-BR') : 'Hoje';
-        const avatar = build.avatar || "⚔️"; // Ícone padrão se não tiver
-        const power = build.power || "0";    // Poder padrão
-
-        // Conta gemas e artefatos
         const artifactCount = build.artifacts ? build.artifacts.length : 0;
+
+        // Conta gemas
         let gemCount = 0;
         if (build.artifacts) build.artifacts.forEach(a => a.gems.forEach(g => { if (g) gemCount++ }));
 
         return `
-        <div class="relative group bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col h-full">
-            
-            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-indigo-500 to-purple-600"></div>
-
-            <div class="flex items-start gap-4 pl-2 mb-auto">
+            <div class="card-modern p-5 flex flex-col justify-between h-full relative overflow-hidden group">
+                <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-indigo-500 to-purple-600"></div>
                 
-                <div class="w-14 h-14 flex-shrink-0 bg-indigo-50 rounded-2xl flex items-center justify-center text-3xl shadow-inner border border-indigo-100">
-                    ${avatar}
-                </div>
-
-                <div class="flex-grow min-w-0">
-                    <div class="flex justify-between items-start">
+                <div>
+                    <div class="flex justify-between items-start mb-3 pl-3">
                         <div>
-                            <h3 class="text-lg font-bold text-slate-800 leading-tight truncate pr-2">${build.name || 'Sem Nome'}</h3>
-                            
-                            <div class="flex items-center gap-1 text-xs font-semibold text-indigo-600 mt-1 bg-indigo-50 w-fit px-2 py-0.5 rounded-full border border-indigo-100">
-                                <span>⚡ ${power}</span>
-                            </div>
+                            <h3 class="font-bold text-lg text-slate-800 group-hover:text-indigo-600 transition-colors">${build.name || 'Sem Nome'}</h3>
+                            <p class="text-xs text-slate-500 font-bold uppercase tracking-wide">${build.class || 'Classe Indefinida'}</p>
+                        </div>
+                        <div class="p-2 bg-indigo-50 rounded-full text-indigo-500 opacity-70 group-hover:opacity-100 transition-opacity">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" /></svg>
                         </div>
                     </div>
-
-                    <div class="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                        <div class="flex items-center gap-1" title="Artefatos">
-                            <span>🏺 ${artifactCount}/4</span>
+                    
+                    <div class="space-y-2 mb-6 pl-3">
+                        <div class="flex items-center text-sm text-slate-600">
+                            <span class="w-6 text-center mr-2">🏺</span> ${artifactCount} / 4 Artefatos
                         </div>
-                        <div class="flex items-center gap-1" title="Gemas Equipadas">
-                            <span>💎 ${gemCount}</span>
+                        <div class="flex items-center text-sm text-slate-600">
+                            <span class="w-6 text-center mr-2">💎</span> ${gemCount} Gemas
+                        </div>
+                        <div class="text-xs text-slate-400 mt-3 pt-2 border-t border-slate-100 flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            ${lastUpdated}
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center pl-2">
-                <span class="text-[10px] text-slate-400 flex items-center gap-1">
-                    📅 ${lastUpdated}
-                </span>
-                
-                <div class="flex gap-2">
-                    <button onclick="App.loadBuild('${build.id}')" 
-                        class="text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors">
+                <div class="flex justify-end space-x-2 pl-3">
+                    <button onclick="App.loadBuild(${build.id})" class="btn-hover bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-md shadow-indigo-200">
                         Editar
                     </button>
-                    <button onclick="App.deleteBuild('${build.id}')" 
-                        class="text-xs font-bold text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors">
+                    <button onclick="App.deleteBuild(${build.id})" class="btn-hover bg-white border border-slate-200 text-red-500 px-3 py-2 rounded-lg text-xs font-bold hover:bg-red-50 hover:border-red-100">
                         Excluir
                     </button>
                 </div>
             </div>
-        </div>
         `;
     };
 
     // --- EDITOR DE ARTEFATOS ---
 
     const renderArtifactCard = (artifact, buildId) => {
+        // Lógica visual: Artefato cheio ganha destaque verde
         const gemsFilled = artifact.gems.filter(g => g).length;
         const isComplete = gemsFilled === 4;
         const statusBorder = isComplete ? 'border-green-500' : 'border-slate-200';
@@ -119,18 +105,14 @@ const Renderer = (() => {
 
         const slotsHtml = ELEMENTS.map((element, index) => {
             const gem = artifact.gems[index];
+            const config = ELEMENT_CONFIG[element];
             let content;
 
             if (gem) {
                 const mainAttr = gem.attributes[0];
-                
-                // 1. Cor de Fundo baseada na Raridade (B, A, S...)
-                const rarityClass = gem.rarity ? `bg-rarity-${gem.rarity.toLowerCase()}` : 'bg-slate-50 border-slate-200';
-                
-                // 2. Cor do Texto baseada na Remodelação (Comum, Raro...)
-                const remodelClass = gem.remodel ? `text-remodel-${gem.remodel.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}` : 'text-slate-700';
+                const rarityClass = getRarityColor(gem.rarity);
 
-                // Busca nome do atributo
+                // Busca nome do atributo (requer acesso ao StorageService se disponível)
                 const masterAttributes = typeof StorageService !== 'undefined' ? StorageService.loadMasterAttributes() : [];
                 const attrObj = masterAttributes.find(a => a.id === mainAttr.attribute_id);
                 const attrName = attrObj ? attrObj.name : 'Desconhecido';
@@ -139,15 +121,13 @@ const Renderer = (() => {
                     <div class="w-full text-left overflow-hidden">
                         <div class="flex justify-between items-center w-full mb-1">
                             <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Tier ${mainAttr.tier}</span>
-                            <span class="text-[10px] font-bold ${rarityClass} px-1 rounded border opacity-90">+${gem.plus_level}</span>
+                            <span class="text-[10px] font-bold ${rarityClass} bg-slate-50 px-1 rounded border border-slate-100">+${gem.plus_level}</span>
                         </div>
-                        
-                        <div class="text-xs font-bold ${remodelClass} truncate" title="${attrName} (${gem.remodel || 'Comum'})">
+                        <div class="text-xs font-semibold text-slate-700 truncate" title="${attrName}">
                             ${attrName}
                         </div>
-                        
-                        <div class="text-[10px] text-slate-400 truncate mt-0.5 font-medium">
-                            Raridade: ${gem.rarity || 'B'}
+                        <div class="text-[10px] text-slate-400 truncate">
+                            ${gem.rarity}
                         </div>
                     </div>
                 `;
@@ -160,19 +140,15 @@ const Renderer = (() => {
                 `;
             }
 
-            // Aplica a classe de raridade no container principal do slot também
-            const slotBgClass = gem && gem.rarity ? `bg-rarity-${gem.rarity.toLowerCase()}` : 'bg-white border-dashed border-slate-200';
-            const slotBorderClass = gem ? '' : ''; // A classe de raridade já cuida da borda
-
             return `
                 <div data-action="edit-gem" data-artifact-id="${artifact.id}" data-slot-index="${index}" 
-                     class="relative cursor-pointer ${slotBgClass} ${slotBorderClass} border rounded-lg p-2 hover:shadow-md transition-all group h-24 flex flex-col justify-center">
+                     class="relative cursor-pointer bg-white border ${gem ? 'border-slate-300' : 'border-dashed border-slate-200'} rounded-lg p-2 hover:border-indigo-400 hover:shadow-md transition-all group">
                     
-                    <div class="absolute -top-2 left-2 px-1 bg-white rounded border border-slate-100 shadow-sm z-10">
+                    <div class="absolute -top-2 left-2 px-1 bg-white">
                         ${getElementBadge(element)}
                     </div>
                     
-                    <div class="mt-1 w-full">
+                    <div class="mt-2">
                         ${content}
                     </div>
                 </div>
@@ -214,12 +190,6 @@ const Renderer = (() => {
         const config = ELEMENT_CONFIG[element];
         const initialAttributesHtml = renderGemAttributes(gem, element, masterAttributes);
 
-        // Opções de Remodelação
-        const REMODELS = ["Comum", "Raro", "Extraordinario", "Perfeito", "Epico", "Lendario", "Mitico"];
-        
-        // Opções de Raridade da Gema
-        const RARITIES = ["B", "A", "S", "SS", "SSR"];
-
         const modalHtml = `
             <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity">
                 <div id="gem-edit-modal" class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col animate-[fadeIn_0.2s_ease-out]">
@@ -241,22 +211,15 @@ const Renderer = (() => {
                             
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Raridade (Gema)</label>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Raridade</label>
                                     <select id="gem-rarity" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2 text-sm">
-                                        ${RARITIES.map(r => `<option value="${r}" ${gem?.rarity === r ? 'selected' : ''}>${r}</option>`).join('')}
+                                        ${REMODELS.map(r => `<option value="${r.charAt(0).toUpperCase() + r.slice(1)}" ${gem?.rarity === (r.charAt(0).toUpperCase() + r.slice(1)) ? 'selected' : ''}>${r.charAt(0).toUpperCase() + r.slice(1)}</option>`).join('')}
                                     </select>
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nível (+)</label>
                                     <input type="number" id="gem-plus-level" value="${gem?.plus_level || 0}" min="0" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2 text-sm">
                                 </div>
-                            </div>
-
-                            <div class="mt-4">
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Qualidade da Remodelação</label>
-                                <select id="gem-remodel" class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2 text-sm">
-                                    ${REMODELS.map(r => `<option value="${r}" ${gem?.remodel === r ? 'selected' : ''}>${r}</option>`).join('')}
-                                </select>
                             </div>
 
                             <div>
