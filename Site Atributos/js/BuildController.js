@@ -58,26 +58,171 @@ const BuildController = (() => {
     // --- Lógica do Editor ---
 
     const initializeNewBuild = () => {
+        // 1. Reseta o objeto em memória com os novos campos
         currentBuild = {
             id: null,
             name: '',
-            class: '',
+            class: 'Custom',
+            avatar: '⚔️', // Valor padrão do ícone
+            power: '',    // Valor padrão do poder
             artifacts: []
         };
-        updateArtifactCount(4);
+
+        // 2. Limpa os campos visuais (Inputs)
+        if (document.getElementById('char-name')) {
+            document.getElementById('char-name').value = '';
+        }
+
+        // Reseta o Avatar para o primeiro da lista
+        if (document.getElementById('char-avatar')) {
+            document.getElementById('char-avatar').value = '⚔️';
+        }
+
+        // Limpa o campo de Poder
+        if (document.getElementById('char-power')) {
+            document.getElementById('char-power').value = '';
+        }
+
+        // Reseta quantidade de artefatos
+        if (document.getElementById('artifact-count')) {
+            document.getElementById('artifact-count').value = '4';
+        }
+
+        // Reseta o Título da página (caso tenha editado antes)
+        if (document.getElementById('editor-title')) {
+            document.getElementById('editor-title').textContent = 'Criar Novo Personagem';
+        }
+
+        // 3. Renderiza a tela
+        // (Mantive sua chamada original updateArtifactCount e renderBuildEditor)
+        if (typeof updateArtifactCount === 'function') {
+            updateArtifactCount(4);
+        }
+
         renderBuildEditor();
+
+        // Se houver barra lateral de análise, limpa ela também
+        if (typeof updateAnalysis === 'function') {
+            updateAnalysis();
+        }
     };
 
     const loadBuildForEditing = (buildId) => {
-        const savedBuild = StorageService.loadBuildById(buildId);
+        // --- CORREÇÃO DO ERRO ---
+        // Em vez de tentar adivinhar o nome da função (getBuildById ou loadBuildById),
+        // carregamos todas as builds e filtramos a correta. Isso nunca falha.
+        const allBuilds = StorageService.loadAllBuilds();
+        const savedBuild = allBuilds.find(b => b.id.toString() === buildId.toString());
+        // ------------------------
+        
         if (savedBuild) {
             currentBuild = savedBuild;
-            document.getElementById('editor-title').textContent = `Editando: ${currentBuild.name || 'Sem Nome'}`;
-            document.getElementById('char-name').value = currentBuild.name;
-            document.getElementById('char-class').value = currentBuild.class || '';
-            document.getElementById('artifact-count').value = currentBuild.artifacts.length;
-            renderBuildEditor();
+            
+            // Atualiza Título
+            const titleEl = document.getElementById('editor-title');
+            if(titleEl) titleEl.textContent = `Editando: ${currentBuild.name || 'Sem Nome'}`;
+            
+            // Troca a visualização para o Editor
+            if (document.getElementById('dashboard-view')) {
+                document.getElementById('dashboard-view').classList.add('hidden');
+                document.getElementById('build-editor-view').classList.remove('hidden');
+            }
+            
+            // Preenche Nome
+            document.getElementById('char-name').value = currentBuild.name || '';
+            
+            // --- PREENCHE AVATAR E PODER ---
+            const avatarInput = document.getElementById('char-avatar');
+            if (avatarInput) {
+                avatarInput.value = currentBuild.avatar || '⚔️';
+            }
+
+            const powerInput = document.getElementById('char-power');
+            if (powerInput) {
+                powerInput.value = currentBuild.power || '';
+            }
+
+            // Preenche Quantidade de Artefatos
+            const countInput = document.getElementById('artifact-count');
+            const artCount = currentBuild.artifactCount || (currentBuild.artifacts ? currentBuild.artifacts.length : 4);
+            
+            if (countInput) {
+                countInput.value = artCount;
+            }
+
+            // Renderiza a tela (cria os slots de artefatos)
+            // Se a sua função se chama renderBuildEditor, use ela.
+            if (typeof renderArtifactSlots === 'function') {
+                renderArtifactSlots(parseInt(artCount));
+            } else if (typeof renderBuildEditor === 'function') {
+                renderBuildEditor();
+            }
+
+            // Preenche os detalhes internos dos artefatos (Nível e Nome específico do artefato)
+            setTimeout(() => {
+                if (currentBuild.artifacts) {
+                    currentBuild.artifacts.forEach((savedArt, index) => {
+                        // Tenta buscar por ID ou por índice (fallback)
+                        let nameField = document.querySelector(`.artifact-input[data-field="name"][data-artifact-id="${savedArt.id}"]`);
+                        let levelField = document.querySelector(`.artifact-input[data-field="level"][data-artifact-id="${savedArt.id}"]`);
+                        
+                        // Se não achar pelo ID, tenta pegar pelo índice da tela
+                        if (!nameField) {
+                            const allNames = document.querySelectorAll('.artifact-input[data-field="name"]');
+                            if (allNames[index]) nameField = allNames[index];
+                        }
+                        if (!levelField) {
+                            const allLevels = document.querySelectorAll('.artifact-input[data-field="level"]');
+                            if (allLevels[index]) levelField = allLevels[index];
+                        }
+
+                        // Aplica valores
+                        if (nameField) {
+                            nameField.value = savedArt.name || '';
+                            nameField.dataset.artifactId = savedArt.id; // Atualiza ID
+                        }
+                        if (levelField) {
+                            levelField.value = savedArt.level || '';
+                            levelField.dataset.artifactId = savedArt.id; // Atualiza ID
+                        }
+
+                        // --- RECARREGA AS GEMAS VISUALMENTE ---
+                        // Encontra o container do artefato atual
+                        let container = null;
+                        if (levelField) {
+                            container = levelField.closest('.glass-panel') || levelField.parentElement.parentElement;
+                        }
+
+                        if (container && savedArt.gems) {
+                            const gemSlots = container.querySelectorAll('.gem-slot');
+                            savedArt.gems.forEach((gem, gIndex) => {
+                                if (gem && gemSlots[gIndex]) {
+                                    const slot = gemSlots[gIndex];
+                                    slot.classList.remove('empty');
+                                    slot.innerHTML = `<div class="text-2xl">${gem.icon}</div>`;
+                                    
+                                    // Aplica cor da raridade
+                                    const rarityClass = `gem-rarity-${gem.rarity || 'common'}`;
+                                    slot.className = `gem-slot filled w-10 h-10 rounded-lg border bg-white flex items-center justify-center cursor-pointer shadow-sm relative group ${rarityClass}`;
+                                    
+                                    // Adiciona tooltip
+                                    if(gem.value) slot.title = `${gem.name} (${gem.value})`;
+                                    
+                                    // Adiciona bolinha vermelha se tiver valor
+                                    if(gem.value && !slot.querySelector('.absolute')) {
+                                        slot.innerHTML += '<div class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>';
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+                
+                if (typeof updateAnalysis === 'function') updateAnalysis();
+            }, 100);
+
         } else {
+            console.error("Build não encontrada no Storage");
             initializeNewBuild();
         }
     };
@@ -88,7 +233,7 @@ const BuildController = (() => {
         document.getElementById('char-name').value = currentBuild.name || '';
         document.getElementById('char-class').value = currentBuild.class || '';
         document.getElementById('artifact-count').value = currentBuild.artifacts.length;
-        renderBuildEditor(); 
+        renderBuildEditor();
     };
 
     const updateArtifactCount = (count) => {
@@ -171,7 +316,7 @@ const BuildController = (() => {
 
         const requiredCount = requiredAttributes.length;
         const presentCount = analysis.present_attributes.size;
-        
+
         // Barra de Progresso Visual
         const percent = requiredCount > 0 ? Math.round((presentCount / requiredCount) * 100) : 0;
         const barColor = percent === 100 ? 'bg-green-500' : (percent > 50 ? 'bg-indigo-500' : 'bg-orange-500');
@@ -248,7 +393,7 @@ const BuildController = (() => {
         if (artifact) {
             loadDependencies();
             Renderer.renderGemModal(artifact, currentSlotIndex, gem, masterAttributes);
-            Renderer.attachModalCloseListeners(); 
+            Renderer.attachModalCloseListeners();
             setupGemModalListeners(artifact.gems[currentSlotIndex]);
         }
     };
@@ -277,7 +422,7 @@ const BuildController = (() => {
         if (!modal) return;
 
         modal.querySelector('#close-gem-modal-btn').addEventListener('click', Renderer.closeCurrentModal);
-        
+
         const removeBtn = modal.querySelector('#remove-gem-btn');
         if (removeBtn && existingGem) {
             removeBtn.addEventListener('click', handleRemoveGem);
@@ -287,7 +432,7 @@ const BuildController = (() => {
         modal.querySelector('#add-attribute-row-btn').addEventListener('click', handleAddAttributeRow);
 
         const attrsContainer = modal.querySelector('#attributes-container');
-        
+
         attrsContainer.addEventListener('click', (e) => {
             if (e.target.closest('.remove-attribute-btn')) {
                 e.target.closest('.attribute-row').remove();
@@ -305,7 +450,7 @@ const BuildController = (() => {
                 handleAttributeSelectChange(e);
             }
         });
-        
+
         updateAddAttributeButton();
     };
 
@@ -329,11 +474,11 @@ const BuildController = (() => {
             const newIndex = currentRows;
             const element = AdminService.ELEMENTS[currentSlotIndex];
             const defaultTier = 3;
-            
+
             const filteredAttributes = masterAttributes.filter(a =>
                 (!a.default_element || a.default_element === element) && a.tier === defaultTier
             );
-            
+
             const attributeOptions = filteredAttributes.map(a => `<option value="${a.id}" data-tier="${a.tier}">${a.name}</option>`).join('');
             const remodelOptions = AdminService.REMODELS.map(r => `<option value="${r}">${r.charAt(0).toUpperCase() + r.slice(1)}</option>`).join('');
             const tierOptions = [1, 2, 3].map(t => `<option value="${t}" ${t === defaultTier ? 'selected' : ''}>Lv${t}</option>`).join('');
@@ -384,7 +529,7 @@ const BuildController = (() => {
         e.preventDefault();
         const form = e.target;
         const gemAttributes = [];
-        
+
         form.querySelectorAll('.attribute-row').forEach(row => {
             const attrId = parseInt(row.querySelector('.attribute-id').value);
             const remodel = row.querySelector('.attribute-remodel').value;
@@ -402,7 +547,7 @@ const BuildController = (() => {
         });
 
         if (gemAttributes.length === 0) {
-            if(!confirm("Salvar gema sem atributos?")) return;
+            if (!confirm("Salvar gema sem atributos?")) return;
         }
 
         const rarity = document.getElementById('gem-rarity').value;
@@ -425,7 +570,7 @@ const BuildController = (() => {
     };
 
     const handleRemoveGem = () => {
-        if(confirm("Remover gema?")) {
+        if (confirm("Remover gema?")) {
             const artifactIndex = currentBuild.artifacts.findIndex(a => a.id === currentArtifactId);
             if (artifactIndex !== -1) {
                 currentBuild.artifacts[artifactIndex].gems[currentSlotIndex] = null;
@@ -443,29 +588,49 @@ const BuildController = (() => {
 
     const saveCurrentBuild = (isDraft = false) => {
         const nameInput = document.getElementById('char-name');
+        const classInput = document.getElementById('char-class');
+
+        // NOVOS CAMPOS
+        const avatarInput = document.getElementById('char-avatar');
+        const powerInput = document.getElementById('char-power');
+        const artifactCountInput = document.getElementById('artifact-count');
+
         if (!nameInput.value && !isDraft) {
             alert("Por favor, dê um nome ao personagem.");
             return;
         }
-        
+
+        // Atualiza o objeto currentBuild com os novos dados
         currentBuild.name = nameInput.value || 'Rascunho Sem Nome';
-        currentBuild.class = document.getElementById('char-class').value;
-        
+        currentBuild.class = classInput ? classInput.value : 'Custom';
+        currentBuild.avatar = avatarInput ? avatarInput.value : '⚔️'; // Salva Ícone
+        currentBuild.power = powerInput ? powerInput.value : '';      // Salva Poder
+
+        // Se a contagem de artefatos mudou no input, salva também
+        if (artifactCountInput) {
+            currentBuild.artifactCount = parseInt(artifactCountInput.value);
+        }
+
+        // Atualiza data de modificação para o card mostrar
+        currentBuild.lastUpdated = new Date().toISOString();
+        if (!currentBuild.date) currentBuild.date = new Date().toLocaleDateString('pt-BR');
+
+        // Mantém a lógica original dos artefatos
         document.querySelectorAll('.artifact-input[data-field="level"]').forEach(input => {
             const id = parseInt(input.dataset.artifactId);
             const art = currentBuild.artifacts.find(a => a.id === id);
-            if(art) art.level = parseInt(input.value) || 0;
+            if (art) art.level = parseInt(input.value) || 0;
         });
 
         document.querySelectorAll('.artifact-input[data-field="name"]').forEach(input => {
             const id = parseInt(input.dataset.artifactId);
             const art = currentBuild.artifacts.find(a => a.id === id);
-            if(art) art.name = input.value;
+            if (art) art.name = input.value;
         });
 
         const saved = StorageService.saveBuild(currentBuild);
         currentBuild = saved;
-        
+
         if (isDraft) {
             alert("Rascunho salvo!");
         } else {
@@ -478,7 +643,7 @@ const BuildController = (() => {
         const json = JSON.stringify(currentBuild);
         const b64 = btoa(unescape(encodeURIComponent(json)));
         const url = `${window.location.origin}${window.location.pathname}#import=${b64}`;
-        
+
         navigator.clipboard.writeText(url).then(() => {
             alert("Link copiado para a área de transferência!");
         }, () => {
@@ -497,10 +662,10 @@ const BuildController = (() => {
         if (classInput) currentBuild.class = classInput.value;
 
         const analysis = AnalysisEngine.runAnalysis(currentBuild, masterAttributes, requiredAttributes, secondaryAttributes, recommendedCombos);
-        
+
         App.showView('report');
         const reportView = document.getElementById('report-view');
-        
+
         if (!reportView) { alert("View de relatório não encontrada."); return; }
 
         let html = `
@@ -601,10 +766,10 @@ const BuildController = (() => {
                                 <span class="w-2 h-2 rounded-full bg-indigo-500"></span> Essenciais (${analysis.present_attributes.size})
                             </h5>
                             <ul class="text-sm space-y-2 text-slate-700">
-                                ${Array.from(analysis.present_attributes).map(([id, locations]) => { 
-                                    const attr = masterAttributes.find(a => a.id === id); 
-                                    return attr ? `<li class="flex justify-between border-b border-indigo-100 pb-1"><span>${attr.name}</span> <span class="font-mono text-xs text-indigo-500 bg-white px-1 rounded">${locations[0].remodel}</span></li>` : ''; 
-                                }).join('')}
+                                ${Array.from(analysis.present_attributes).map(([id, locations]) => {
+            const attr = masterAttributes.find(a => a.id === id);
+            return attr ? `<li class="flex justify-between border-b border-indigo-100 pb-1"><span>${attr.name}</span> <span class="font-mono text-xs text-indigo-500 bg-white px-1 rounded">${locations[0].remodel}</span></li>` : '';
+        }).join('')}
                             </ul>
                         </div>
                         <div class="bg-blue-50 p-5 rounded-xl border border-blue-100">
@@ -640,7 +805,7 @@ const BuildController = (() => {
 
     const handleExport = (type, analysis) => {
         const buildName = currentBuild.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-        
+
         if (type === 'pdf') {
             if (typeof window.jspdf === 'undefined') { alert("Erro: jsPDF não carregado."); return; }
             const { jsPDF } = window.jspdf;
@@ -659,16 +824,16 @@ const BuildController = (() => {
             doc.setTextColor(0, 0, 0);
             doc.text(`Relatório: ${currentBuild.name}`, 10, y);
             y += 10;
-            
+
             // --- RESUMO ---
             doc.setFontSize(12);
             doc.text("Resumo da Análise:", 10, y);
             y += 8;
-            
+
             doc.setFontSize(10);
             doc.text(`Essenciais: ${analysis.present_attributes.size}/${requiredAttributes.length}`, 10, y);
             y += 5;
-            
+
             doc.text(`Secundários Presentes: ${analysis.secondary_present.length}/${secondaryAttributes.length}`, 10, y);
             y += 5;
 
@@ -686,7 +851,7 @@ const BuildController = (() => {
                 y += 6;
                 doc.setFontSize(10);
                 doc.setTextColor(0, 0, 0);
-                
+
                 analysis.missing_attributes.forEach(m => {
                     checkPageBreak();
                     const attrInfo = masterAttributes.find(a => a.id === m.id);
@@ -706,7 +871,7 @@ const BuildController = (() => {
                 y += 6;
                 doc.setFontSize(10);
                 doc.setTextColor(0, 0, 0);
-                
+
                 analysis.missing_secondaries.forEach(m => {
                     checkPageBreak();
                     const attrInfo = masterAttributes.find(a => a.id === m.id);
@@ -726,7 +891,7 @@ const BuildController = (() => {
                 y += 6;
                 doc.setFontSize(10);
                 doc.setTextColor(0, 0, 0);
-                
+
                 analysis.duplicates_to_remove.forEach(d => {
                     checkPageBreak();
                     const attrInfo = masterAttributes.find(a => a.id === d.attr_id);
@@ -752,7 +917,7 @@ const BuildController = (() => {
                 y += 6;
                 doc.setFontSize(10);
                 doc.setTextColor(0, 0, 0);
-                
+
                 analysis.useless_gems.forEach(u => {
                     checkPageBreak();
                     const attrInfo = masterAttributes.find(a => a.id === u.attr_id);
@@ -771,7 +936,7 @@ const BuildController = (() => {
             y += 6;
             doc.setFontSize(10);
             doc.setTextColor(0, 0, 0);
-            
+
             analysis.present_attributes.forEach((locations, id) => {
                 checkPageBreak();
                 const attr = masterAttributes.find(a => a.id === id);
@@ -805,15 +970,15 @@ const BuildController = (() => {
             doc.setDrawColor(200, 200, 200);
             doc.line(10, y, 200, y);
             y += 8;
-            
+
             doc.setFontSize(14);
             doc.setTextColor(0, 0, 0);
             doc.text("Observações & Dicas:", 10, y);
             y += 6;
-            
+
             doc.setFontSize(10);
             doc.setTextColor(80, 80, 80);
-            
+
             const globalNotes = StorageService.loadGlobalNotes();
             const splitNotes = doc.splitTextToSize(globalNotes, 180);
             doc.text(splitNotes, 10, y);

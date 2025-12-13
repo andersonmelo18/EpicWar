@@ -357,3 +357,10 @@ body {
     backdrop-filter: blur(4px);
     text-align: center;
 }
+
+/* --- RARIDADE DAS GEMAS --- */
+.gem-rarity-common { border-color: #94a3b8 !important; border-width: 2px; }   /* Cinza */
+.gem-rarity-rare { border-color: #22c55e !important; border-width: 2px; }     /* Verde */
+.gem-rarity-elite { border-color: #3b82f6 !important; border-width: 2px; }    /* Azul */
+.gem-rarity-epic { border-color: #a855f7 !important; border-width: 2px; }     /* Roxo */
+.gem-rarity-legendary { border-color: #eab308 !important; border-width: 2px; }/* Dourado */
