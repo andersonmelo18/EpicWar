@@ -108,97 +108,121 @@ const BuildController = (() => {
     };
 
     const loadBuildForEditing = (buildId) => {
-        // 1. Tenta carregar a build do Storage
-        const savedBuild = StorageService.getBuildById(buildId);
+        // --- CORREÇÃO DO ERRO ---
+        // Em vez de tentar adivinhar o nome da função (getBuildById ou loadBuildById),
+        // carregamos todas as builds e filtramos a correta. Isso nunca falha.
+        const allBuilds = StorageService.loadAllBuilds();
+        const savedBuild = allBuilds.find(b => b.id.toString() === buildId.toString());
+        // ------------------------
         
         if (savedBuild) {
             currentBuild = savedBuild;
             
-            // 2. Muda o título e mostra a tela de edição (caso não esteja nela)
+            // Atualiza Título
             const titleEl = document.getElementById('editor-title');
-            if(titleEl) titleEl.textContent = `Editando: ${currentBuild.name}`;
+            if(titleEl) titleEl.textContent = `Editando: ${currentBuild.name || 'Sem Nome'}`;
             
-            // Se você tiver uma função global para trocar de tela, garanta que ela seja chamada
-            // Exemplo: App.showView('build-editor'); ou document.getElementById('build-editor-view').classList.remove('hidden');
-            document.getElementById('dashboard-view').classList.add('hidden');
-            document.getElementById('build-editor-view').classList.remove('hidden');
-
-            // 3. Preenche os Dados Principais (Nome, Ícone, Poder)
-            const nameInput = document.getElementById('char-name');
+            // Troca a visualização para o Editor
+            if (document.getElementById('dashboard-view')) {
+                document.getElementById('dashboard-view').classList.add('hidden');
+                document.getElementById('build-editor-view').classList.remove('hidden');
+            }
+            
+            // Preenche Nome
+            document.getElementById('char-name').value = currentBuild.name || '';
+            
+            // --- PREENCHE AVATAR E PODER ---
             const avatarInput = document.getElementById('char-avatar');
-            const powerInput = document.getElementById('char-power');
-            const countInput = document.getElementById('artifact-count');
-
-            if (nameInput) nameInput.value = currentBuild.name || '';
-            if (avatarInput) avatarInput.value = currentBuild.avatar || '⚔️';
-            if (powerInput) powerInput.value = currentBuild.power || '';
-            
-            // Define a quantidade de artefatos e recria os slots
-            const artCount = currentBuild.artifactCount || (currentBuild.artifacts ? currentBuild.artifacts.length : 4);
-            if (countInput) countInput.value = artCount;
-
-            // Recria o HTML dos slots (vazios)
-            if (typeof renderArtifactSlots === 'function') {
-                renderArtifactSlots(artCount);
+            if (avatarInput) {
+                avatarInput.value = currentBuild.avatar || '⚔️';
             }
 
-            // 4. Preenche os Slots com os dados salvos (usando um pequeno delay para o DOM carregar)
+            const powerInput = document.getElementById('char-power');
+            if (powerInput) {
+                powerInput.value = currentBuild.power || '';
+            }
+
+            // Preenche Quantidade de Artefatos
+            const countInput = document.getElementById('artifact-count');
+            const artCount = currentBuild.artifactCount || (currentBuild.artifacts ? currentBuild.artifacts.length : 4);
+            
+            if (countInput) {
+                countInput.value = artCount;
+            }
+
+            // Renderiza a tela (cria os slots de artefatos)
+            // Se a sua função se chama renderBuildEditor, use ela.
+            if (typeof renderArtifactSlots === 'function') {
+                renderArtifactSlots(parseInt(artCount));
+            } else if (typeof renderBuildEditor === 'function') {
+                renderBuildEditor();
+            }
+
+            // Preenche os detalhes internos dos artefatos (Nível e Nome específico do artefato)
             setTimeout(() => {
-                // Pega todos os "cards" de artefato que foram desenhados na tela
-                // (Procura por divs que tenham a classe artifact-card ou inputs de nível)
-                const domLevels = document.querySelectorAll('input[data-field="level"]');
-                const domNames = document.querySelectorAll('input[data-field="name"]');
-
-                if (currentBuild.artifacts && currentBuild.artifacts.length > 0) {
+                if (currentBuild.artifacts) {
                     currentBuild.artifacts.forEach((savedArt, index) => {
-                        // Preenche Nível
-                        if (domLevels[index]) {
-                            domLevels[index].value = savedArt.level || 0;
-                            // Importante: Atualiza o atributo data-artifact-id para garantir que o save funcione depois
-                            domLevels[index].dataset.artifactId = savedArt.id; 
-                        }
+                        // Tenta buscar por ID ou por índice (fallback)
+                        let nameField = document.querySelector(`.artifact-input[data-field="name"][data-artifact-id="${savedArt.id}"]`);
+                        let levelField = document.querySelector(`.artifact-input[data-field="level"][data-artifact-id="${savedArt.id}"]`);
                         
-                        // Preenche Nome do Artefato
-                        if (domNames[index]) {
-                            domNames[index].value = savedArt.name || '';
-                            domNames[index].dataset.artifactId = savedArt.id;
+                        // Se não achar pelo ID, tenta pegar pelo índice da tela
+                        if (!nameField) {
+                            const allNames = document.querySelectorAll('.artifact-input[data-field="name"]');
+                            if (allNames[index]) nameField = allNames[index];
+                        }
+                        if (!levelField) {
+                            const allLevels = document.querySelectorAll('.artifact-input[data-field="level"]');
+                            if (allLevels[index]) levelField = allLevels[index];
                         }
 
-                        // Preenche as Gemas (Visualmente)
-                        if (savedArt.gems && savedArt.gems.length > 0) {
-                            // Precisamos achar os slots de gema DESTE artefato específico (index)
-                            // Supondo que cada artefato gere 3 ou 4 slots de gema
-                            // Vamos buscar pelo ID do artefato ou pelo container pai
-                            const artifactContainer = domLevels[index].closest('.glass-panel') || domLevels[index].parentElement.parentElement;
-                            if (artifactContainer) {
-                                const gemSlots = artifactContainer.querySelectorAll('.gem-slot');
-                                savedArt.gems.forEach((gem, gIndex) => {
-                                    if (gem && gemSlots[gIndex]) {
-                                        // Chama a função do Renderer para desenhar a gema no quadradinho
-                                        // Se não tiver acesso ao Renderer aqui, fazemos manual:
-                                        const slot = gemSlots[gIndex];
-                                        slot.classList.remove('empty');
-                                        // Recria o visual da gema (ícone e cor)
-                                        slot.innerHTML = `<div class="text-2xl">${gem.icon}</div>`;
-                                        // Aplica a cor da borda baseada na raridade
-                                        slot.className = `gem-slot w-12 h-12 rounded-lg border-2 flex items-center justify-center cursor-pointer bg-slate-50 ${gem.rarity || 'common'}`;
-                                        
-                                        // Adiciona tooltip se tiver valor
-                                        if(gem.value) slot.title = `${gem.value} (${gem.rarity})`;
+                        // Aplica valores
+                        if (nameField) {
+                            nameField.value = savedArt.name || '';
+                            nameField.dataset.artifactId = savedArt.id; // Atualiza ID
+                        }
+                        if (levelField) {
+                            levelField.value = savedArt.level || '';
+                            levelField.dataset.artifactId = savedArt.id; // Atualiza ID
+                        }
+
+                        // --- RECARREGA AS GEMAS VISUALMENTE ---
+                        // Encontra o container do artefato atual
+                        let container = null;
+                        if (levelField) {
+                            container = levelField.closest('.glass-panel') || levelField.parentElement.parentElement;
+                        }
+
+                        if (container && savedArt.gems) {
+                            const gemSlots = container.querySelectorAll('.gem-slot');
+                            savedArt.gems.forEach((gem, gIndex) => {
+                                if (gem && gemSlots[gIndex]) {
+                                    const slot = gemSlots[gIndex];
+                                    slot.classList.remove('empty');
+                                    slot.innerHTML = `<div class="text-2xl">${gem.icon}</div>`;
+                                    
+                                    // Aplica cor da raridade
+                                    const rarityClass = `gem-rarity-${gem.rarity || 'common'}`;
+                                    slot.className = `gem-slot filled w-10 h-10 rounded-lg border bg-white flex items-center justify-center cursor-pointer shadow-sm relative group ${rarityClass}`;
+                                    
+                                    // Adiciona tooltip
+                                    if(gem.value) slot.title = `${gem.name} (${gem.value})`;
+                                    
+                                    // Adiciona bolinha vermelha se tiver valor
+                                    if(gem.value && !slot.querySelector('.absolute')) {
+                                        slot.innerHTML += '<div class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>';
                                     }
-                                });
-                            }
+                                }
+                            });
                         }
                     });
                 }
                 
-                // Atualiza a barra lateral de estatísticas
                 if (typeof updateAnalysis === 'function') updateAnalysis();
-
-            }, 100); // 100ms de espera
+            }, 100);
 
         } else {
-            // Se deu erro ao carregar, cria um novo
+            console.error("Build não encontrada no Storage");
             initializeNewBuild();
         }
     };
