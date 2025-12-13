@@ -16,7 +16,12 @@
     <meta property="og:title" content="PvP Build Analyzer 💎">
     <meta property="og:description"
         content="Planeje seus atributos, verifique requisitos PvP e exporte sua build em PDF.">
-    
+    <meta property="og:image" content="https://via.placeholder.com/1200x630/4F46E5/FFFFFF?text=PvP+Build+Analyzer">
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="PvP Build Analyzer 💎">
+    <meta property="twitter:description"
+        content="Planeje seus atributos, verifique requisitos PvP e exporte sua build em PDF.">
+
     <script src="https://cdn.tailwindcss.com"></script>
 
     <link rel="stylesheet" href="css/style.css">
@@ -85,6 +90,7 @@
                 </div>
                 
                 <div id="builds-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    
                     <div id="no-builds-message" class="col-span-1 md:col-span-2 lg:col-span-3 py-12 hidden">
                         <div class="flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-slate-300 rounded-2xl bg-slate-50/50">
                             <span class="text-4xl mb-4">🚀</span>
@@ -97,6 +103,7 @@
                             </button>
                         </div>
                     </div>
+
                 </div>
             </section>
 
@@ -365,6 +372,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
+        // Script simples para disparar o import quando selecionar arquivo
         document.getElementById('import-data-file')?.addEventListener('change', function () {
             if (this.files.length > 0) {
                 document.getElementById('import-data-btn').click();
