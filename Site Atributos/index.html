@@ -3,203 +3,109 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
     <title>PvP Build Analyzer 💎</title>
 
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💎</text></svg>">
-
-    <meta name="description"
-        content="Crie, analise e otimize suas builds de PvP com estatísticas detalhadas. Ferramenta para gerenciar gemas, atributos e combos.">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="PvP Build Analyzer 💎">
-    <meta property="og:description"
-        content="Planeje seus atributos, verifique requisitos PvP e exporte sua build em PDF.">
-    <meta property="og:image" content="https://via.placeholder.com/1200x630/4F46E5/FFFFFF?text=PvP+Build+Analyzer">
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:title" content="PvP Build Analyzer 💎">
-    <meta property="twitter:description"
-        content="Planeje seus atributos, verifique requisitos PvP e exporte sua build em PDF.">
-
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💎</text></svg>">
+    <meta name="description" content="Crie, analise e otimize suas builds de PvP com estatísticas detalhadas.">
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Tipografia e Fundo */
-        body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
-            min-height: 100vh;
-            color: #1e293b;
-        }
-
-        /* Efeito de Vidro (Glassmorphism) */
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-        }
-
-        /* Botões com Hover Suave */
-        .btn-hover {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .btn-hover:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-
-        .btn-hover:active {
-            transform: translateY(0);
-        }
-
-        /* Badges de Elementos */
-        .badge-element {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.125rem 0.5rem;
-            border-radius: 9999px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            border: 1px solid transparent;
-        }
-
-        .badge-fogo {
-            background-color: #fee2e2;
-            color: #991b1b;
-            border-color: #fca5a5;
-        }
-
-        .badge-gelo {
-            background-color: #eff6ff;
-            color: #1e40af;
-            border-color: #93c5fd;
-        }
-
-        .badge-luz {
-            background-color: #fef3c7;
-            color: #92400e;
-            border-color: #fcd34d;
-        }
-
-        .badge-veneno {
-            background-color: #d1fae5;
-            color: #065f46;
-            border-color: #6ee7b7;
-        }
-
-        /* Card Moderno */
-        .card-modern {
-            background-color: white;
-            border-radius: 0.75rem;
-            border: 1px solid #e2e8f0;
-            transition: all 0.2s ease-in-out;
-        }
-
-        .card-modern:hover {
-            border-color: #cbd5e1;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-        }
-
-        /* Cores de Texto Legado (para compatibilidade com JS antigo) */
-        .text-fogo {
-            color: #dc2626;
-        }
-
-        .bg-fogo-100 {
-            background-color: #fee2e2;
-        }
-
-        .text-gelo {
-            color: #3b82f6;
-        }
-
-        .bg-gelo-100 {
-            background-color: #dbeafe;
-        }
-
-        .text-luz {
-            color: #f59e0b;
-        }
-
-        .bg-luz-100 {
-            background-color: #fef3c7;
-        }
-
-        .text-veneno {
-            color: #10b981;
-        }
-
-        .bg-veneno-100 {
-            background-color: #d1fae5;
-        }
-
-        .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-    </style>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body class="text-slate-800 antialiased">
 
     <div id="app-container" class="min-h-screen flex flex-col">
 
-        <header class="glass-panel sticky top-0 z-20 border-b border-slate-200">
+        <header class="glass-panel sticky top-0 z-50 border-b border-slate-200">
             <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+
                 <div class="flex items-center gap-2">
                     <span class="text-2xl">💎</span>
-                    <h1
-                        class="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
-                        PvP Build Analyzer</h1>
+                    <h1 class="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
+                        PvP Build Analyzer
+                    </h1>
                 </div>
-                <nav class="flex space-x-1 md:space-x-4">
-                    <button id="nav-dashboard"
-                        class="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">Dashboard</button>
-                    <a href="formations.html"
-                        class="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors flex items-center gap-1">
+
+                <button id="mobile-menu-btn" class="md:hidden p-2 text-slate-600 hover:text-indigo-600 focus:outline-none">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+
+                <nav class="hidden md:flex items-center gap-2">
+                    <button id="nav-dashboard" class="px-3 py-2 rounded-lg text-sm font-bold text-indigo-700 bg-indigo-50 transition-colors">
+                        Dashboard
+                    </button>
+                    <a href="formations.html" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
                         ⚔️ Marchas
                     </a>
-                    <a href="events.html"
-                        class="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors flex items-center gap-1">
+                    <a href="events.html" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
                         📅 Eventos
                     </a>
-                    <button id="nav-admin"
-                        class="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">Admin</button>
-                    <button id="nav-help"
-                        class="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors flex items-center gap-1">
+                    <button id="nav-admin" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
+                        Admin
+                    </button>
+                    <button id="nav-help" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors flex items-center gap-1">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
-                            <path fill-rule="evenodd"
-                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z"
-                                clip-rule="evenodd" />
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
                         </svg>
                         Ajuda
                     </button>
-                    <button id="nav-new-char"
-                        class="ml-2 btn-hover bg-gradient-to-r from-indigo-600 to-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-lg shadow-indigo-200">
-                        + Novo Personagem
+                    <button id="nav-new-char" class="ml-2 btn-hover bg-gradient-to-r from-indigo-600 to-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-lg shadow-indigo-200">
+                        + Novo
                     </button>
                 </nav>
             </div>
+
+            <div id="mobile-menu" class="hidden md:hidden border-t border-slate-100 bg-white/95 backdrop-blur-md absolute w-full left-0 top-full shadow-xl z-40">
+                <div class="flex flex-col p-4 space-y-2">
+                    <button id="nav-dashboard-mobile" class="text-left w-full px-4 py-3 rounded-xl text-sm font-bold text-indigo-700 bg-indigo-50">
+                        Dashboard
+                    </button>
+                    <a href="formations.html" class="block w-full px-4 py-3 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50">
+                        ⚔️ Marchas
+                    </a>
+                    <a href="events.html" class="block w-full px-4 py-3 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50">
+                        📅 Eventos
+                    </a>
+                    <button id="nav-admin-mobile" class="text-left w-full px-4 py-3 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50">
+                        Admin
+                    </button>
+                    <button id="nav-help-mobile" class="text-left w-full px-4 py-3 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                        </svg>
+                        Ajuda
+                    </button>
+                    <button id="nav-new-char-mobile" class="w-full mt-2 btn-hover bg-indigo-600 text-white px-4 py-3 rounded-xl text-sm font-bold shadow-md">
+                        + Novo Personagem
+                    </button>
+                </div>
+            </div>
         </header>
 
-        <main class="flex-grow max-w-7xl mx-auto w-full p-4 md:p-6 space-y-6">
+        <main class="flex-grow max-w-7xl mx-auto w-full p-4 md:p-6 space-y-6 relative z-0">
 
             <section id="dashboard-view">
                 <div class="flex justify-between items-end mb-6">
                     <h2 class="text-3xl font-bold text-slate-800">Minhas Builds</h2>
                 </div>
-                <div id="builds-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <p id="no-builds-message" class="col-span-3 text-center py-12 text-slate-400 hidden">
-                        Nenhuma build salva. Crie uma para começar a dominar! 🚀
-                    </p>
+                
+                <div id="builds-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6"></div>
+
+                <div id="no-builds-message" class="hidden">
+                    <div class="flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-slate-300 rounded-2xl bg-slate-50/50">
+                        <span class="text-4xl mb-4">🚀</span>
+                        <h3 class="text-lg font-bold text-slate-700 mb-2">Comece sua Jornada!</h3>
+                        <p class="text-slate-500 mb-6 max-w-md">
+                            Você ainda não tem nenhuma build salva. Clique no botão abaixo ou no menu "+ Novo" para criar sua primeira estratégia.
+                        </p>
+                        <button onclick="document.getElementById('nav-new-char').click()" class="btn-hover bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-200">
+                            Criar Primeira Build
+                        </button>
+                    </div>
                 </div>
             </section>
 
@@ -213,24 +119,16 @@
                             </h3>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
-                                    <label for="char-name"
-                                        class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Nome</label>
-                                    <input type="text" id="char-name" required
-                                        class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors">
+                                    <label for="char-name" class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Nome</label>
+                                    <input type="text" id="char-name" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors p-2 border">
                                 </div>
                                 <div>
-                                    <label for="char-class"
-                                        class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Classe
-                                        (Opcional)</label>
-                                    <input type="text" id="char-class"
-                                        class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors">
+                                    <label for="char-class" class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Classe (Opcional)</label>
+                                    <input type="text" id="char-class" class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors p-2 border">
                                 </div>
                                 <div>
-                                    <label for="artifact-count"
-                                        class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Nº
-                                        de Artefatos</label>
-                                    <select id="artifact-count"
-                                        class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors">
+                                    <label for="artifact-count" class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Nº de Artefatos</label>
+                                    <select id="artifact-count" class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors p-2 border">
                                         <option value="1">1</option>
                                         <option value="2">2</option>
                                         <option value="3">3</option>
@@ -239,35 +137,25 @@
                                 </div>
                             </div>
                         </div>
-
                         <div id="artifact-slots-container" class="space-y-6"></div>
                     </div>
 
                     <div class="lg:w-1/4">
                         <div class="sticky top-24 space-y-4">
                             <div id="analysis-sidebar" class="glass-panel p-5 rounded-2xl border-l-4 border-indigo-500">
-                                <h3
-                                    class="text-lg font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2 flex items-center gap-2">
+                                <h3 class="text-lg font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2 flex items-center gap-2">
                                     📊 Análise em Tempo Real
                                 </h3>
                                 <div id="analysis-summary" class="space-y-4 text-sm">
                                     <p class="text-slate-500 italic text-center py-4">Adicione Gemas para iniciar...</p>
                                 </div>
-                                <button id="run-full-analysis-btn"
-                                    class="mt-6 w-full btn-hover bg-green-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-green-200">
+                                <button id="run-full-analysis-btn" class="mt-6 w-full btn-hover bg-green-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-green-200">
                                     Gerar Relatório Final
                                 </button>
                             </div>
-
                             <div class="grid grid-cols-2 gap-2">
-                                <button id="save-build-draft-btn"
-                                    class="btn-hover bg-white text-slate-600 border border-slate-200 py-2 rounded-lg text-sm font-medium hover:bg-slate-50">
-                                    Salvar Rascunho
-                                </button>
-                                <button id="clear-build-btn"
-                                    class="btn-hover bg-white text-red-500 border border-red-100 py-2 rounded-lg text-sm font-medium hover:bg-red-50">
-                                    Limpar Tudo
-                                </button>
+                                <button id="save-build-draft-btn" class="btn-hover bg-white text-slate-600 border border-slate-200 py-2 rounded-lg text-sm font-medium hover:bg-slate-50">Salvar Rascunho</button>
+                                <button id="clear-build-btn" class="btn-hover bg-white text-red-500 border border-red-100 py-2 rounded-lg text-sm font-medium hover:bg-red-50">Limpar Tudo</button>
                             </div>
                         </div>
                     </div>
@@ -278,118 +166,78 @@
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-3xl font-bold text-slate-800">🛠️ Painel Admin</h2>
                 </div>
-
                 <div class="glass-panel rounded-2xl overflow-hidden shadow-sm">
                     <div class="flex border-b border-slate-200 overflow-x-auto hide-scrollbar bg-slate-50/50">
-                        <button data-tab="master-attributes"
-                            class="admin-tab px-6 py-4 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-600 bg-white whitespace-nowrap transition-colors">Atributos
-                            Mestres</button>
-                        <button data-tab="required-attributes"
-                            class="admin-tab px-6 py-4 text-sm font-medium text-slate-500 hover:text-slate-800 border-b-2 border-transparent hover:bg-slate-50 whitespace-nowrap transition-colors">Requisitos</button>
-                        <button data-tab="secondary-attributes"
-                            class="admin-tab px-6 py-4 text-sm font-medium text-slate-500 hover:text-slate-800 border-b-2 border-transparent hover:bg-slate-50 whitespace-nowrap transition-colors">Secundários</button>
-                        <button data-tab="recommended-combos"
-                            class="admin-tab px-6 py-4 text-sm font-medium text-slate-500 hover:text-slate-800 border-b-2 border-transparent hover:bg-slate-50 whitespace-nowrap transition-colors">Combos</button>
-                        <button data-tab="tools"
-                            class="admin-tab px-6 py-4 text-sm font-medium text-slate-500 hover:text-slate-800 border-b-2 border-transparent hover:bg-slate-50 whitespace-nowrap transition-colors">Ferramentas</button>
+                        <button data-tab="master-attributes" class="admin-tab px-6 py-4 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-600 bg-white whitespace-nowrap transition-colors">Atributos Mestres</button>
+                        <button data-tab="required-attributes" class="admin-tab px-6 py-4 text-sm font-medium text-slate-500 hover:text-slate-800 border-b-2 border-transparent hover:bg-slate-50 whitespace-nowrap transition-colors">Requisitos</button>
+                        <button data-tab="secondary-attributes" class="admin-tab px-6 py-4 text-sm font-medium text-slate-500 hover:text-slate-800 border-b-2 border-transparent hover:bg-slate-50 whitespace-nowrap transition-colors">Secundários</button>
+                        <button data-tab="recommended-combos" class="admin-tab px-6 py-4 text-sm font-medium text-slate-500 hover:text-slate-800 border-b-2 border-transparent hover:bg-slate-50 whitespace-nowrap transition-colors">Combos</button>
+                        <button data-tab="tools" class="admin-tab px-6 py-4 text-sm font-medium text-slate-500 hover:text-slate-800 border-b-2 border-transparent hover:bg-slate-50 whitespace-nowrap transition-colors">Ferramentas</button>
                     </div>
 
                     <div id="admin-content-area" class="p-6 md:p-8">
-
                         <div id="master-attributes-tab" class="admin-tab-content">
                             <div class="flex justify-between items-center mb-6">
                                 <h3 class="text-xl font-bold text-slate-700">Atributos Mestres (Gemas)</h3>
-                                <button id="add-master-attribute-btn"
-                                    class="btn-hover bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md">+
-                                    Novo Atributo</button>
+                                <button id="add-master-attribute-btn" class="btn-hover bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md">+ Novo Atributo</button>
                             </div>
-                            <div id="master-attributes-list" class="space-y-2">
-                                <p class="text-slate-400">Carregando...</p>
-                            </div>
+                            <div id="master-attributes-list" class="space-y-2"><p class="text-slate-400">Carregando...</p></div>
                         </div>
-
                         <div id="required-attributes-tab" class="admin-tab-content hidden">
                             <div class="flex justify-between items-center mb-6">
                                 <div>
-                                    <h3 class="text-xl font-bold text-slate-700">Atributos Essenciais (Obrigatórios)
-                                    </h3>
-                                    <p class="text-sm text-slate-500">A build só é aprovada se tiver estes atributos.
-                                    </p>
+                                    <h3 class="text-xl font-bold text-slate-700">Atributos Essenciais</h3>
+                                    <p class="text-sm text-slate-500">A build só é aprovada se tiver estes atributos.</p>
                                 </div>
-                                <button id="add-required-attribute-btn"
-                                    class="btn-hover bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md">+
-                                    Adicionar Regra</button>
+                                <button id="add-required-attribute-btn" class="btn-hover bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md">+ Adicionar Regra</button>
                             </div>
                             <div id="required-attributes-list" class="space-y-2"></div>
                         </div>
-
                         <div id="secondary-attributes-tab" class="admin-tab-content hidden">
                             <div class="flex justify-between items-center mb-6">
                                 <div>
-                                    <h3 class="text-xl font-bold text-slate-700">Atributos de Suporte (Opcionais)</h3>
-                                    <p class="text-sm text-slate-500">Úteis para complementar a build sem serem
-                                        essenciais.</p>
+                                    <h3 class="text-xl font-bold text-slate-700">Atributos de Suporte</h3>
+                                    <p class="text-sm text-slate-500">Úteis para complementar a build.</p>
                                 </div>
-                                <button id="add-secondary-attribute-btn"
-                                    class="btn-hover bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md">+
-                                    Adicionar Suporte</button>
+                                <button id="add-secondary-attribute-btn" class="btn-hover bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md">+ Adicionar Suporte</button>
                             </div>
                             <div id="secondary-attributes-list" class="space-y-2"></div>
                         </div>
-
                         <div id="recommended-combos-tab" class="admin-tab-content hidden">
                             <div class="flex justify-between items-center mb-6">
                                 <h3 class="text-xl font-bold text-slate-700">Combos Recomendados</h3>
-                                <button id="add-combo-btn"
-                                    class="btn-hover bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md">+
-                                    Novo Combo</button>
+                                <button id="add-combo-btn" class="btn-hover bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md">+ Novo Combo</button>
                             </div>
                             <div id="recommended-combos-list" class="space-y-4"></div>
                         </div>
-
                         <div id="tools-tab" class="admin-tab-content hidden">
                             <div class="max-w-2xl mx-auto space-y-8">
                                 <div class="bg-amber-50 border border-amber-200 p-6 rounded-xl">
-                                    <label for="global-notes"
-                                        class="block text-sm font-bold text-amber-800 mb-2">Observações do Relatório
-                                        (PDF)</label>
-                                    <textarea id="global-notes" rows="4"
-                                        class="w-full p-3 border rounded-lg text-sm border-amber-300 focus:ring-amber-500 focus:border-amber-500 bg-white"
-                                        placeholder="Escreva dicas finais para os jogadores aqui..."></textarea>
+                                    <label class="block text-sm font-bold text-amber-800 mb-2">Observações do Relatório (PDF)</label>
+                                    <textarea id="global-notes" rows="4" class="w-full p-3 border rounded-lg text-sm border-amber-300 focus:ring-amber-500 focus:border-amber-500 bg-white"></textarea>
                                     <div class="mt-3 text-right">
-                                        <button id="save-notes-btn"
-                                            class="btn-hover bg-amber-600 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-amber-700">Salvar
-                                            Notas</button>
+                                        <button id="save-notes-btn" class="btn-hover bg-amber-600 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-amber-700">Salvar Notas</button>
                                     </div>
                                 </div>
                                 <div class="mt-6 mb-6 p-4 bg-slate-100 border border-slate-200 rounded-lg">
                                     <label class="block text-sm font-bold text-slate-700 mb-2">🔒 Segurança</label>
                                     <div class="flex gap-2">
-                                        <input type="password" id="new-admin-password"
-                                            placeholder="Nova Senha de Acesso"
-                                            class="flex-1 p-2 border rounded-md text-sm border-slate-300 focus:ring-indigo-500 focus:border-indigo-500">
-                                        <button id="change-password-btn"
-                                            class="bg-slate-700 text-white px-4 py-2 rounded text-sm hover:bg-slate-800 transition duration-150">Alterar
-                                            Senha</button>
+                                        <input type="password" id="new-admin-password" placeholder="Nova Senha" class="flex-1 p-2 border rounded-md text-sm border-slate-300 focus:ring-indigo-500 focus:border-indigo-500">
+                                        <button id="change-password-btn" class="bg-slate-700 text-white px-4 py-2 rounded text-sm hover:bg-slate-800 transition duration-150">Alterar Senha</button>
                                     </div>
                                 </div>
-
                                 <div class="space-y-4 pt-6 border-t border-slate-200">
-                                    <h4 class="font-bold text-slate-700">Backup & Restauração</h4>
-
+                                    <h4 class="font-bold text-slate-700 mb-4">Backup & Restauração</h4>
                                     <div class="flex flex-col sm:flex-row gap-4">
                                         <div class="flex-1">
-                                            <button id="export-all-data-btn"
-                                                class="w-full btn-hover bg-white border border-slate-300 text-slate-700 px-4 py-3 rounded-xl font-medium shadow-sm hover:bg-slate-50 flex items-center justify-center gap-2">
+                                            <button id="export-all-data-btn" class="w-full btn-hover bg-white border border-slate-300 text-slate-700 px-4 py-3 rounded-xl font-medium shadow-sm hover:bg-slate-50 flex items-center justify-center gap-2">
                                                 <span>📥</span> Exportar Backup
                                             </button>
                                         </div>
                                         <div class="flex-1">
                                             <div class="relative">
-                                                <input type="file" id="import-data-file" accept=".json"
-                                                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                                                <button id="import-mock-btn"
-                                                    class="w-full btn-hover bg-white border border-slate-300 text-slate-700 px-4 py-3 rounded-xl font-medium shadow-sm hover:bg-slate-50 flex items-center justify-center gap-2">
+                                                <input type="file" id="import-data-file" accept=".json" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                                <button id="import-mock-btn" class="w-full btn-hover bg-white border border-slate-300 text-slate-700 px-4 py-3 rounded-xl font-medium shadow-sm flex items-center justify-center gap-2">
                                                     <span>📤</span> Importar Backup
                                                 </button>
                                             </div>
@@ -397,10 +245,8 @@
                                         </div>
                                     </div>
                                 </div>
-
                                 <div class="pt-6 mt-6 border-t border-red-100">
-                                    <button id="clear-all-data-btn"
-                                        class="w-full text-red-600 hover:bg-red-50 py-3 rounded-lg text-sm font-medium transition-colors">
+                                    <button id="clear-all-data-btn" class="w-full text-red-600 hover:bg-red-50 py-3 rounded-lg text-sm font-medium transition-colors">
                                         Apagar Todos os Dados (Reset de Fábrica)
                                     </button>
                                 </div>
@@ -420,30 +266,30 @@
                     </div>
 
                     <div class="grid md:grid-cols-3 gap-6">
-                        <div class="card-modern p-6 border-t-4 border-indigo-500">
-                            <div
-                                class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-4 text-xl font-bold">
-                                1</div>
+                        <div class="card-modern p-6 border-t-4 border-indigo-500 h-full">
+                            <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-4 text-xl font-bold">1</div>
                             <h3 class="font-bold text-slate-800 mb-2">Configure</h3>
-                            <p class="text-sm text-slate-600">Vá em <strong>Admin</strong> e cadastre os atributos
-                                mestres, essenciais e secundários.</p>
+                            <p class="text-sm text-slate-600">Vá em <strong>Admin</strong> e cadastre os atributos mestres, essenciais e secundários.</p>
                         </div>
-                        <div class="card-modern p-6 border-t-4 border-blue-500">
-                            <div
-                                class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4 text-xl font-bold">
-                                2</div>
+                        <div class="card-modern p-6 border-t-4 border-blue-500 h-full">
+                            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4 text-xl font-bold">2</div>
                             <h3 class="font-bold text-slate-800 mb-2">Monte a Build</h3>
-                            <p class="text-sm text-slate-600">Crie um personagem e preencha os slots de artefatos com as
-                                gemas.</p>
+                            <p class="text-sm text-slate-600">Crie um personagem e preencha os slots de artefatos com as gemas.</p>
                         </div>
-                        <div class="card-modern p-6 border-t-4 border-green-500">
-                            <div
-                                class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4 text-xl font-bold">
-                                3</div>
+                        <div class="card-modern p-6 border-t-4 border-green-500 h-full">
+                            <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4 text-xl font-bold">3</div>
                             <h3 class="font-bold text-slate-800 mb-2">Analise</h3>
-                            <p class="text-sm text-slate-600">Veja o feedback em tempo real e exporte o relatório PDF
-                                para compartilhar.</p>
+                            <p class="text-sm text-slate-600">Veja o feedback em tempo real e exporte o relatório PDF para compartilhar.</p>
                         </div>
+                    </div>
+
+                    <div class="bg-slate-50 p-6 rounded-xl border border-slate-200 text-center mt-8">
+                        <h4 class="font-bold text-slate-700 mb-2 flex items-center justify-center gap-2">
+                            <span>💡</span> Dica Pro: Backup de Dados
+                        </h4>
+                        <p class="text-sm text-slate-500 max-w-2xl mx-auto">
+                            Seus dados ficam salvos no navegador. Para não perder nada (ou para passar sua configuração para um amigo), vá em <strong>Admin > Ferramentas</strong> e use o botão <strong>Exportar Backup</strong>.
+                        </p>
                     </div>
                 </div>
             </section>
@@ -464,16 +310,75 @@
     <script src="js/AdminController.js"></script>
     <script src="js/BuildController.js"></script>
     <script src="js/App.js"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        document.getElementById('import-data-file')?.addEventListener('change', function () {
-            if (this.files.length > 0) {
-                document.getElementById('import-data-btn').click();
+        // --- 1. MENU HAMBÚRGUER ---
+        const btn = document.getElementById('mobile-menu-btn');
+        const menu = document.getElementById('mobile-menu');
+
+        if(btn && menu) {
+            btn.addEventListener('click', () => {
+                menu.classList.toggle('hidden');
+            });
+            menu.querySelectorAll('button, a').forEach(item => {
+                item.addEventListener('click', () => {
+                    menu.classList.add('hidden');
+                });
+            });
+        }
+
+        // --- 2. PONTE MOBILE -> DESKTOP ---
+        const map = {
+            'nav-dashboard-mobile': 'nav-dashboard', 
+            'nav-admin-mobile': 'nav-admin',
+            'nav-help-mobile': 'nav-help',
+            'nav-new-char-mobile': 'nav-new-char'
+        };
+
+        Object.keys(map).forEach(mobileId => {
+            const mobileBtn = document.getElementById(mobileId);
+            const originalBtn = document.getElementById(map[mobileId]);
+            
+            if (mobileBtn && originalBtn) {
+                mobileBtn.addEventListener('click', () => {
+                    originalBtn.click(); 
+                });
             }
+        });
+
+        // --- 3. IMPORTAÇÃO ---
+        const importInput = document.getElementById('import-data-file');
+        if(importInput) {
+            importInput.addEventListener('change', function () {
+                if (this.files.length > 0) {
+                    const confirmBtn = document.getElementById('import-data-btn');
+                    if(confirmBtn) confirmBtn.click();
+                }
+            });
+        }
+
+        // --- 4. VIGIA DO FOGUETE ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const listContainer = document.getElementById('builds-list');
+            const emptyMessage = document.getElementById('no-builds-message');
+            
+            const checkState = () => {
+                if (!listContainer || !emptyMessage) return;
+                const hasBuilds = listContainer.children.length > 0;
+                if (hasBuilds) {
+                    emptyMessage.classList.add('hidden');
+                    listContainer.classList.remove('hidden');
+                } else {
+                    emptyMessage.classList.remove('hidden');
+                    listContainer.classList.add('hidden');
+                }
+            };
+            
+            checkState();
+            const observer = new MutationObserver(checkState);
+            if (listContainer) observer.observe(listContainer, { childList: true, subtree: true });
         });
     </script>
 </body>
-
 </html>

@@ -1,0 +1,359 @@
+/* ==========================================================================
+   1. BASE GLOBAL & RESET (Todas as páginas)
+   ========================================================================== */
+body {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    /* Gradiente de Fundo Suave */
+    background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+    min-height: 100vh;
+    color: #1e293b;
+    
+    /* MELHORIAS PARA MOBILE (iOS/Android) */
+    -webkit-text-size-adjust: 100%; /* Previne zoom estranho em texto no iOS */
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased; /* Fontes mais nítidas */
+    -webkit-tap-highlight-color: transparent; /* Remove flash azul ao tocar em links */
+}
+
+/* ==========================================================================
+   2. UI & COMPONENTES GERAIS (Menu, Botões, Vidro)
+   ========================================================================== */
+
+/* Efeito de Vidro (Header e Paineis) */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px); /* Essencial para funcionar no iPhone */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Botões com Hover Suave */
+.btn-hover {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+.btn-hover:active {
+    transform: translateY(0);
+}
+
+/* Botão "Voltar" (Padrão para páginas internas) */
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #475569;
+    background: white;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+.btn-back:hover {
+    background: #f8fafc;
+    color: #1e293b;
+    border-color: #cbd5e1;
+}
+
+/* Títulos de Seção (Barra lateral roxa) */
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #334155;
+    margin-bottom: 1rem;
+    padding-left: 0.75rem;
+    border-left: 4px solid #6366f1; /* Indigo */
+}
+
+/* ==========================================================================
+   3. UTILITÁRIOS RESPONSIVOS (Menu Scroll)
+   ========================================================================== */
+
+/* Esconde barra de rolagem (Para o Menu Horizontal no Celular ficar limpo) */
+.hide-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+}
+
+/* Respeita a área segura do iPhone (Barra preta inferior) */
+.pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ==========================================================================
+   4. ESTILOS DO INDEX (Dashboard)
+   ========================================================================== */
+
+/* Badges Específicas do Index (Badge Element) */
+.badge-element {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid transparent;
+}
+
+/* Cores dos Badges (Usado tanto no Index quanto Formations) */
+.badge-fogo, .bg-fogo-100 { background-color: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+.badge-gelo, .bg-gelo-100 { background-color: #eff6ff; color: #1e40af; border-color: #93c5fd; }
+.badge-luz, .bg-luz-100  { background-color: #fef3c7; color: #92400e; border-color: #fcd34d; }
+.badge-veneno, .bg-veneno-100 { background-color: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+
+/* Texto Legado */
+.text-fogo { color: #dc2626; }
+.text-gelo { color: #3b82f6; }
+.text-luz { color: #f59e0b; }
+.text-veneno { color: #10b981; }
+
+/* Card Moderno (Usado no Dashboard) */
+.card-modern {
+    background-color: white;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease-in-out;
+}
+.card-modern:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+/* ==========================================================================
+   5. ESTILOS DE EVENTOS (events.html)
+   ========================================================================== */
+
+/* Headers Coloridos dos Eventos */
+.event-header-5 {
+    background: linear-gradient(135deg, #4f46e5, #818cf8);
+    color: white;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+}
+
+.event-header-7 {
+    background: linear-gradient(135deg, #059669, #34d399);
+    color: white;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.2);
+}
+
+/* Cards dos Dias */
+.event-card {
+    background-color: white;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    padding: 1.25rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    transition: all 0.2s ease;
+    height: 100%; /* Garante alinhamento no grid */
+    display: flex;
+    flex-direction: column;
+}
+.event-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
+}
+
+/* Título do Dia */
+.day-title {
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: #334155;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; /* Ajuda no mobile se o título for longo */
+    gap: 0.5rem;
+}
+
+/* Lista de Tarefas */
+.task-list { list-style: none; padding: 0; margin: 0; }
+
+.task-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed #e2e8f0;
+    font-size: 0.9rem;
+    color: #475569;
+}
+.task-item:last-child { border-bottom: none; }
+
+.task-value {
+    font-weight: 700;
+    color: #4f46e5;
+    background: #eef2ff;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    white-space: nowrap; /* Não deixa o número quebrar linha */
+}
+
+/* Notas e Destaques */
+.evt-note {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    font-style: italic;
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.evt-highlight {
+    color: #dc2626;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    margin-top: 0.75rem;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+/* Input de Data */
+.date-picker {
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 0.85rem;
+    color: #475569;
+    background: #f8fafc;
+    outline: none;
+    transition: border-color 0.2s;
+    max-width: 140px; /* Limita largura no mobile */
+}
+.date-picker:focus {
+    border-color: #4f46e5;
+    ring: 2px solid #c7d2fe;
+}
+
+/* ==========================================================================
+   6. ESTILOS DE MARCHAS (formations.html)
+   ========================================================================== */
+
+/* Badge usado em Formations (Um pouco maior que o do Index) */
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+/* Variantes extras de badge */
+.badge-ssr { 
+    background-color: #faf5ff; 
+    color: #7e22ce; 
+    border-color: #e9d5ff; 
+    box-shadow: 0 0 5px rgba(168, 85, 247, 0.3); 
+}
+.badge-gray { background-color: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+
+/* Cards de Função */
+.role-card {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.role-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.role-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+.role-header h4 { font-weight: 700; color: #1e293b; font-size: 1.1rem; }
+.role-icon { font-size: 1.5rem; }
+
+.hero-list {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-wrap: wrap; gap: 0.5rem;
+    margin-top: auto;
+}
+
+/* Cards Elementais */
+.element-card {
+    border-radius: 0.75rem;
+    padding: 1rem;
+    border-width: 1px;
+    border-style: solid;
+    transition: all 0.2s;
+}
+.element-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.element-header {
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 1rem;
+    border-bottom: 1px dashed rgba(0, 0, 0, 0.1);
+    padding-bottom: 0.5rem;
+}
+
+.element-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Slots */
+.slot {
+    background: rgba(255, 255, 255, 0.7);
+    padding: 0.5rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    text-align: center;
+    font-weight: 600;
+}
+.slot.ssr { border: 1px solid #d8b4fe; color: #7e22ce; background-color: #faf5ff; }
+.slot.commander { border: 1px solid #93c5fd; color: #1d4ed8; background-color: #eff6ff; }
+.slot.healer { border: 1px solid #86efac; color: #15803d; background-color: #f0fdf4; }
+
+/* Regra de Ouro */
+.strategy-box { position: relative; overflow: hidden; }
+
+.formation-slot {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    backdrop-filter: blur(4px);
+    text-align: center;
+}
