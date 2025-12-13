@@ -377,3 +377,12 @@ body {
 .text-remodel-epico { color: #f97316 !important; }       /* Laranja */
 .text-remodel-lendario { color: #ef4444 !important; }    /* Vermelho */
 .text-remodel-mitico { color: #eab308 !important; }      /* Amarelo/Dourado */
+
+.text-remodel-mitico {
+    color: #eab308 !important;
+    text-shadow: 0 0 6px rgba(234,179,8,0.6);
+}
+
+.text-remodel-perfeito {
+    text-shadow: 0 0 5px rgba(168,85,247,0.5);
+}

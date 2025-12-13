@@ -117,176 +117,307 @@ const Renderer = (() => {
         const statusBorder = isComplete ? 'border-green-500' : 'border-slate-200';
         const progressDot = isComplete ? 'bg-green-500' : 'bg-slate-300';
 
+        // 🔹 Carrega UMA vez
+        const masterAttributes = typeof StorageService !== 'undefined'
+            ? StorageService.loadMasterAttributes()
+            : [];
+
         const slotsHtml = ELEMENTS.map((element, index) => {
             const gem = artifact.gems[index];
             let content;
 
-            if (gem) {
+            if (gem && gem.attributes && gem.attributes.length > 0) {
                 const mainAttr = gem.attributes[0];
-                
-                // 1. Cor de Fundo baseada na Raridade (B, A, S...)
-                const rarityClass = gem.rarity ? `bg-rarity-${gem.rarity.toLowerCase()}` : 'bg-slate-50 border-slate-200';
-                
-                // 2. Cor do Texto baseada na Remodelação (Comum, Raro...)
-                const remodelClass = gem.remodel ? `text-remodel-${gem.remodel.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}` : 'text-slate-700';
 
-                // Busca nome do atributo
-                const masterAttributes = typeof StorageService !== 'undefined' ? StorageService.loadMasterAttributes() : [];
+                // 🔹 Fundo pela raridade da gema
+                const rarityClass = gem.rarity
+                    ? `bg-rarity-${gem.rarity.toLowerCase()}`
+                    : 'bg-slate-50 border-slate-200';
+
+                // 🔹 Cor baseada na remodelação DO ATRIBUTO
+                const remodelKey = mainAttr.remodel
+                    ? mainAttr.remodel
+                        .toLowerCase()
+                        .normalize("NFD")
+                        .replace(/[\u0300-\u036f]/g, "")
+                    : 'comum';
+
+                const remodelClass = `text-remodel-${remodelKey}`;
+
+                // 🔹 Nome do atributo
                 const attrObj = masterAttributes.find(a => a.id === mainAttr.attribute_id);
                 const attrName = attrObj ? attrObj.name : 'Desconhecido';
 
                 content = `
-                    <div class="w-full text-left overflow-hidden">
-                        <div class="flex justify-between items-center w-full mb-1">
-                            <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Tier ${mainAttr.tier}</span>
-                            <span class="text-[10px] font-bold ${rarityClass} px-1 rounded border opacity-90">+${gem.plus_level}</span>
-                        </div>
-                        
-                        <div class="text-xs font-bold ${remodelClass} truncate" title="${attrName} (${gem.remodel || 'Comum'})">
-                            ${attrName}
-                        </div>
-                        
-                        <div class="text-[10px] text-slate-400 truncate mt-0.5 font-medium">
-                            Raridade: ${gem.rarity || 'B'}
-                        </div>
-                    </div>
-                `;
-            } else {
-                content = `
-                    <div class="flex flex-col items-center justify-center h-16 text-slate-300 group-hover:text-indigo-400 transition-colors">
-                        <span class="text-2xl font-light mb-1">+</span>
-                        <span class="text-[10px] font-bold uppercase tracking-widest">Vazio</span>
-                    </div>
-                `;
-            }
+                <div class="w-full text-left overflow-hidden">
+                    <div class="flex justify-between items-center w-full mb-1">
+                        <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">
+                            Tier ${mainAttr.tier}
+                        </span>
 
-            // Aplica a classe de raridade no container principal do slot também
-            const slotBgClass = gem && gem.rarity ? `bg-rarity-${gem.rarity.toLowerCase()}` : 'bg-white border-dashed border-slate-200';
-            const slotBorderClass = gem ? '' : ''; // A classe de raridade já cuida da borda
-
-            return `
-                <div data-action="edit-gem" data-artifact-id="${artifact.id}" data-slot-index="${index}" 
-                     class="relative cursor-pointer ${slotBgClass} ${slotBorderClass} border rounded-lg p-2 hover:shadow-md transition-all group h-24 flex flex-col justify-center">
-                    
-                    <div class="absolute -top-2 left-2 px-1 bg-white rounded border border-slate-100 shadow-sm z-10">
-                        ${getElementBadge(element)}
+                        <span class="text-[10px] font-bold ${rarityClass} px-1 rounded border opacity-90">
+                            +${gem.plus_level}
+                        </span>
                     </div>
-                    
-                    <div class="mt-1 w-full">
-                        ${content}
+
+                    <div class="text-xs font-bold ${remodelClass} truncate"
+                         title="${attrName} (${mainAttr.remodel || 'Comum'})">
+                        ${attrName}
+                        <span class="text-[10px] opacity-70 ml-1">
+                            (${mainAttr.remodel || 'Comum'})
+                        </span>
+                    </div>
+
+                    <div class="text-[10px] text-slate-400 truncate mt-0.5 font-medium">
+                        Raridade: ${gem.rarity || 'B'}
                     </div>
                 </div>
             `;
-        }).join('');
+            } else {
+                content = `
+                <div class="flex flex-col items-center justify-center h-16 text-slate-300 
+                            group-hover:text-indigo-400 transition-colors">
+                    <span class="text-2xl font-light mb-1">+</span>
+                    <span class="text-[10px] font-bold uppercase tracking-widest">Vazio</span>
+                </div>
+            `;
+            }
 
-        return `
-            <div class="glass-panel p-6 rounded-xl border-l-4 ${statusBorder} shadow-sm transition-all hover:shadow-md">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                    
-                    <div class="flex-grow w-full md:w-auto">
-                        <div class="flex items-center gap-2 mb-2">
-                            <div class="h-2.5 w-2.5 rounded-full ${progressDot}"></div>
-                            <h4 class="font-bold text-slate-700 text-lg">Artefato ${artifact.position}</h4>
-                        </div>
-                        <input type="text" value="${artifact.name}" data-field="name" data-artifact-id="${artifact.id}" 
-                               class="artifact-input w-full md:w-64 text-sm bg-slate-50 border-slate-200 rounded-md focus:border-indigo-500 focus:ring-indigo-500 px-3 py-1.5 text-slate-700 placeholder-slate-400 transition-colors" 
-                               placeholder="Nome do Item (Ex: Bota)">
-                    </div>
-                    
-                    <div class="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
-                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Nível</span>
-                        <input type="number" value="${artifact.level}" data-field="level" data-artifact-id="${artifact.id}" 
-                               class="artifact-input w-16 text-center text-sm font-bold bg-white border-slate-200 rounded focus:border-indigo-500 focus:ring-indigo-500 p-1">
-                    </div>
+            const slotBgClass = gem && gem.rarity
+                ? `bg-rarity-${gem.rarity.toLowerCase()}`
+                : 'bg-white border-dashed border-slate-200';
+
+            return `
+            <div data-action="edit-gem"
+                 data-artifact-id="${artifact.id}"
+                 data-slot-index="${index}"
+                 class="relative cursor-pointer ${slotBgClass} border rounded-lg p-2 
+                        hover:shadow-md transition-all group h-24 flex flex-col justify-center">
+
+                <div class="absolute -top-2 left-2 px-1 bg-white rounded 
+                            border border-slate-100 shadow-sm z-10">
+                    ${getElementBadge(element)}
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2">
-                    ${slotsHtml}
+                <div class="mt-1 w-full">
+                    ${content}
                 </div>
             </div>
         `;
+        }).join('');
+
+        return `
+        <div class="glass-panel p-6 rounded-xl border-l-4 ${statusBorder} 
+                    shadow-sm transition-all hover:shadow-md">
+
+            <div class="flex flex-col md:flex-row justify-between 
+                        items-start md:items-center mb-6 gap-4">
+
+                <div class="flex-grow w-full md:w-auto">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="h-2.5 w-2.5 rounded-full ${progressDot}"></div>
+                        <h4 class="font-bold text-slate-700 text-lg">
+                            Artefato ${artifact.position}
+                        </h4>
+                    </div>
+
+                    <input type="text"
+                           value="${artifact.name}"
+                           data-field="name"
+                           data-artifact-id="${artifact.id}"
+                           class="artifact-input w-full md:w-64 text-sm bg-slate-50 
+                                  border-slate-200 rounded-md focus:border-indigo-500 
+                                  focus:ring-indigo-500 px-3 py-1.5 text-slate-700 
+                                  placeholder-slate-400 transition-colors"
+                           placeholder="Nome do Item (Ex: Bota)">
+                </div>
+
+                <div class="flex items-center gap-2 bg-slate-50 px-3 py-1.5 
+                            rounded-lg border border-slate-200">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">
+                        Nível
+                    </span>
+
+                    <input type="number"
+                           value="${artifact.level}"
+                           data-field="level"
+                           data-artifact-id="${artifact.id}"
+                           class="artifact-input w-16 text-center text-sm font-bold 
+                                  bg-white border-slate-200 rounded 
+                                  focus:border-indigo-500 focus:ring-indigo-500 p-1">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2">
+                ${slotsHtml}
+            </div>
+        </div>
+    `;
     };
+
 
     // --- MODAIS ---
 
     const renderGemModal = (artifact, slotIndex, gem, masterAttributes) => {
         const element = ELEMENTS[slotIndex];
         const config = ELEMENT_CONFIG[element];
-        const initialAttributesHtml = renderGemAttributes(gem, element, masterAttributes);
 
-        // Opções de Remodelação
-        const REMODELS = ["Comum", "Raro", "Extraordinario", "Perfeito", "Epico", "Lendario", "Mitico"];
-        
-        // Opções de Raridade da Gema
+        // 🔹 Atributos já vêm com remodelação individual
+        const initialAttributesHtml = renderGemAttributes(
+            gem,
+            element,
+            masterAttributes
+        );
+
+        // 🔹 Raridade da GEMA (não confundir com remodelação)
         const RARITIES = ["B", "A", "S", "SS", "SSR"];
 
         const modalHtml = `
-            <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity">
-                <div id="gem-edit-modal" class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col animate-[fadeIn_0.2s_ease-out]">
-                    
-                    <div class="p-6 border-b flex justify-between items-center ${config.bg}">
-                        <div>
-                            <span class="text-xs font-bold uppercase tracking-widest ${config.color} opacity-70">Editor de Gema</span>
-                            <h3 class="text-2xl font-extrabold ${config.color} flex items-center gap-2">
-                                ${config.icon} ${element.toUpperCase()}
-                            </h3>
-                        </div>
-                        <button id="close-gem-modal-btn" class="p-2 rounded-full hover:bg-white/50 text-slate-500 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                        </button>
+        <div id="modal-backdrop"
+             class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm
+                    flex items-center justify-center z-50 p-4 transition-opacity">
+
+            <div id="gem-edit-modal"
+                 class="bg-white rounded-2xl shadow-2xl w-full max-w-lg
+                        max-h-[90vh] overflow-hidden flex flex-col
+                        animate-[fadeIn_0.2s_ease-out]">
+
+                <div class="p-6 border-b flex justify-between items-center ${config.bg}">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-widest
+                                     ${config.color} opacity-70">
+                            Editor de Gema
+                        </span>
+
+                        <h3 class="text-2xl font-extrabold ${config.color}
+                                   flex items-center gap-2">
+                            ${config.icon} ${element.toUpperCase()}
+                        </h3>
                     </div>
 
-                    <div class="overflow-y-auto p-6 space-y-6">
-                        <form id="gem-form">
-                            
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Raridade (Gema)</label>
-                                    <select id="gem-rarity" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2 text-sm">
-                                        ${RARITIES.map(r => `<option value="${r}" ${gem?.rarity === r ? 'selected' : ''}>${r}</option>`).join('')}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nível (+)</label>
-                                    <input type="number" id="gem-plus-level" value="${gem?.plus_level || 0}" min="0" required class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2 text-sm">
-                                </div>
-                            </div>
+                    <button id="close-gem-modal-btn"
+                            class="p-2 rounded-full hover:bg-white/50
+                                   text-slate-500 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="h-6 w-6"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke="currentColor">
+                            <path stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
 
-                            <div class="mt-4">
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Qualidade da Remodelação</label>
-                                <select id="gem-remodel" class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2 text-sm">
-                                    ${REMODELS.map(r => `<option value="${r}" ${gem?.remodel === r ? 'selected' : ''}>${r}</option>`).join('')}
+                <div class="overflow-y-auto p-6 space-y-6">
+                    <form id="gem-form">
+
+                        <!-- 🔹 Dados da Gema -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold
+                                             text-slate-500 uppercase mb-1">
+                                    Raridade (Gema)
+                                </label>
+
+                                <select id="gem-rarity"
+                                        required
+                                        class="w-full rounded-lg
+                                               border-slate-300 shadow-sm
+                                               focus:border-indigo-500
+                                               focus:ring-indigo-500
+                                               py-2 text-sm">
+                                    ${RARITIES.map(r => `
+                                        <option value="${r}"
+                                            ${gem?.rarity === r ? 'selected' : ''}>
+                                            ${r}
+                                        </option>
+                                    `).join('')}
                                 </select>
                             </div>
 
                             <div>
-                                <div class="flex justify-between items-end mb-2 mt-6">
-                                    <h4 class="font-bold text-slate-700">Atributos</h4>
-                                    <span class="text-xs text-slate-400">Máx: 3</span>
-                                </div>
-                                <div id="attributes-container" class="space-y-3">
-                                    ${initialAttributesHtml}
-                                </div>
-                                <button type="button" id="add-attribute-row-btn" class="mt-3 w-full btn-hover bg-slate-100 text-slate-600 font-bold py-2 rounded-lg text-xs border border-slate-200 hover:bg-slate-200 hover:text-slate-800">
-                                    + Adicionar Linha
-                                </button>
+                                <label class="block text-xs font-bold
+                                             text-slate-500 uppercase mb-1">
+                                    Nível (+)
+                                </label>
+
+                                <input type="number"
+                                       id="gem-plus-level"
+                                       value="${gem?.plus_level || 0}"
+                                       min="0"
+                                       required
+                                       class="w-full rounded-lg
+                                              border-slate-300 shadow-sm
+                                              focus:border-indigo-500
+                                              focus:ring-indigo-500
+                                              py-2 text-sm">
+                            </div>
+                        </div>
+
+                        <!-- 🔹 Atributos -->
+                        <div>
+                            <div class="flex justify-between items-end
+                                        mb-2 mt-6">
+                                <h4 class="font-bold text-slate-700">
+                                    Atributos
+                                </h4>
+                                <span class="text-xs text-slate-400">
+                                    Máx: 3
+                                </span>
                             </div>
 
-                            <div class="mt-8 flex gap-3 pt-6 border-t border-slate-100">
-                                <button type="button" id="remove-gem-btn" class="flex-1 btn-hover bg-white border border-red-200 text-red-500 font-bold py-3 rounded-xl hover:bg-red-50" style="${gem ? '' : 'display: none;'}">
-                                    Remover
-                                </button>
-                                <button type="submit" class="flex-[2] btn-hover bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700">
-                                    Salvar Alterações
-                                </button>
+                            <div id="attributes-container"
+                                 class="space-y-3">
+                                ${initialAttributesHtml}
                             </div>
-                        </form>
-                    </div>
+
+                            <button type="button"
+                                    id="add-attribute-row-btn"
+                                    class="mt-3 w-full btn-hover
+                                           bg-slate-100 text-slate-600
+                                           font-bold py-2 rounded-lg
+                                           text-xs border border-slate-200
+                                           hover:bg-slate-200
+                                           hover:text-slate-800">
+                                + Adicionar Linha
+                            </button>
+                        </div>
+
+                        <!-- 🔹 Ações -->
+                        <div class="mt-8 flex gap-3 pt-6
+                                    border-t border-slate-100">
+                            <button type="button"
+                                    id="remove-gem-btn"
+                                    class="flex-1 btn-hover bg-white
+                                           border border-red-200
+                                           text-red-500 font-bold
+                                           py-3 rounded-xl
+                                           hover:bg-red-50"
+                                    style="${gem ? '' : 'display: none;'}">
+                                Remover
+                            </button>
+
+                            <button type="submit"
+                                    class="flex-[2] btn-hover
+                                           bg-indigo-600 text-white
+                                           font-bold py-3 rounded-xl
+                                           shadow-lg shadow-indigo-200
+                                           hover:bg-indigo-700">
+                                Salvar Alterações
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
-        `;
+        </div>
+    `;
+
         document.getElementById('modals-container').innerHTML = modalHtml;
     };
+
 
     const renderGemAttributes = (gem, gemElement, masterAttributes) => {
         if (!gem || !gem.attributes || gem.attributes.length === 0) return '';
@@ -535,25 +666,80 @@ const Renderer = (() => {
     const renderRecommendedComboModal = (masterAttributes, combo = null) => {
         const opts = masterAttributes.map(a => `<option value="${a.id}" ${combo?.attribute_ids.includes(a.id) ? 'selected' : ''}>${a.name}</option>`).join('');
         const modalHtml = `
-            <div id="admin-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-                    <div class="p-6 border-b bg-indigo-50 flex justify-between items-center">
-                        <h3 class="text-lg font-bold text-indigo-900">${combo ? 'Editar' : 'Novo'} Combo</h3>
-                        <button id="close-admin-modal-btn" class="text-slate-400 hover:text-slate-600">&times;</button>
-                    </div>
-                    <form id="combo-form" class="p-6 space-y-4">
-                        <input type="hidden" id="combo-id" value="${combo?.id || ''}">
-                        <div><label class="text-xs font-bold text-slate-500 uppercase">Nome</label><input id="combo-name" value="${combo?.name || ''}" class="w-full border-slate-300 rounded-lg text-sm mt-1"></div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div><label class="text-xs font-bold text-slate-500 uppercase">Raridade</label><select id="combo-rarity" class="w-full border-slate-300 rounded-lg text-sm mt-1"><option>Comum</option><option>Raro</option><option>Épico</option><option>Legendário</option></select></div>
-                            <div><label class="text-xs font-bold text-slate-500 uppercase">Nível (+)</label><input type="number" id="combo-plus-level" value="${combo?.plus_level || 0}" class="w-full border-slate-300 rounded-lg text-sm mt-1"></div>
-                        </div>
-                        <div><label class="text-xs font-bold text-slate-500 uppercase">Atributos (Ctrl+Click)</label><select id="combo-attributes" multiple size="5" class="w-full border-slate-300 rounded-lg text-sm mt-1">${opts}</select></div>
-                        <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-xl hover:bg-indigo-700 transition-colors">Salvar</button>
-                    </form>
+    <div id="admin-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="p-6 border-b bg-indigo-50 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-indigo-900">
+                    ${combo ? 'Editar' : 'Novo'} Combo
+                </h3>
+                <button id="close-admin-modal-btn" class="text-slate-400 hover:text-slate-600">&times;</button>
+            </div>
+
+            <form id="combo-form" class="p-6 space-y-4">
+                <input type="hidden" id="combo-id" value="${combo?.id || ''}">
+
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase">Nome</label>
+                    <input id="combo-name"
+                           value="${combo?.name || ''}"
+                           class="w-full border-slate-300 rounded-lg text-sm mt-1">
                 </div>
-            </div>`;
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase">
+                            Qualidade
+                        </label>
+
+                        <select id="combo-rarity"
+                                class="w-full border-slate-300 rounded-lg text-sm mt-1">
+                            ${['Comum', 'Raro', 'Extra', 'Perfeito', 'Épico', 'Lendário', 'Mítico']
+                .map(q => `
+                                    <option value="${q}"
+                                        ${combo?.rarity === q ? 'selected' : ''}>
+                                        ${q}
+                                    </option>
+                                `).join('')}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase">
+                            Nível (+)
+                        </label>
+
+                        <input type="number"
+                               id="combo-plus-level"
+                               value="${combo?.plus_level || 0}"
+                               class="w-full border-slate-300 rounded-lg text-sm mt-1">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase">
+                        Atributos (Ctrl+Click)
+                    </label>
+
+                    <select id="combo-attributes"
+                            multiple
+                            size="5"
+                            class="w-full border-slate-300 rounded-lg text-sm mt-1">
+                        ${opts}
+                    </select>
+                </div>
+
+                <button type="submit"
+                        class="w-full bg-indigo-600 text-white font-bold py-2.5 
+                               rounded-xl hover:bg-indigo-700 transition-colors">
+                    Salvar
+                </button>
+            </form>
+        </div>
+    </div>
+`;
+
         document.getElementById('modals-container').innerHTML = modalHtml;
+
     };
 
     // --- UTILS DO MODAL ---
