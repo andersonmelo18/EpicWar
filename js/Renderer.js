@@ -46,51 +46,66 @@ const Renderer = (() => {
     // --- CARDS DA DASHBOARD ---
 
     const renderBuildCard = (build) => {
+        // Garante valores padrão se for build antiga ou nova
         const lastUpdated = build.lastUpdated ? new Date(build.lastUpdated).toLocaleDateString('pt-BR') : 'Hoje';
-        const artifactCount = build.artifacts ? build.artifacts.length : 0;
+        const avatar = build.avatar || "⚔️"; // Ícone padrão se não tiver
+        const power = build.power || "0";    // Poder padrão
 
-        // Conta gemas
+        // Conta gemas e artefatos
+        const artifactCount = build.artifacts ? build.artifacts.length : 0;
         let gemCount = 0;
         if (build.artifacts) build.artifacts.forEach(a => a.gems.forEach(g => { if (g) gemCount++ }));
 
         return `
-            <div class="card-modern p-5 flex flex-col justify-between h-full relative overflow-hidden group">
-                <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-indigo-500 to-purple-600"></div>
+        <div class="relative group bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col h-full">
+            
+            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-indigo-500 to-purple-600"></div>
+
+            <div class="flex items-start gap-4 pl-2 mb-auto">
                 
-                <div>
-                    <div class="flex justify-between items-start mb-3 pl-3">
+                <div class="w-14 h-14 flex-shrink-0 bg-indigo-50 rounded-2xl flex items-center justify-center text-3xl shadow-inner border border-indigo-100">
+                    ${avatar}
+                </div>
+
+                <div class="flex-grow min-w-0">
+                    <div class="flex justify-between items-start">
                         <div>
-                            <h3 class="font-bold text-lg text-slate-800 group-hover:text-indigo-600 transition-colors">${build.name || 'Sem Nome'}</h3>
-                            <p class="text-xs text-slate-500 font-bold uppercase tracking-wide">${build.class || 'Classe Indefinida'}</p>
-                        </div>
-                        <div class="p-2 bg-indigo-50 rounded-full text-indigo-500 opacity-70 group-hover:opacity-100 transition-opacity">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" /></svg>
+                            <h3 class="text-lg font-bold text-slate-800 leading-tight truncate pr-2">${build.name || 'Sem Nome'}</h3>
+                            
+                            <div class="flex items-center gap-1 text-xs font-semibold text-indigo-600 mt-1 bg-indigo-50 w-fit px-2 py-0.5 rounded-full border border-indigo-100">
+                                <span>⚡ ${power}</span>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="space-y-2 mb-6 pl-3">
-                        <div class="flex items-center text-sm text-slate-600">
-                            <span class="w-6 text-center mr-2">🏺</span> ${artifactCount} / 4 Artefatos
+
+                    <div class="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                        <div class="flex items-center gap-1" title="Artefatos">
+                            <span>🏺 ${artifactCount}/4</span>
                         </div>
-                        <div class="flex items-center text-sm text-slate-600">
-                            <span class="w-6 text-center mr-2">💎</span> ${gemCount} Gemas
-                        </div>
-                        <div class="text-xs text-slate-400 mt-3 pt-2 border-t border-slate-100 flex items-center gap-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            ${lastUpdated}
+                        <div class="flex items-center gap-1" title="Gemas Equipadas">
+                            <span>💎 ${gemCount}</span>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="flex justify-end space-x-2 pl-3">
-                    <button onclick="App.loadBuild(${build.id})" class="btn-hover bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-md shadow-indigo-200">
+            <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center pl-2">
+                <span class="text-[10px] text-slate-400 flex items-center gap-1">
+                    📅 ${lastUpdated}
+                </span>
+                
+                <div class="flex gap-2">
+                    <button onclick="App.loadBuild('${build.id}')" 
+                        class="text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors">
                         Editar
                     </button>
-                    <button onclick="App.deleteBuild(${build.id})" class="btn-hover bg-white border border-slate-200 text-red-500 px-3 py-2 rounded-lg text-xs font-bold hover:bg-red-50 hover:border-red-100">
+                    <button onclick="App.deleteBuild('${build.id}')" 
+                        class="text-xs font-bold text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors">
                         Excluir
                     </button>
                 </div>
             </div>
+        </div>
         `;
     };
 
