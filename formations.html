@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formações de Marchas - PvP Build Analyzer 💎</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔️</text></svg>">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        /* Configuração Base */
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+            min-height: 100vh;
+            color: #1e293b;
+        }
+
+        /* Glassmorphism Header */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Botão Voltar */
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #475569;
+            background: white;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+        .btn-back:hover {
+            background: #f8fafc;
+            color: #1e293b;
+            border-color: #cbd5e1;
+        }
+
+        /* Títulos */
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #334155;
+            margin-bottom: 1rem;
+            padding-left: 0.5rem;
+            border-left: 4px solid #6366f1; /* Indigo */
+        }
+
+        /* --- BADGES DE ELEMENTOS --- */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid transparent;
+        }
+
+        .badge-fire { background-color: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+        .badge-ice { background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+        .badge-poison { background-color: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+        .badge-light { background-color: #fffbeb; color: #b45309; border-color: #fde68a; }
+        .badge-ssr { background-color: #faf5ff; color: #7e22ce; border-color: #e9d5ff; box-shadow: 0 0 5px rgba(168, 85, 247, 0.3); }
+        .badge-gray { background-color: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+
+        /* --- CARDS DE FUNÇÃO --- */
+        .role-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            transition: transform 0.2s;
+            height: 100%; /* Para alinhar alturas */
+            display: flex;
+            flex-direction: column;
+        }
+        .role-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
+
+        .role-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .role-header h4 {
+            font-weight: 700;
+            color: #1e293b;
+            font-size: 1.1rem;
+        }
+
+        .role-icon {
+            font-size: 1.5rem;
+        }
+
+        .hero-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: auto; /* Empurra lista pra baixo se precisar */
+        }
+
+        /* --- CARDS DE ESTRATÉGIA (REGRA DE OURO) --- */
+        .strategy-box {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .formation-slot {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            backdrop-filter: blur(4px);
+            text-align: center;
+        }
+
+        /* --- CARDS ELEMENTAIS (Exemplos) --- */
+        .element-card {
+            border-radius: 0.75rem;
+            padding: 1rem;
+            border-width: 1px;
+            border-style: solid;
+            transition: all 0.2s;
+        }
+        
+        .element-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .element-header {
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 1rem;
+            border-bottom: 1px dashed rgba(0,0,0,0.1);
+            padding-bottom: 0.5rem;
+        }
+
+        .element-slots {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .slot {
+            background: rgba(255,255,255,0.7);
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .slot.ssr { border: 1px solid #d8b4fe; color: #7e22ce; background-color: #faf5ff; }
+        .slot.commander { border: 1px solid #93c5fd; color: #1d4ed8; background-color: #eff6ff; }
+        .slot.healer { border: 1px solid #86efac; color: #15803d; background-color: #f0fdf4; }
+    </style>
+</head>
+
+<body class="antialiased">
+
+    <div class="min-h-screen flex flex-col">
+
+        <header class="glass-panel sticky top-0 z-20">
+            <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">💎</span>
+                    <h1 class="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
+                        PvP Build Analyzer
+                    </h1>
+                </div>
+                <nav>
+                    <a href="index.html" class="btn-back">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+                        </svg>
+                        Voltar ao Painel
+                    </a>
+                </nav>
+            </div>
+        </header>
+
+        <main class="flex-grow max-w-[90rem] mx-auto w-full p-4 md:p-8">
+            
+            <div class="mb-8 text-center">
+                <h2 class="text-3xl font-bold text-slate-800">Guia de Marchas & Heróis</h2>
+                <p class="text-slate-500 mt-2">Classificação de funções e sugestões de combos elementais.</p>
+            </div>
+
+            <section class="mb-10">
+                <div class="strategy-box bg-gradient-to-r from-indigo-900 to-slate-900 text-white rounded-xl p-6 shadow-xl border border-indigo-500/30">
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div class="flex-1 text-center md:text-left">
+                            <h3 class="text-2xl font-bold text-yellow-400 mb-2">⭐ A Regra de Ouro</h3>
+                            <p class="text-indigo-100 text-lg">A formação ideal para a Marcha Principal deve conter:</p>
+                        </div>
+                        <div class="flex gap-2 flex-wrap justify-center">
+                            <div class="formation-slot bg-red-600/20 border border-red-500 text-red-100">2x Mestre de Combate</div>
+                            <div class="formation-slot bg-blue-600/20 border border-blue-500 text-blue-100">1x Chefe Militar</div>
+                            <div class="formation-slot bg-green-600/20 border border-green-500 text-green-100">1x Curador</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <h3 class="section-title">Classificação por Função</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                
+                <div class="role-card border-t-4 border-red-500">
+                    <div class="role-header">
+                        <h4>Mestre de Combate</h4>
+                        <span class="role-icon">⚔️</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-3 italic">Dano principal e linha de frente.</p>
+                    <ul class="hero-list">
+                        <li><span class="badge badge-ssr">Todos SSR</span></li>
+                        <li><span class="badge badge-ice">🧊 Erica</span></li>
+                        <li><span class="badge badge-fire">🔥 Hades</span></li>
+                        <li><span class="badge badge-light">🛡 Jéssica</span></li>
+                        <li><span class="badge badge-poison">🦠 Clarence</span></li>
+                    </ul>
+                </div>
+
+                <div class="role-card border-t-4 border-blue-500">
+                    <div class="role-header">
+                        <h4>Chefe Militar (Commander)</h4>
+                        <span class="role-icon">🚩</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-3 italic">Buffs de ataque e controle.</p>
+                    <ul class="hero-list">
+                        <li><span class="badge badge-fire">🔥 Rosamond</span></li>
+                        <li><span class="badge badge-light">🛡 Allen</span></li>
+                        <li><span class="badge badge-poison">🦠 Pest</span></li>
+                        <li><span class="badge badge-ice">🧊 Nicole</span></li>
+                    </ul>
+                </div>
+
+                <div class="role-card border-t-4 border-green-500">
+                    <div class="role-header">
+                        <h4>Técnica de Cura</h4>
+                        <span class="role-icon">💚</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-3 italic">Sustentabilidade e cura instantânea.</p>
+                    <ul class="hero-list">
+                        <li><span class="badge badge-fire">🔥 Agassi</span></li>
+                        <li><span class="badge badge-ice">🧊 Lilani</span></li>
+                        <li><span class="badge badge-poison">🦠 April</span></li>
+                        <li><span class="badge badge-light">🛡 Amy</span></li>
+                    </ul>
+                </div>
+
+                <div class="role-card border-t-4 border-slate-500">
+                    <div class="role-header">
+                        <h4>Geral (2ª Marcha)</h4>
+                        <span class="role-icon">🎖️</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-3 italic">Mestres de combate enfraquecidos.</p>
+                    <ul class="hero-list">
+                        <li><span class="badge badge-fire">🔥 Gro</span></li>
+                        <li><span class="badge badge-ice">🧊 Ralph</span></li>
+                        <li><span class="badge badge-fire">🔥 Miku</span></li>
+                        <li><span class="badge badge-light">🛡 Jenifer</span></li>
+                        <li><span class="badge badge-gray">Ivey</span></li>
+                    </ul>
+                </div>
+
+                <div class="role-card border-t-4 border-cyan-500">
+                    <div class="role-header">
+                        <h4>Técnica de Salvamento</h4>
+                        <span class="role-icon">🚑</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-3 italic">Use quando não tiver curadores.</p>
+                    <ul class="hero-list">
+                        <li><span class="badge badge-fire">🔥 Gabriel</span></li>
+                        <li><span class="badge badge-gray">🦇 Alucard</span></li>
+                        <li><span class="badge badge-ice">🧊 O’niel</span></li>
+                        <li><span class="badge badge-light">🛡 Harold</span></li>
+                    </ul>
+                </div>
+
+                <div class="role-card border-t-4 border-yellow-500">
+                    <div class="role-header">
+                        <h4>Especiais</h4>
+                        <span class="role-icon">🌾</span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong class="text-xs uppercase text-slate-500 block mb-1">Simbiose</strong>
+                        <div class="flex flex-wrap gap-1">
+                            <span class="badge badge-fire">🔥 Dolvar</span>
+                            <span class="badge badge-gray">Catherine</span>
+                            <span class="badge badge-gray">Isaac</span>
+                            <span class="badge badge-ice">🧊 Ariza</span>
+                        </div>
+                    </div>
+                    <div>
+                        <strong class="text-xs uppercase text-slate-500 block mb-1">Coleta</strong>
+                        <div class="flex flex-wrap gap-1">
+                            <span class="badge badge-fire">🔥 Carolyn</span>
+                            <span class="badge badge-ice">🧊 Richard</span>
+                            <span class="badge badge-gray">Christy</span>
+                            <span class="badge badge-gray">Lomax</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="section-title">Exemplos de Marchas Principais</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <div class="element-card bg-red-50 border-red-200">
+                    <div class="element-header text-red-700">
+                        <span>🔥 FOGO</span>
+                    </div>
+                    <div class="element-slots">
+                        <div class="slot ssr">SSR</div>
+                        <div class="slot ssr">SSR</div>
+                        <div class="slot commander">Rosamond</div>
+                        <div class="slot healer">Agassi</div>
+                    </div>
+                </div>
+
+                <div class="element-card bg-blue-50 border-blue-200">
+                    <div class="element-header text-blue-700">
+                        <span>🧊 GELO</span>
+                    </div>
+                    <div class="element-slots">
+                        <div class="slot ssr">SSR</div>
+                        <div class="slot ssr">SSR</div>
+                        <div class="slot commander">Nicole</div>
+                        <div class="slot healer">Lilani</div>
+                    </div>
+                </div>
+
+                <div class="element-card bg-emerald-50 border-emerald-200">
+                    <div class="element-header text-emerald-700">
+                        <span>🦠 VENENO</span>
+                    </div>
+                    <div class="element-slots">
+                        <div class="slot ssr">SSR</div>
+                        <div class="slot ssr">SSR</div>
+                        <div class="slot commander">Pest</div>
+                        <div class="slot healer">April</div>
+                    </div>
+                </div>
+
+                <div class="element-card bg-amber-50 border-amber-200">
+                    <div class="element-header text-amber-700">
+                        <span>🛡 LUZ</span>
+                    </div>
+                    <div class="element-slots">
+                        <div class="slot ssr">SSR</div>
+                        <div class="slot ssr">SSR</div>
+                        <div class="slot commander">Allen</div>
+                        <div class="slot healer">Amy</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                    <h4 class="font-bold text-slate-700 mb-2">Sem Curador Instantâneo?</h4>
+                    <p class="text-sm text-slate-500 mb-2">Substitua por Técnicos de Salvamento:</p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="badge badge-fire">Gabriel</span>
+                        <span class="badge badge-ice">O'niel</span>
+                        <span class="badge badge-light">Harold</span>
+                        <span class="badge badge-gray">Alucard</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                    <h4 class="font-bold text-slate-700 mb-2">Sem SSR?</h4>
+                    <p class="text-sm text-slate-500 mb-2">Use estes SRs que são equivalentes:</p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="badge badge-fire">Hades</span>
+                        <span class="badge badge-ice">Érica</span>
+                        <span class="badge badge-light">Jessica</span>
+                        <span class="badge badge-poison">Clarence</span>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="mt-auto py-6 text-center text-sm text-slate-400">
+            <p>&copy; 2025 PvP Build Analyzer. Desenvolvido para a comunidade.</p>
+        </footer>
+    </div>
+
+    <script src="js/formations.js"></script>
+
+</body>
+</html>

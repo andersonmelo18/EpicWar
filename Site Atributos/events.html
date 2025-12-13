@@ -36,14 +36,14 @@
             border-radius: 0.75rem;
             border: 1px solid #e2e8f0;
             padding: 1.25rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
             transition: all 0.2s ease;
             height: 100%;
         }
 
         .event-card:hover {
             border-color: #cbd5e1;
-            box-shadow: 0 8px 16px -4px rgba(0,0,0,0.05);
+            box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.05);
             transform: translateY(-2px);
         }
 
@@ -83,7 +83,8 @@
 
         .task-value {
             font-weight: 700;
-            color: #4f46e5; /* Indigo para destacar números */
+            color: #4f46e5;
+            /* Indigo para destacar números */
             background: #eef2ff;
             padding: 2px 8px;
             border-radius: 6px;
@@ -101,7 +102,8 @@
         }
 
         .evt-highlight {
-            color: #dc2626; /* Vermelho */
+            color: #dc2626;
+            /* Vermelho */
             font-weight: 700;
             font-size: 0.8rem;
             text-transform: uppercase;
@@ -141,6 +143,7 @@
             border: 1px solid #e2e8f0;
             transition: all 0.2s;
         }
+
         .btn-back:hover {
             background: #f8fafc;
             color: #1e293b;
@@ -182,14 +185,17 @@
             <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
                 <div class="flex items-center gap-2">
                     <span class="text-2xl">💎</span>
-                    <h1 class="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
+                    <h1
+                        class="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
                         PvP Build Analyzer
                     </h1>
                 </div>
                 <nav>
                     <a href="index.html" class="btn-back">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
                         </svg>
                         Voltar ao Painel
                     </a>
@@ -198,28 +204,49 @@
         </header>
 
         <main class="flex-grow max-w-[90rem] mx-auto w-full p-4 md:p-8">
-            
+
             <div class="mb-8 text-center">
                 <h2 class="text-3xl font-bold text-slate-800">Calendário de Eventos</h2>
                 <p class="text-slate-500 mt-2">Guia completo de recursos e pontuação para os eventos semanais.</p>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                
+
                 <section>
-                    <div class="event-header-5">
-                        EVENTO DE 5 DIAS
+                    <div
+                        class="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-xl overflow-hidden shadow-lg mb-6 border border-indigo-500">
+                        <div class="p-4 text-center">
+                            <h2 class="text-xl font-extrabold text-white tracking-wider drop-shadow-sm">EVENTO DE 5 DIAS
+                            </h2>
+                        </div>
+
+                        <div
+                            class="bg-indigo-900/50 p-2 flex justify-center items-center gap-2 text-indigo-100 text-sm font-medium border-t border-indigo-500/30">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-300" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Início: <span id="display-date-5" class="text-white font-bold tracking-wide">A
+                                definir</span>
+                        </div>
                     </div>
 
                     <div class="space-y-6">
+
                         <div class="event-card">
                             <div class="day-title">Dia 1: Coleta</div>
                             <ul class="task-list">
-                                <li class="task-item"><span>Carta de recrutamento premium</span> <span class="task-value">540</span></li>
-                                <li class="task-item"><span>Coleta 500 de ouro</span> <span class="task-value">32</span></li>
-                                <li class="task-item"><span>Coleta 500 de comida</span> <span class="task-value">160</span></li>
-                                <li class="task-item"><span>Coleta 500 de madeira</span> <span class="task-value">200</span></li>
-                                <li class="task-item"><span>Coleta 500 de cristal</span> <span class="task-value">320</span></li>
+                                <li class="task-item"><span>Carta de recrutamento premium</span> <span
+                                        class="task-value">540</span></li>
+                                <li class="task-item"><span>Coleta 500 de ouro</span> <span class="task-value">32</span>
+                                </li>
+                                <li class="task-item"><span>Coleta 500 de comida</span> <span
+                                        class="task-value">160</span></li>
+                                <li class="task-item"><span>Coleta 500 de madeira</span> <span
+                                        class="task-value">200</span></li>
+                                <li class="task-item"><span>Coleta 500 de cristal</span> <span
+                                        class="task-value">320</span></li>
                             </ul>
                         </div>
 
@@ -227,15 +254,22 @@
                             <div class="day-title">Dia 2: Titãs</div>
                             <span class="evt-note">É necessário criar grupos - Participar não conta</span>
                             <ul class="task-list">
-                                <li class="task-item"><span>Derrote um Titã nível 6</span> <span class="task-value">22.000</span></li>
-                                <li class="task-item"><span>Derrote um Titã nível 7</span> <span class="task-value">24.000</span></li>
+                                <li class="task-item"><span>Derrote um Titã nível 6</span> <span
+                                        class="task-value">22.000</span></li>
+                                <li class="task-item"><span>Derrote um Titã nível 7</span> <span
+                                        class="task-value">24.000</span></li>
                                 <span class="evt-highlight">Apenas no Território de Pico</span>
-                                <li class="task-item"><span>Derrote um Titã nível 8</span> <span class="task-value">26.000</span></li>
+                                <li class="task-item"><span>Derrote um Titã nível 8</span> <span
+                                        class="task-value">26.000</span></li>
                                 <span class="evt-highlight">Apenas na Expedição</span>
-                                <li class="task-item"><span>Derrote um Titã nível 9</span> <span class="task-value">28.000</span></li>
-                                <li class="task-item"><span>Derrote um Titã nível 10</span> <span class="task-value">30.000</span></li>
-                                <li class="task-item"><span>Derrote um Titã nível 11</span> <span class="task-value">32.000</span></li>
-                                <li class="task-item"><span>Derrote um Titã nível 12</span> <span class="task-value">34.000</span></li>
+                                <li class="task-item"><span>Derrote um Titã nível 9</span> <span
+                                        class="task-value">28.000</span></li>
+                                <li class="task-item"><span>Derrote um Titã nível 10</span> <span
+                                        class="task-value">30.000</span></li>
+                                <li class="task-item"><span>Derrote um Titã nível 11</span> <span
+                                        class="task-value">32.000</span></li>
+                                <li class="task-item"><span>Derrote um Titã nível 12</span> <span
+                                        class="task-value">34.000</span></li>
                             </ul>
                         </div>
 
@@ -243,12 +277,18 @@
                             <div class="day-title">Dia 3: Harolds</div>
                             <span class="evt-note">É necessário criar grupos - Participar não conta</span>
                             <ul class="task-list">
-                                <li class="task-item"><span>1 pergaminho de forja</span> <span class="task-value">1.080</span></li>
-                                <li class="task-item"><span>Derrotar Harold Verde</span> <span class="task-value">10.000</span></li>
-                                <li class="task-item"><span>Derrotar Harold Azul</span> <span class="task-value">14.000</span></li>
-                                <li class="task-item"><span>Derrotar Harold Roxo</span> <span class="task-value">18.000</span></li>
-                                <li class="task-item"><span>Derrotar Harold Dourado</span> <span class="task-value">22.000</span></li>
-                                <li class="task-item"><span>Derrotar Harold Vermelho</span> <span class="task-value">26.000</span></li>
+                                <li class="task-item"><span>1 pergaminho de forja</span> <span
+                                        class="task-value">1.080</span></li>
+                                <li class="task-item"><span>Derrotar Harold Verde</span> <span
+                                        class="task-value">10.000</span></li>
+                                <li class="task-item"><span>Derrotar Harold Azul</span> <span
+                                        class="task-value">14.000</span></li>
+                                <li class="task-item"><span>Derrotar Harold Roxo</span> <span
+                                        class="task-value">18.000</span></li>
+                                <li class="task-item"><span>Derrotar Harold Dourado</span> <span
+                                        class="task-value">22.000</span></li>
+                                <li class="task-item"><span>Derrotar Harold Vermelho</span> <span
+                                        class="task-value">26.000</span></li>
                             </ul>
                         </div>
 
@@ -256,123 +296,192 @@
                             <div class="day-title">Dia 4: Convocar Reservas</div>
                             <span class="evt-note">Reviver de fontes não conta</span>
                             <ul class="task-list">
-                                <li class="task-item"><span>Convocar 10 reservas</span> <span class="task-value">30</span></li>
+                                <li class="task-item"><span>Convocar 10 reservas</span> <span
+                                        class="task-value">30</span></li>
                             </ul>
                         </div>
 
                         <div class="event-card ring-2 ring-indigo-200">
                             <div class="day-title">
                                 <span>Dia 5: Surto de Poder</span>
-                                <input type="date" id="date-event-5" class="date-picker" title="Definir data de início">
                             </div>
                             <ul class="task-list">
-                                <li class="task-item"><span>Gaste 1 fragmento SSR para infundir</span> <span class="task-value">7.500</span></li>
-                                <li class="task-item"><span>Gaste 1 Essência de Herói Normal</span> <span class="task-value">3</span></li>
-                                <li class="task-item"><span>Gaste 1 Essência de Herói Avançada</span> <span class="task-value">3</span></li>
-                                <li class="task-item"><span>Gaste 1 Acelerador</span> <span class="task-value">5</span></li>
-                                <li class="task-item"><span>Gaste 1 Fogo Sagrado</span> <span class="task-value">1M</span></li>
-                                <li class="task-item"><span>Gastar 1 Pergaminho Secreto</span> <span class="task-value">480.000</span></li>
-                                <li class="task-item"><span>Gastar 1 Pedra de Talento</span> <span class="task-value">3</span></li>
-                                <li class="task-item"><span>Gastar 1 Cristal de Talento</span> <span class="task-value">3.000</span></li>
-                                <li class="task-item"><span>Sorteio Normal de Medalhas 1 vez</span> <span class="task-value">2.000</span></li>
-                                <li class="task-item"><span>Sorteio Avançado de Medalhas 1 vez</span> <span class="task-value">135.000</span></li>
+                                <li class="task-item"><span>Gaste 1 fragmento SSR para infundir</span> <span
+                                        class="task-value">7.500</span></li>
+                                <li class="task-item"><span>Gaste 1 Essência de Herói Normal</span> <span
+                                        class="task-value">3</span></li>
+                                <li class="task-item"><span>Gaste 1 Essência de Herói Avançada</span> <span
+                                        class="task-value">3</span></li>
+                                <li class="task-item"><span>Gaste 1 Acelerador</span> <span class="task-value">5</span>
+                                </li>
+                                <li class="task-item"><span>Gaste 1 Fogo Sagrado</span> <span
+                                        class="task-value">1M</span></li>
+                                <li class="task-item"><span>Gastar 1 Pergaminho Secreto</span> <span
+                                        class="task-value">480.000</span></li>
+                                <li class="task-item"><span>Gastar 1 Pedra de Talento</span> <span
+                                        class="task-value">3</span></li>
+                                <li class="task-item"><span>Gastar 1 Cristal de Talento</span> <span
+                                        class="task-value">3.000</span></li>
+                                <li class="task-item"><span>Sorteio Normal de Medalhas 1 vez</span> <span
+                                        class="task-value">2.000</span></li>
+                                <li class="task-item"><span>Sorteio Avançado de Medalhas 1 vez</span> <span
+                                        class="task-value">135.000</span></li>
                             </ul>
                         </div>
                     </div>
                 </section>
 
                 <section>
-                    <div class="event-header-7">
-                        EVENTO DE 7 DIAS
+                    <div
+                        class="bg-gradient-to-r from-emerald-600 to-emerald-700 rounded-xl overflow-hidden shadow-lg mb-6 border border-emerald-500">
+                        <div class="p-4 text-center">
+                            <h2 class="text-xl font-extrabold text-white tracking-wider drop-shadow-sm">EVENTO DE 7 DIAS
+                            </h2>
+                        </div>
+
+                        <div
+                            class="bg-emerald-900/50 p-2 flex justify-center items-center gap-2 text-emerald-100 text-sm font-medium border-t border-emerald-500/30">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-300" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Início: <span id="display-date-7" class="text-white font-bold tracking-wide">A
+                                definir</span>
+                        </div>
                     </div>
 
                     <div class="space-y-6">
                         <div class="event-card">
                             <div class="day-title">Dia 1: Mesclagem</div>
                             <ul class="task-list">
-                                <li class="task-item"><span>Herói de 1 estrela mesclado</span> <span class="task-value">250</span></li>
-                                <li class="task-item"><span>Herói de 2 estrelas mesclado</span> <span class="task-value">250</span></li>
-                                <li class="task-item"><span>Herói de 3 estrelas mesclado</span> <span class="task-value">1.000</span></li>
-                                <li class="task-item"><span>Herói de 4 estrelas mesclado</span> <span class="task-value">3.000</span></li>
-                                <li class="task-item"><span>Herói de 5 estrelas mesclado</span> <span class="task-value">9.000</span></li>
-                                <li class="task-item"><span>Herói de 6 estrelas mesclado</span> <span class="task-value">27.000</span></li>
-                                <li class="task-item"><span>Herói de 7 estrelas mesclado</span> <span class="task-value">27.000</span></li>
+                                <li class="task-item"><span>Herói de 1 estrela mesclado</span> <span
+                                        class="task-value">250</span></li>
+                                <li class="task-item"><span>Herói de 2 estrelas mesclado</span> <span
+                                        class="task-value">250</span></li>
+                                <li class="task-item"><span>Herói de 3 estrelas mesclado</span> <span
+                                        class="task-value">1.000</span></li>
+                                <li class="task-item"><span>Herói de 4 estrelas mesclado</span> <span
+                                        class="task-value">3.000</span></li>
+                                <li class="task-item"><span>Herói de 5 estrelas mesclado</span> <span
+                                        class="task-value">9.000</span></li>
+                                <li class="task-item"><span>Herói de 6 estrelas mesclado</span> <span
+                                        class="task-value">27.000</span></li>
+                                <li class="task-item"><span>Herói de 7 estrelas mesclado</span> <span
+                                        class="task-value">27.000</span></li>
                             </ul>
                         </div>
 
                         <div class="event-card">
                             <div class="day-title">Dia 2: Livros</div>
                             <ul class="task-list">
-                                <li class="task-item"><span>Gastando Livro Raro</span> <span class="task-value">5</span></li>
-                                <li class="task-item"><span>Gastando Livro Excelente</span> <span class="task-value">25</span></li>
-                                <li class="task-item"><span>Gastando Livro Perfeito</span> <span class="task-value">125</span></li>
-                                <li class="task-item"><span>Gastando Livro Épico</span> <span class="task-value">625</span></li>
+                                <li class="task-item"><span>Gastando Livro Raro</span> <span class="task-value">5</span>
+                                </li>
+                                <li class="task-item"><span>Gastando Livro Excelente</span> <span
+                                        class="task-value">25</span></li>
+                                <li class="task-item"><span>Gastando Livro Perfeito</span> <span
+                                        class="task-value">125</span></li>
+                                <li class="task-item"><span>Gastando Livro Épico</span> <span
+                                        class="task-value">625</span></li>
                             </ul>
                         </div>
 
                         <div class="event-card">
                             <div class="day-title">Dia 3: Runas de Dragão</div>
                             <ul class="task-list">
-                                <li class="task-item"><span>Gastando Runa Rara</span> <span class="task-value">200</span></li>
-                                <li class="task-item"><span>Gastando Runa Excelente</span> <span class="task-value">1.000</span></li>
-                                <li class="task-item"><span>Gastando Runa Perfeita</span> <span class="task-value">5.000</span></li>
-                                <li class="task-item"><span>Gastando Runa Épica</span> <span class="task-value">25.000</span></li>
+                                <li class="task-item"><span>Gastando Runa Rara</span> <span
+                                        class="task-value">200</span></li>
+                                <li class="task-item"><span>Gastando Runa Excelente</span> <span
+                                        class="task-value">1.000</span></li>
+                                <li class="task-item"><span>Gastando Runa Perfeita</span> <span
+                                        class="task-value">5.000</span></li>
+                                <li class="task-item"><span>Gastando Runa Épica</span> <span
+                                        class="task-value">25.000</span></li>
                             </ul>
                         </div>
 
                         <div class="event-card">
                             <div class="day-title">Dia 4: Coleta & Pesquisa</div>
                             <ul class="task-list">
-                                <li class="task-item"><span>Coletar 10.000 de Ouro</span> <span class="task-value">32</span></li>
-                                <li class="task-item"><span>Coletar 10.000 de Comida</span> <span class="task-value">160</span></li>
-                                <li class="task-item"><span>Coletar 10.000 de Madeira</span> <span class="task-value">200</span></li>
-                                <li class="task-item"><span>Coletar 10.000 de Cristal</span> <span class="task-value">320</span></li>
-                                <li class="task-item"><span>Gastar 1 pedra</span> <span class="task-value">5 pts</span></li>
-                                <li class="task-item"><span>A cada 1 minuto de pesquisa</span> <span class="task-value">5 pts</span></li>
+                                <li class="task-item"><span>Coletar 10.000 de Ouro</span> <span
+                                        class="task-value">32</span></li>
+                                <li class="task-item"><span>Coletar 10.000 de Comida</span> <span
+                                        class="task-value">160</span></li>
+                                <li class="task-item"><span>Coletar 10.000 de Madeira</span> <span
+                                        class="task-value">200</span></li>
+                                <li class="task-item"><span>Coletar 10.000 de Cristal</span> <span
+                                        class="task-value">320</span></li>
+                                <li class="task-item"><span>Gastar 1 pedra</span> <span class="task-value">5 pts</span>
+                                </li>
+                                <li class="task-item"><span>A cada 1 minuto de pesquisa</span> <span
+                                        class="task-value">5 pts</span></li>
                             </ul>
                         </div>
 
                         <div class="event-card">
                             <div class="day-title">Dia 5: Armaduras</div>
                             <ul class="task-list">
-                                <li class="task-item"><span>Mesclar 1 armadura de pedra</span> <span class="task-value">210</span></li>
-                                <li class="task-item"><span>Mesclar 1 armadura de aço</span> <span class="task-value">630</span></li>
-                                <li class="task-item"><span>Mesclar 1 armadura de mithril</span> <span class="task-value">1.890</span></li>
-                                <li class="task-item"><span>Mesclar 1 armadura de ametista</span> <span class="task-value">5.670</span></li>
-                                <li class="task-item"><span>Mesclar 1 armadura de ametista 1</span> <span class="task-value">11.340</span></li>
-                                <li class="task-item"><span>Mesclar 1 armadura de ametista 2</span> <span class="task-value">22.680</span></li>
-                                <li class="task-item"><span>Mesclar 1 armadura de ouro</span> <span class="task-value">45.360</span></li>
-                                <li class="task-item"><span>Mesclar 1 armadura de ouro 1</span> <span class="task-value">90.720</span></li>
-                                <li class="task-item"><span>Mesclar 1 armadura de ouro 2</span> <span class="task-value">136.080</span></li>
-                                <li class="task-item"><span>Mesclar 1 armadura de ouro 3</span> <span class="task-value">181.440</span></li>
-                                <li class="task-item"><span>Mesclar 1 armadura de arco-íris 1</span> <span class="task-value">362.880</span></li>
-                                <li class="task-item"><span>Gastar 100 Cristais de Dragão</span> <span class="task-value">5</span></li>
+                                <li class="task-item"><span>Mesclar 1 armadura de pedra</span> <span
+                                        class="task-value">210</span></li>
+                                <li class="task-item"><span>Mesclar 1 armadura de aço</span> <span
+                                        class="task-value">630</span></li>
+                                <li class="task-item"><span>Mesclar 1 armadura de mithril</span> <span
+                                        class="task-value">1.890</span></li>
+                                <li class="task-item"><span>Mesclar 1 armadura de ametista</span> <span
+                                        class="task-value">5.670</span></li>
+                                <li class="task-item"><span>Mesclar 1 armadura de ametista 1</span> <span
+                                        class="task-value">11.340</span></li>
+                                <li class="task-item"><span>Mesclar 1 armadura de ametista 2</span> <span
+                                        class="task-value">22.680</span></li>
+                                <li class="task-item"><span>Mesclar 1 armadura de ouro</span> <span
+                                        class="task-value">45.360</span></li>
+                                <li class="task-item"><span>Mesclar 1 armadura de ouro 1</span> <span
+                                        class="task-value">90.720</span></li>
+                                <li class="task-item"><span>Mesclar 1 armadura de ouro 2</span> <span
+                                        class="task-value">136.080</span></li>
+                                <li class="task-item"><span>Mesclar 1 armadura de ouro 3</span> <span
+                                        class="task-value">181.440</span></li>
+                                <li class="task-item"><span>Mesclar 1 armadura de arco-íris 1</span> <span
+                                        class="task-value">362.880</span></li>
+                                <li class="task-item"><span>Gastar 100 Cristais de Dragão</span> <span
+                                        class="task-value">5</span></li>
                             </ul>
                         </div>
 
                         <div class="event-card">
                             <div class="day-title">Dia 6: Gemas & Artefatos</div>
                             <ul class="task-list">
-                                <li class="task-item"><span>Pedras de Remodelagem</span> <span class="task-value">25</span></li>
-                                <li class="task-item"><span>Pedras de Aprimoramento Sagradas</span> <span class="task-value">500</span></li>
-                                <li class="task-item"><span>Mesclar 1 Gema Classe B</span> <span class="task-value">200</span></li>
-                                <li class="task-item"><span>Mesclar 1 Gema Classe A</span> <span class="task-value">2.000</span></li>
-                                <li class="task-item"><span>Mesclar 1 Gema Classe S</span> <span class="task-value">10.000</span></li>
-                                <li class="task-item"><span>Mesclar 1 Gema Classe SS</span> <span class="task-value">50.000</span></li>
-                                <li class="task-item"><span>Mesclar 1 Gema Classe SSR</span> <span class="task-value">300.000</span></li>
+                                <li class="task-item"><span>Pedras de Remodelagem</span> <span
+                                        class="task-value">25</span></li>
+                                <li class="task-item"><span>Pedras de Aprimoramento Sagradas</span> <span
+                                        class="task-value">500</span></li>
+                                <li class="task-item"><span>Mesclar 1 Gema Classe B</span> <span
+                                        class="task-value">200</span></li>
+                                <li class="task-item"><span>Mesclar 1 Gema Classe A</span> <span
+                                        class="task-value">2.000</span></li>
+                                <li class="task-item"><span>Mesclar 1 Gema Classe S</span> <span
+                                        class="task-value">10.000</span></li>
+                                <li class="task-item"><span>Mesclar 1 Gema Classe SS</span> <span
+                                        class="task-value">50.000</span></li>
+                                <li class="task-item"><span>Mesclar 1 Gema Classe SSR</span> <span
+                                        class="task-value">300.000</span></li>
                                 <span class="evt-highlight">Aprimorar Artefatos Consome:</span>
-                                <li class="task-item"><span>Coroa de Essência de Regra</span> <span class="task-value">320</span></li>
-                                <li class="task-item"><span>Essência de Cetro Eterno</span> <span class="task-value">480</span></li>
-                                <li class="task-item"><span>Essência de Bola da Cruz Sagrada</span> <span class="task-value">600</span></li>
-                                <li class="task-item"><span>Essência de Anel da Matança</span> <span class="task-value">600</span></li>
-                                <li class="task-item"><span>Essência de Divindade</span> <span class="task-value">200</span></li>
+                                <li class="task-item"><span>Coroa de Essência de Regra</span> <span
+                                        class="task-value">320</span></li>
+                                <li class="task-item"><span>Essência de Cetro Eterno</span> <span
+                                        class="task-value">480</span></li>
+                                <li class="task-item"><span>Essência de Bola da Cruz Sagrada</span> <span
+                                        class="task-value">600</span></li>
+                                <li class="task-item"><span>Essência de Anel da Matança</span> <span
+                                        class="task-value">600</span></li>
+                                <li class="task-item"><span>Essência de Divindade</span> <span
+                                        class="task-value">200</span></li>
                             </ul>
                         </div>
 
                         <div class="event-card ring-2 ring-emerald-200">
                             <div class="day-title">
                                 <span>Dia 7: Surto de Energia</span>
-                                <input type="date" id="date-event-7" class="date-picker" title="Definir data de início">
                             </div>
                             <span class="evt-note">Dias 1 a 6 combinados em um só. Prepare-se!</span>
                         </div>
@@ -388,36 +497,41 @@
         </footer>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Função para carregar data salva
-            function loadSavedDate(inputId, storageKey) {
-                const savedDate = localStorage.getItem(storageKey);
-                const inputElement = document.getElementById(inputId);
-                if (savedDate && inputElement) {
-                    inputElement.value = savedDate;
-                }
-            }
+    <script src="js/event-dates.js"></script>
 
-            // Função para salvar data quando mudar
-            function setupDateSaver(inputId, storageKey) {
-                const inputElement = document.getElementById(inputId);
-                if (inputElement) {
-                    inputElement.addEventListener('change', (e) => {
-                        localStorage.setItem(storageKey, e.target.value);
-                    });
-                }
-            }
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        // Função para formatar a data (transforma 2025-05-20 em 20/05/2025)
+        function formatDate(dateString) {
+            if (!dateString) return "A definir";
+            
+            // Quebra a data em partes (Ano, Mês, Dia) para evitar problemas de fuso horário
+            const parts = dateString.split('-'); 
+            if (parts.length !== 3) return dateString;
+            
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
 
-            // Inicializa lógica para o Evento de 5 Dias
-            loadSavedDate('date-event-5', 'epicWar_event5_date');
-            setupDateSaver('date-event-5', 'epicWar_event5_date');
+        // Verifica se o arquivo de configuração foi carregado
+        if (typeof EVENT_CONFIG === 'undefined') {
+            console.error("ERRO: O arquivo js/event-dates.js não foi encontrado ou tem erro de sintaxe.");
+            return;
+        }
 
-            // Inicializa lógica para o Evento de 7 Dias
-            loadSavedDate('date-event-7', 'epicWar_event7_date');
-            setupDateSaver('date-event-7', 'epicWar_event7_date');
-        });
-    </script>
+        // Atualiza o texto do Evento de 5 Dias
+        const date5Element = document.getElementById('display-date-5');
+        if (date5Element) {
+            date5Element.textContent = formatDate(EVENT_CONFIG.event5Days.startDate);
+        }
+
+        // Atualiza o texto do Evento de 7 Dias
+        const date7Element = document.getElementById('display-date-7');
+        if (date7Element) {
+            date7Element.textContent = formatDate(EVENT_CONFIG.event7Days.startDate);
+        }
+    });
+</script>
 
 </body>
 
