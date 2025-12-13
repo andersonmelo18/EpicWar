@@ -108,11 +108,7 @@ const StorageService = (() => {
         { "id": 1765242713476, "name": "Cristal Adicional", "tier": 1, "default_element": null },
         { "id": 1765242717943, "name": "Comida Adicional", "tier": 1, "default_element": null },
         { "id": 1765243349367, "name": "Dano Garantido", "tier": 1, "default_element": null },
-        { "id": 1765243357237, "name": "Redução Dano Garantido", "tier": 1, "default_element": null },
-        { "id": 1765550736728, "name": "Execução de Monstros", "tier": 1, "default_element": null },
-        { "id": 1765550746171, "name": "Execução de Titans", "tier": 1, "default_element": null },
-        { "id": 1765550756124, "name": "Execução de Harolds", "tier": 1, "default_element": null },
-        { "id": 1765550767589, "name": "Executar ( Estágios )", "tier": 1, "default_element": null }
+        { "id": 1765243357237, "name": "Redução Dano Garantido", "tier": 1, "default_element": null }
     ];
 
     const DEFAULT_REQUIRED_ATTRIBUTES = [
@@ -137,8 +133,7 @@ const StorageService = (() => {
         { "id": 1765210027756, "attribute_id": 1765209673667 },
         { "id": 1765210038367, "attribute_id": 1765209681040 },
         { "id": 1765210048074, "attribute_id": 1765209686619 },
-        { "id": 1765210056063, "attribute_id": 1765209694646 },
-        { "id": 1765329913797, "attribute_id": 1765209473208 }
+        { "id": 1765210056063, "attribute_id": 1765209694646 }
     ];
 
     // NOVO: Lista vazia por padrão para secundários (você poderá preencher via Admin depois)
@@ -234,6 +229,10 @@ const StorageService = (() => {
         {
             "id": 1765329906485,
             "attribute_id": 1765241953547
+        },
+        {
+            "id": 1765329913797,
+            "attribute_id": 1765209473208
         },
         {
             "id": 1765330000569,

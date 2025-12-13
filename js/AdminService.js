@@ -7,7 +7,7 @@ const AdminService = (() => {
 
     // --- Constantes Globais ---
     const ELEMENTS = ['fogo', 'gelo', 'luz', 'veneno'];
-    const RARITIES = ['B', 'A', 'S', 'SS', 'SSR']; 
+    const RARITIES = ['Comum', 'Raro', 'Épico', 'Legendário', 'Mítico']; 
     
     // Níveis de Remodelação/Qualidade de atributo
     const REMODELS = ['comum', 'raro', 'épico', 'legendário', 'mítico'];
