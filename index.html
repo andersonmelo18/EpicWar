@@ -7,10 +7,18 @@
 
     <title>PvP Build Analyzer 💎</title>
 
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💎</text></svg>">
-    <meta name="description" content="Crie, analise e otimize suas builds de PvP com estatísticas detalhadas.">
-    
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💎</text></svg>">
+
+    <meta name="description"
+        content="Crie, analise e otimize suas builds de PvP com estatísticas detalhadas. Ferramenta para gerenciar gemas, atributos e combos.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="PvP Build Analyzer 💎">
+    <meta property="og:description"
+        content="Planeje seus atributos, verifique requisitos PvP e exporte sua build em PDF.">
+
     <script src="https://cdn.tailwindcss.com"></script>
+
     <link rel="stylesheet" href="css/style.css">
 </head>
 
@@ -185,14 +193,20 @@
                         </div>
                         <div id="required-attributes-tab" class="admin-tab-content hidden">
                             <div class="flex justify-between items-center mb-6">
-                                <div><h3 class="text-xl font-bold text-slate-700">Atributos Essenciais</h3></div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-slate-700">Atributos Essenciais</h3>
+                                    <p class="text-sm text-slate-500">A build só é aprovada se tiver estes atributos.</p>
+                                </div>
                                 <button id="add-required-attribute-btn" class="btn-hover bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md">+ Adicionar Regra</button>
                             </div>
                             <div id="required-attributes-list" class="space-y-2"></div>
                         </div>
                         <div id="secondary-attributes-tab" class="admin-tab-content hidden">
                             <div class="flex justify-between items-center mb-6">
-                                <div><h3 class="text-xl font-bold text-slate-700">Atributos de Suporte</h3></div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-slate-700">Atributos de Suporte</h3>
+                                    <p class="text-sm text-slate-500">Úteis para complementar a build.</p>
+                                </div>
                                 <button id="add-secondary-attribute-btn" class="btn-hover bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md">+ Adicionar Suporte</button>
                             </div>
                             <div id="secondary-attributes-list" class="space-y-2"></div>
@@ -207,30 +221,42 @@
                         <div id="tools-tab" class="admin-tab-content hidden">
                             <div class="max-w-2xl mx-auto space-y-8">
                                 <div class="bg-amber-50 border border-amber-200 p-6 rounded-xl">
-                                    <label class="block text-sm font-bold text-amber-800 mb-2">Observações PDF</label>
-                                    <textarea id="global-notes" rows="4" class="w-full p-3 border rounded-lg text-sm border-amber-300 focus:ring-amber-500 bg-white"></textarea>
-                                    <div class="mt-3 text-right"><button id="save-notes-btn" class="btn-hover bg-amber-600 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-md">Salvar Notas</button></div>
+                                    <label class="block text-sm font-bold text-amber-800 mb-2">Observações do Relatório (PDF)</label>
+                                    <textarea id="global-notes" rows="4" class="w-full p-3 border rounded-lg text-sm border-amber-300 focus:ring-amber-500 focus:border-amber-500 bg-white" placeholder="Escreva dicas finais..."></textarea>
+                                    <div class="mt-3 text-right">
+                                        <button id="save-notes-btn" class="btn-hover bg-amber-600 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-amber-700">Salvar Notas</button>
+                                    </div>
                                 </div>
                                 <div class="mt-6 mb-6 p-4 bg-slate-100 border border-slate-200 rounded-lg">
                                     <label class="block text-sm font-bold text-slate-700 mb-2">🔒 Segurança</label>
                                     <div class="flex gap-2">
-                                        <input type="password" id="new-admin-password" placeholder="Nova Senha" class="flex-1 p-2 border rounded-md text-sm border-slate-300">
+                                        <input type="password" id="new-admin-password" placeholder="Nova Senha" class="flex-1 p-2 border rounded-md text-sm border-slate-300 focus:ring-indigo-500 focus:border-indigo-500">
                                         <button id="change-password-btn" class="bg-slate-700 text-white px-4 py-2 rounded text-sm hover:bg-slate-800 transition duration-150">Alterar Senha</button>
                                     </div>
                                 </div>
                                 <div class="space-y-4 pt-6 border-t border-slate-200">
                                     <h4 class="font-bold text-slate-700 mb-4">Backup & Restauração</h4>
                                     <div class="flex flex-col sm:flex-row gap-4">
-                                        <button id="export-all-data-btn" class="flex-1 w-full btn-hover bg-white border border-slate-300 text-slate-700 px-4 py-3 rounded-xl font-medium shadow-sm">📥 Exportar Backup</button>
-                                        <div class="flex-1 relative">
-                                            <input type="file" id="import-data-file" accept=".json" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                                            <button id="import-mock-btn" class="w-full btn-hover bg-white border border-slate-300 text-slate-700 px-4 py-3 rounded-xl font-medium shadow-sm">📤 Importar Backup</button>
+                                        <div class="flex-1">
+                                            <button id="export-all-data-btn" class="w-full btn-hover bg-white border border-slate-300 text-slate-700 px-4 py-3 rounded-xl font-medium shadow-sm hover:bg-slate-50 flex items-center justify-center gap-2">
+                                                <span>📥</span> Exportar Backup
+                                            </button>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="relative">
+                                                <input type="file" id="import-data-file" accept=".json" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                                <button id="import-mock-btn" class="w-full btn-hover bg-white border border-slate-300 text-slate-700 px-4 py-3 rounded-xl font-medium shadow-sm flex items-center justify-center gap-2">
+                                                    <span>📤</span> Importar Backup
+                                                </button>
+                                            </div>
                                             <button id="import-data-btn" class="hidden">Importar Real</button>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="pt-6 mt-6 border-t border-red-100">
-                                    <button id="clear-all-data-btn" class="w-full text-red-600 hover:bg-red-50 py-3 rounded-lg text-sm font-medium">Apagar Todos os Dados</button>
+                                    <button id="clear-all-data-btn" class="w-full text-red-600 hover:bg-red-50 py-3 rounded-lg text-sm font-medium transition-colors">
+                                        Apagar Todos os Dados (Reset de Fábrica)
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -244,11 +270,42 @@
                 <div class="max-w-4xl mx-auto space-y-8">
                     <div class="text-center">
                         <h2 class="text-3xl font-extrabold text-slate-800 mb-2">Guia Rápido</h2>
+                        <p class="text-slate-500">Domine a ferramenta em 3 passos.</p>
                     </div>
+
                     <div class="grid md:grid-cols-3 gap-6">
-                        <div class="card-modern p-6 border-t-4 border-indigo-500"><h3 class="font-bold">1. Configure</h3><p class="text-sm text-slate-600">Admin > Atributos</p></div>
-                        <div class="card-modern p-6 border-t-4 border-blue-500"><h3 class="font-bold">2. Monte</h3><p class="text-sm text-slate-600">Novo Personagem</p></div>
-                        <div class="card-modern p-6 border-t-4 border-green-500"><h3 class="font-bold">3. Analise</h3><p class="text-sm text-slate-600">Veja relatório</p></div>
+                        <div class="card-modern p-6 border-t-4 border-indigo-500 h-full flex flex-col">
+                            <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-4 text-xl font-bold">1</div>
+                            <h3 class="font-bold text-slate-800 mb-2 text-lg">Configure</h3>
+                            <p class="text-sm text-slate-600 flex-grow">
+                                Vá até o menu <strong>Admin</strong>. Cadastre as Gemas (Atributos Mestres), defina os Requisitos Essenciais da sua guilda e os Atributos Secundários.
+                            </p>
+                        </div>
+
+                        <div class="card-modern p-6 border-t-4 border-blue-500 h-full flex flex-col">
+                            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4 text-xl font-bold">2</div>
+                            <h3 class="font-bold text-slate-800 mb-2 text-lg">Monte a Build</h3>
+                            <p class="text-sm text-slate-600 flex-grow">
+                                Clique em <strong>+ Novo</strong>. Dê um nome ao personagem, escolha a quantidade de artefatos e preencha os slots com as gemas que você configurou.
+                            </p>
+                        </div>
+
+                        <div class="card-modern p-6 border-t-4 border-green-500 h-full flex flex-col">
+                            <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4 text-xl font-bold">3</div>
+                            <h3 class="font-bold text-slate-800 mb-2 text-lg">Analise & Exporte</h3>
+                            <p class="text-sm text-slate-600 flex-grow">
+                                Acompanhe o feedback em tempo real na barra lateral. Quando terminar, clique em <strong>Gerar Relatório Final</strong> para salvar um PDF completo.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 p-6 rounded-xl border border-slate-200 text-center mt-8">
+                        <h4 class="font-bold text-slate-700 mb-2 flex items-center justify-center gap-2">
+                            <span>💡</span> Dica Pro: Backup de Dados
+                        </h4>
+                        <p class="text-sm text-slate-500 max-w-2xl mx-auto">
+                            Seus dados ficam salvos no navegador. Para não perder nada (ou para passar sua configuração para um amigo), vá em <strong>Admin > Ferramentas</strong> e use o botão <strong>Exportar Backup</strong>.
+                        </p>
                     </div>
                 </div>
             </section>
@@ -269,6 +326,7 @@
     <script src="js/AdminController.js"></script>
     <script src="js/BuildController.js"></script>
     <script src="js/App.js"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
@@ -276,19 +334,20 @@
         const btn = document.getElementById('mobile-menu-btn');
         const menu = document.getElementById('mobile-menu');
 
-        btn.addEventListener('click', () => {
-            menu.classList.toggle('hidden');
-        });
-
-        // Fecha o menu ao clicar em qualquer item dentro dele
-        menu.querySelectorAll('button, a').forEach(item => {
-            item.addEventListener('click', () => {
-                menu.classList.add('hidden');
+        if (btn && menu) {
+            btn.addEventListener('click', () => {
+                menu.classList.toggle('hidden');
             });
-        });
+
+            // Fecha o menu ao clicar em qualquer item dentro dele
+            menu.querySelectorAll('button, a').forEach(item => {
+                item.addEventListener('click', () => {
+                    menu.classList.add('hidden');
+                });
+            });
+        }
 
         // --- 2. PONTE MOBILE -> DESKTOP ---
-        // Mapeamento: ID Mobile -> ID Original (Desktop)
         const map = {
             'nav-dashboard-mobile': 'nav-dashboard', 
             'nav-admin-mobile': 'nav-admin',
@@ -302,7 +361,7 @@
             
             if (mobileBtn && originalBtn) {
                 mobileBtn.addEventListener('click', () => {
-                    originalBtn.click(); // Dispara a ação real no App.js
+                    originalBtn.click(); 
                 });
             }
         });
