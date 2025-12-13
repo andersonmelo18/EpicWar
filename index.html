@@ -378,27 +378,40 @@
             }
         });
 
-        // 2. Script para mostrar a mensagem de "Vazio" se não houver builds
+        // 2. O "VIGIA" DO FOGUETE (MutationObserver)
+        // Isso garante que o ícone apareça/suma instantaneamente, não importa o que aconteça.
         document.addEventListener('DOMContentLoaded', () => {
-            // Espera 100ms para o App.js carregar os dados do LocalStorage
-            setTimeout(() => {
-                const listContainer = document.getElementById('builds-list');
-                const emptyMessage = document.getElementById('no-builds-message');
+            const listContainer = document.getElementById('builds-list');
+            const emptyMessage = document.getElementById('no-builds-message');
 
-                // Se a lista existir e não tiver nenhum filho (nenhum card)
-                if (listContainer && listContainer.children.length === 0) {
-                    emptyMessage.classList.remove('hidden'); // Mostra o foguete
-                    listContainer.classList.add('hidden');   // Esconde o grid vazio
+            // Função que decide se mostra ou esconde
+            const checkState = () => {
+                if (!listContainer || !emptyMessage) return;
+
+                // Conta quantos filhos REAIS a lista tem (ignorando textos vazios)
+                const hasBuilds = listContainer.children.length > 0;
+
+                if (hasBuilds) {
+                    emptyMessage.classList.add('hidden');    // Tem build? Esconde foguete
+                    listContainer.classList.remove('hidden'); // Mostra lista
                 } else {
-                    emptyMessage.classList.add('hidden');    // Esconde o foguete
-                    listContainer.classList.remove('hidden');// Mostra o grid
+                    emptyMessage.classList.remove('hidden'); // Não tem? Mostra foguete
+                    listContainer.classList.add('hidden');   // Esconde lista vazia
                 }
-            }, 100);
+            };
+
+            // Roda uma vez assim que carrega
+            checkState();
+
+            // Cria o "Vigia" que monitora mudanças na lista
+            const observer = new MutationObserver(checkState);
+
+            if (listContainer) {
+                // Manda o vigia observar qualquer adição ou remoção de item na lista
+                observer.observe(listContainer, { childList: true, subtree: true });
+            }
         });
     </script>
-</body>
-
-</html>
 </body>
 
 </html>
