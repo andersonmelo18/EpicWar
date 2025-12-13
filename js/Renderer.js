@@ -21,7 +21,15 @@ const Renderer = (() => {
 
     // Configurações padrão
     const ELEMENTS = ['fogo', 'gelo', 'luz', 'veneno'];
-    const REMODELS = ['comum', 'raro', 'épico', 'legendário', 'mítico'];
+    const REMODELS = [
+        'Comum',
+        'Raro',
+        'Extra',
+        'Perfeito',
+        'Epico',
+        'Lendario',
+        'Mitico'
+    ];
 
     // --- HELPER FUNCTIONS ---
 
@@ -32,16 +40,17 @@ const Renderer = (() => {
         return `<span class="badge-element ${config.badge} gap-1">${config.icon} ${element}</span>`;
     };
 
-    const getRarityColor = (rarity) => {
-        switch (rarity?.toLowerCase()) {
-            case 'comum': return 'text-slate-500';
-            case 'raro': return 'text-blue-500 font-medium';
-            case 'épico': return 'text-purple-600 font-medium';
-            case 'legendário': return 'text-orange-500 font-bold';
-            case 'mítico': return 'text-red-600 font-extrabold';
-            default: return 'text-slate-600';
-        }
+    const getRemodelClass = (remodel) => {
+        if (!remodel) return 'text-remodel-comum';
+
+        const key = remodel
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '');
+
+        return `text-remodel-${key}`;
     };
+
 
     // --- CARDS DA DASHBOARD ---
 
@@ -423,50 +432,83 @@ const Renderer = (() => {
         if (!gem || !gem.attributes || gem.attributes.length === 0) return '';
 
         return gem.attributes.map((attr, index) => {
+
             const filteredAttributes = masterAttributes.filter(a =>
-                a.tier === attr.tier && (!a.default_element || a.default_element === gemElement)
+                a.tier === attr.tier &&
+                (!a.default_element || a.default_element === gemElement)
             );
 
             const attributeOptions = filteredAttributes.map(a =>
-                `<option value="${a.id}" data-tier="${a.tier}" ${a.id === attr.attribute_id ? 'selected' : ''}>${a.name}</option>`
+                `<option value="${a.id}" ${a.id === attr.attribute_id ? 'selected' : ''}>
+                ${a.name}
+            </option>`
             ).join('');
 
-            const remodelOptions = REMODELS.map(r =>
-                `<option value="${r}" ${r === attr.remodel ? 'selected' : ''}>${r.charAt(0).toUpperCase() + r.slice(1)}</option>`
-            ).join('');
+            const remodelOptions = REMODELS.map(r => {
+                const rKey = r
+                    .toLowerCase()
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '');
+
+                const attrKey = attr.remodel
+                    ? attr.remodel.toLowerCase()
+                        .normalize('NFD')
+                        .replace(/[\u0300-\u036f]/g, '')
+                    : '';
+
+                return `
+        <option value="${r}" ${rKey === attrKey ? 'selected' : ''}>
+            ${r}
+        </option>
+    `;
+            }).join('');
+
 
             const tierOptions = [1, 2, 3].map(t =>
-                `<option value="${t}" ${t === attr.tier ? 'selected' : ''}>Lv${t}</option>`
+                `<option value="${t}" ${t === attr.tier ? 'selected' : ''}>
+                Lv${t}
+            </option>`
             ).join('');
 
             return `
-                <div class="attribute-row p-3 rounded-lg bg-slate-50 border border-slate-200 relative group" data-attr-index="${index}">
-                    <button type="button" class="absolute top-2 right-2 text-slate-300 hover:text-red-500 remove-attribute-btn transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                    </button>
-                    
-                    <div class="grid grid-cols-12 gap-2 mb-2">
-                        <div class="col-span-3">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase">Tier</label>
-                            <select required class="w-full text-xs rounded border-slate-300 py-1 attribute-tier">${tierOptions}</select>
-                        </div>
-                        <div class="col-span-9">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase">Atributo</label>
-                            <select required class="w-full text-xs rounded border-slate-300 py-1 attribute-id">
-                                <option value="">Selecione...</option>
-                                ${attributeOptions}
-                            </select>
-                        </div>
+            <div class="attribute-row p-3 rounded-lg bg-slate-50 border border-slate-200 relative group"
+                 data-attr-index="${index}">
+
+                <button type="button"
+                        class="absolute top-2 right-2 text-slate-300 hover:text-red-500 remove-attribute-btn">
+                    ✕
+                </button>
+
+                <div class="grid grid-cols-12 gap-2 mb-2">
+                    <div class="col-span-3">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase">Tier</label>
+                        <select class="attribute-tier w-full text-xs rounded border-slate-300 py-1">
+                            ${tierOptions}
+                        </select>
                     </div>
-                    
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase">Qualidade (Remodel)</label>
-                        <select required class="w-full text-xs rounded border-slate-300 py-1 attribute-remodel">${remodelOptions}</select>
+
+                    <div class="col-span-9">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase">Atributo</label>
+                        <select class="attribute-id w-full text-xs rounded border-slate-300 py-1">
+                            <option value="">Selecione...</option>
+                            ${attributeOptions}
+                        </select>
                     </div>
                 </div>
-            `;
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase">
+                        Qualidade (Remodel)
+                    </label>
+                    <select class="attribute-remodel w-full text-xs rounded border-slate-300 py-1">
+                        ${remodelOptions}
+                    </select>
+                </div>
+            </div>
+        `;
         }).join('');
     };
+
 
     // --- ADMIN ---
 

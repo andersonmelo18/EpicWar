@@ -525,6 +525,17 @@ const BuildController = (() => {
         }
     };
 
+    const normalizeRemodel = (value) => {
+        if (!value) return 'Comum';
+
+        return value
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/^./, c => c.toUpperCase());
+    };
+
+
     const handleSaveGem = (e) => {
         e.preventDefault();
         const form = e.target;
@@ -540,7 +551,7 @@ const BuildController = (() => {
                 gemAttributes.push({
                     attribute_id: attrId,
                     name: attrObj ? attrObj.name : 'Unknown',
-                    remodel: remodel,
+                    remodel: normalizeRemodel(remodel),
                     tier: tier
                 });
             }
