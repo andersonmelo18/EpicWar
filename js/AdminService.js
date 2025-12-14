@@ -82,7 +82,7 @@ const AdminService = (() => {
 
     // --- Lógica: Atributos Requeridos ---
 
-    const addRequiredAttribute = (attributeId) => {
+    const addRequiredAttribute = (attributeId, isUrgent = false) => {
         const required = StorageService.loadRequiredAttributes();
 
         // Evita duplicatas
@@ -95,13 +95,25 @@ const AdminService = (() => {
         const secondary = StorageService.loadSecondaryAttributes();
         if (secondary.some(s => s.attribute_id === attributeId)) {
             if (!confirm("Este atributo está na lista de Secundários. Deseja movê-lo para Essencial?")) return;
-            // Remove do secundário
-            deleteSecondaryAttributeByAttrId(attributeId);
+
+            // Remove do secundário (Mantendo sua lógica original)
+            // Nota: Certifique-se que a função 'deleteSecondaryAttributeByAttrId' está definida neste arquivo.
+            // Se não estiver, substitua essa linha por: 
+            // const newSec = secondary.filter(s => s.attribute_id !== attributeId); StorageService.saveSecondaryAttributes(newSec);
+            if (typeof deleteSecondaryAttributeByAttrId === 'function') {
+                deleteSecondaryAttributeByAttrId(attributeId);
+            } else {
+                // Fallback de segurança caso a função auxiliar não exista no escopo
+                const newSecondary = secondary.filter(s => s.attribute_id !== attributeId);
+                StorageService.saveSecondaryAttributes(newSecondary);
+            }
         }
 
+        // Adiciona o novo requisito com a flag URGENTE
         required.push({
             id: Date.now(),
-            attribute_id: attributeId
+            attribute_id: attributeId,
+            isUrgent: isUrgent // <--- NOVA PROPRIEDADE SALVA AQUI
         });
 
         StorageService.saveRequiredAttributes(required);
