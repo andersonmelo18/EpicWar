@@ -83,39 +83,34 @@ const AdminService = (() => {
     // --- Lógica: Atributos Requeridos ---
 
     const addRequiredAttribute = (attributeId, isUrgent = false) => {
+        // 1. Carrega a lista completa de requisitos
         const required = StorageService.loadRequiredAttributes();
 
-        // Evita duplicatas
+        // 2. Verifica se já existe para evitar duplicatas
         if (required.some(r => r.attribute_id === attributeId)) {
             alert("Este atributo já está na lista de requisitos.");
             return;
         }
 
-        // Evita conflito com secundários (não pode ser os dois)
+        // 3. Verifica conflito com Secundários (Se tiver, pergunta se quer mover)
         const secondary = StorageService.loadSecondaryAttributes();
         if (secondary.some(s => s.attribute_id === attributeId)) {
             if (!confirm("Este atributo está na lista de Secundários. Deseja movê-lo para Essencial?")) return;
 
-            // Remove do secundário (Mantendo sua lógica original)
-            // Nota: Certifique-se que a função 'deleteSecondaryAttributeByAttrId' está definida neste arquivo.
-            // Se não estiver, substitua essa linha por: 
-            // const newSec = secondary.filter(s => s.attribute_id !== attributeId); StorageService.saveSecondaryAttributes(newSec);
-            if (typeof deleteSecondaryAttributeByAttrId === 'function') {
-                deleteSecondaryAttributeByAttrId(attributeId);
-            } else {
-                // Fallback de segurança caso a função auxiliar não exista no escopo
-                const newSecondary = secondary.filter(s => s.attribute_id !== attributeId);
-                StorageService.saveSecondaryAttributes(newSecondary);
-            }
+            // Remove da lista de secundários para não ficar repetido
+            // Usamos o filter direto aqui para garantir que funcione sem depender de outras funções
+            const newSecondary = secondary.filter(s => s.attribute_id !== attributeId);
+            StorageService.saveSecondaryAttributes(newSecondary);
         }
 
-        // Adiciona o novo requisito com a flag URGENTE
+        // 4. Adiciona o novo requisito na lista (com a flag URGENTE)
         required.push({
             id: Date.now(),
             attribute_id: attributeId,
-            isUrgent: isUrgent // <--- NOVA PROPRIEDADE SALVA AQUI
+            isUrgent: isUrgent // <--- Salva se é urgente (true/false)
         });
 
+        // 5. Salva a lista inteira atualizada no Storage
         StorageService.saveRequiredAttributes(required);
     };
 
