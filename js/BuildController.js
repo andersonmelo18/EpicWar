@@ -836,31 +836,39 @@ const BuildController = (() => {
 
         const buildName = currentBuild.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
-        // 1. Carrega dados do banco para comparações
-        const masterAttributes = StorageService.loadMasterAttributes();
-        const requiredAttributes = StorageService.loadRequiredAttributes();
-        const secondaryAttributes = StorageService.loadSecondaryAttributes();
+        // 1. Carrega dados do banco (com proteção se vier nulo)
+        const masterAttributes = StorageService.loadMasterAttributes() || [];
+        const requiredAttributes = StorageService.loadRequiredAttributes() || [];
+        const secondaryAttributes = StorageService.loadSecondaryAttributes() || [];
 
-        // 2. AUTO-CORREÇÃO: Se 'analysisData' vier vazio (undefined), calcula agora.
-        // Isso previne o erro "Cannot read properties of undefined"
+        // =================================================================
+        // --- BLINDAGEM CONTRA ERROS (AQUI ESTÁ A CORREÇÃO) ---
+        // =================================================================
         let analysis = analysisData;
 
-        if (!analysis) {
-            console.log("Dados de análise não recebidos. Calculando internamente...");
-            if (typeof AnalysisEngine !== 'undefined') {
+        // Se não veio dados, tenta calcular
+        if (!analysis && typeof AnalysisEngine !== 'undefined') {
+            try {
                 analysis = AnalysisEngine.analyze(currentBuild);
-            } else {
-                console.warn("AnalysisEngine não encontrado! Gerando PDF básico.");
-                analysis = {
-                    missing_attributes: [],
-                    present_attributes: new Map(),
-                    secondary_present: [],
-                    duplicates_to_remove: [],
-                    useless_gems: [],
-                    missing_secondaries: []
-                };
+            } catch (e) {
+                console.error("Erro ao calcular análise:", e);
             }
         }
+
+        // SE AINDA ASSIM ESTIVER VAZIO (ou se AnalysisEngine não existir),
+        // CRIA UM OBJETO VAZIO PARA NÃO TRAVAR O PDF
+        if (!analysis || !analysis.present_attributes) {
+            console.warn("⚠️ Análise vazia ou inválida. Gerando objeto de fallback.");
+            analysis = {
+                missing_attributes: [],
+                present_attributes: new Map(), // O erro acontecia aqui (esperava um Map)
+                secondary_present: [],
+                duplicates_to_remove: [],
+                useless_gems: [],
+                missing_secondaries: []
+            };
+        }
+        // =================================================================
 
         if (type === 'pdf') {
             if (typeof window.jspdf === 'undefined') { alert("Erro: jsPDF não carregado."); return; }
@@ -888,10 +896,15 @@ const BuildController = (() => {
 
             doc.setFontSize(10);
             
-            // Contagens seguras
-            const reqTotal = requiredAttributes ? requiredAttributes.length : 0;
-            const presTotal = analysis.present_attributes ? analysis.present_attributes.size : 0;
-            const secTotal = secondaryAttributes ? secondaryAttributes.length : 0;
+            // Contagens (Agora protegidas porque 'analysis' e 'present_attributes' GARANTIDAMENTE existem)
+            const reqTotal = requiredAttributes.length;
+            
+            // Verifica se é Map ou Array (para evitar erro de .size vs .length)
+            const presTotal = (analysis.present_attributes instanceof Map) 
+                ? analysis.present_attributes.size 
+                : (Object.keys(analysis.present_attributes || {}).length);
+
+            const secTotal = secondaryAttributes.length;
             const secPres = analysis.secondary_present ? analysis.secondary_present.length : 0;
 
             doc.text(`Essenciais: ${presTotal}/${reqTotal}`, 10, y);
@@ -905,20 +918,13 @@ const BuildController = (() => {
             doc.text(`Inúteis: ${analysis.useless_gems ? analysis.useless_gems.length : 0}`, 10, y);
             y += 10;
 
-            // =================================================================
             // --- 1. FALTANDO ESSENCIAIS (COM LÓGICA DE URGÊNCIA) ---
-            // =================================================================
-            
             if (analysis.missing_attributes && analysis.missing_attributes.length > 0) {
-                // Criamos dois arrays para separar o joio do trigo
                 const missingUrgent = [];
                 const missingNormal = [];
 
-                // Percorremos a lista de faltantes que veio da análise
                 analysis.missing_attributes.forEach(m => {
-                    // Consultamos o Storage para ver se esse ID tem a flag isUrgent
                     const reqDef = requiredAttributes.find(r => r.attribute_id === m.id);
-                    
                     if (reqDef && reqDef.isUrgent) {
                         missingUrgent.push(m);
                     } else {
@@ -926,25 +932,23 @@ const BuildController = (() => {
                     }
                 });
 
-                // --- A. DESENHA O BLOCO VERMELHO (URGENTES) ---
+                // A. URGENTES
                 if (missingUrgent.length > 0) {
                     checkPageBreak(missingUrgent.length * 6 + 20);
-                    
-                    // Caixa Vermelha
-                    doc.setFillColor(254, 226, 226); // Fundo Vermelho claro
-                    doc.setDrawColor(220, 38, 38);   // Borda Vermelha forte
+                    doc.setFillColor(254, 226, 226);
+                    doc.setDrawColor(220, 38, 38);
                     doc.rect(10, y, 190, 8 + (missingUrgent.length * 6), 'FD');
                     
                     y += 6;
                     doc.setFontSize(12);
                     doc.setFont("helvetica", "bold");
-                    doc.setTextColor(220, 38, 38); // Texto Vermelho
+                    doc.setTextColor(220, 38, 38);
                     doc.text("🚨 ATENÇÃO: REQUISITOS URGENTES FALTANDO", 15, y);
                     y += 6;
 
                     doc.setFontSize(10);
                     doc.setFont("helvetica", "normal");
-                    doc.setTextColor(0, 0, 0); // Volta para preto
+                    doc.setTextColor(0, 0, 0);
 
                     missingUrgent.forEach(m => {
                         const attrInfo = masterAttributes.find(a => a.id === m.id);
@@ -952,15 +956,15 @@ const BuildController = (() => {
                         doc.text(`• ${m.attribute} ${tierInfo}`, 15, y);
                         y += 6;
                     });
-                    y += 5; // Espaço extra após a caixa
+                    y += 5;
                 }
 
-                // --- B. DESENHA A LISTA NORMAL (NÃO URGENTES) ---
+                // B. NORMAIS
                 if (missingNormal.length > 0) {
                     checkPageBreak();
                     doc.setFontSize(12);
                     doc.setFont("helvetica", "bold");
-                    doc.setTextColor(200, 0, 0); // Vermelho padrão
+                    doc.setTextColor(200, 0, 0);
                     doc.text("FALTANDO ESSENCIAIS (Comum):", 10, y);
                     y += 6;
                     
@@ -978,14 +982,13 @@ const BuildController = (() => {
                     y += 5;
                 }
             }
-            // =================================================================
 
             // --- 2. FALTANDO SECUNDÁRIAS ---
             if (analysis.missing_secondaries && analysis.missing_secondaries.length > 0) {
                 checkPageBreak();
                 doc.setFontSize(12);
-                doc.setFont("helvetica", "normal"); // Reseta negrito se tiver ficado
-                doc.setTextColor(0, 0, 150); // Azul Escuro
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(0, 0, 150);
                 doc.text("FALTANDO SECUNDÁRIAS (Opcional/Melhoria):", 10, y);
                 y += 6;
                 doc.setFontSize(10);
@@ -1005,7 +1008,7 @@ const BuildController = (() => {
             if (analysis.duplicates_to_remove && analysis.duplicates_to_remove.length > 0) {
                 checkPageBreak();
                 doc.setFontSize(12);
-                doc.setTextColor(200, 100, 0); // Laranja
+                doc.setTextColor(200, 100, 0);
                 doc.text("REMOVER DUPLICATAS:", 10, y);
                 y += 6;
                 doc.setFontSize(10);
@@ -1031,7 +1034,7 @@ const BuildController = (() => {
             if (analysis.useless_gems && analysis.useless_gems.length > 0) {
                 checkPageBreak();
                 doc.setFontSize(12);
-                doc.setTextColor(180, 180, 0); // Amarelo Escuro
+                doc.setTextColor(180, 180, 0);
                 doc.text("GEMS INÚTEIS/INVÁLIDAS (Trocar):", 10, y);
                 y += 6;
                 doc.setFontSize(10);
@@ -1048,23 +1051,35 @@ const BuildController = (() => {
             }
 
             // --- 5. INVENTÁRIO (ESSENCIAIS) ---
-            if (analysis.present_attributes && analysis.present_attributes.size > 0) {
+            if (analysis.present_attributes && (
+                (analysis.present_attributes instanceof Map && analysis.present_attributes.size > 0) || 
+                (typeof analysis.present_attributes === 'object' && Object.keys(analysis.present_attributes).length > 0)
+            )) {
                 checkPageBreak();
                 doc.setFontSize(12);
-                doc.setTextColor(0, 100, 0); // Verde
+                doc.setTextColor(0, 100, 0);
                 doc.text("ATRIBUTOS ESSENCIAIS EQUIPADOS:", 10, y);
                 y += 6;
                 doc.setFontSize(10);
                 doc.setTextColor(0, 0, 0);
 
-                analysis.present_attributes.forEach((locations, id) => {
+                // Normaliza para loop (se for Map usa forEach, se for Obj usa entries)
+                const loopFunc = (val, id) => {
                     checkPageBreak();
-                    const attr = masterAttributes.find(a => a.id === id);
+                    const attr = masterAttributes.find(a => a.id.toString() === id.toString());
                     if (attr) {
-                        doc.text(`- ${attr.name} (Lv${attr.tier}): ${locations[0].remodel}`, 15, y);
+                        // Verifica se locations[0] existe
+                        const locInfo = (val && val[0]) ? val[0].remodel : 'N/A';
+                        doc.text(`- ${attr.name} (Lv${attr.tier}): ${locInfo}`, 15, y);
                         y += 5;
                     }
-                });
+                };
+
+                if (analysis.present_attributes instanceof Map) {
+                    analysis.present_attributes.forEach(loopFunc);
+                } else {
+                    Object.entries(analysis.present_attributes).forEach(([id, val]) => loopFunc(val, id));
+                }
                 y += 5;
             }
 
@@ -1072,7 +1087,7 @@ const BuildController = (() => {
             if (analysis.secondary_present && analysis.secondary_present.length > 0) {
                 checkPageBreak();
                 doc.setFontSize(12);
-                doc.setTextColor(0, 0, 150); // Azul
+                doc.setTextColor(0, 0, 150);
                 doc.text("ATRIBUTOS SECUNDÁRIOS EQUIPADOS:", 10, y);
                 y += 6;
                 doc.setFontSize(10);
@@ -1101,7 +1116,7 @@ const BuildController = (() => {
             doc.setTextColor(80, 80, 80);
 
             const globalNotes = StorageService.loadGlobalNotes();
-            const splitNotes = doc.splitTextToSize(globalNotes, 180);
+            const splitNotes = doc.splitTextToSize(globalNotes || "Sem observações.", 180);
             doc.text(splitNotes, 10, y);
 
             doc.save(`${buildName}.pdf`);
