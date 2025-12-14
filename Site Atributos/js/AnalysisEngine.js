@@ -7,16 +7,18 @@ const AnalysisEngine = (() => {
 
     // Define a hierarquia de qualidade para desempate de duplicatas
     const REMODEL_WEIGHTS = {
-        'comum': 1,
-        'normal': 1, // Caso use 'normal' em vez de 'comum'
-        'raro': 2,
-        'épico': 3,
-        'epico': 3,
-        'legendário': 4,
-        'legendario': 4,
-        'mítico': 5,
-        'mitico': 5
+        comum: 1,
+
+        raro: 2,
+
+        extra: 3,
+        perfeito: 4,
+
+        epico: 5,
+        lendario: 6,
+        mitico: 7
     };
+
 
     /**
      * Retorna o peso numérico da remodelação.
@@ -39,18 +41,18 @@ const AnalysisEngine = (() => {
         // Bloqueio: Atributo exclusivo selecionado em gema de elemento errado.
         return attr.default_element === gemElement;
     };
-    
+
     /**
      * Executa a análise completa da build do personagem.
      * Agora suporta atributos secundários e lógica de duplicatas.
      */
     const runAnalysis = (characterBuild, masterAttributes, requiredAttributes, secondaryAttributes, recommendedCombos) => {
-        
+
         // Mapeia IDs dos requisitos para verificação rápida
         const requiredIds = new Set(requiredAttributes.map(req => req.attribute_id));
         // Mapeia IDs dos secundários (se a lista for fornecida)
         const secondaryIds = new Set(secondaryAttributes ? secondaryAttributes.map(sec => sec.attribute_id) : []);
-        
+
         const analysisResult = {
             present_attributes: new Map(), // Map<Attribute ID, Array<Location>> (Válidos e Únicos)
             missing_attributes: [],        // Requeridos que faltam
@@ -61,29 +63,29 @@ const AnalysisEngine = (() => {
             invalid_placements: [],        // (Opcional, pode ser mesclado com useless)
             combo_status: []
         };
-        
+
         // Mapa temporário para agrupar ocorrências por ID de atributo
         // Chave: ID do Atributo -> Valor: Array de objetos de ocorrência
         const equippedMap = new Map();
-        
+
         // 1. ITERAR SOBRE ARTEFATOS E GEMAS DA BUILD
         if (characterBuild.artifacts) {
             characterBuild.artifacts.forEach((artifact) => {
                 if (!artifact) return;
-                
+
                 artifact.gems.forEach((gem, gIndex) => {
                     if (!gem) return; // Slot vazio
-                    
+
                     const elements = ["fogo", "gelo", "luz", "veneno"];
                     const gemElement = elements[gIndex];
-                    
+
                     if (gem.attributes && gem.attributes.length > 0) {
                         gem.attributes.forEach(gemAttr => {
                             const attrId = gemAttr.attribute_id;
                             const masterAttr = masterAttributes.find(a => a.id === attrId);
-                            
-                            if (!masterAttr) return; 
-                            
+
+                            if (!masterAttr) return;
+
                             const occurrence = {
                                 attr_id: attrId,
                                 attr_name: masterAttr.name,
@@ -128,7 +130,7 @@ const AnalysisEngine = (() => {
                     if (!analysisResult.present_attributes.has(attrId)) {
                         analysisResult.present_attributes.set(attrId, []);
                     }
-                    
+
                     // --- CORREÇÃO DO UNDEFINED ---
                     // Antes: analysisResult.present_attributes.get(attrId).push(keeper.location);
                     // Agora: Mesclamos location com remodel para que o PDF consiga ler
@@ -170,7 +172,7 @@ const AnalysisEngine = (() => {
                 });
             }
         });
-        
+
         // 3. IDENTIFICAR ATRIBUTOS FALTANTES (REQUERIDOS)
         requiredAttributes.forEach(req => {
             if (!allValidPresentIds.has(req.attribute_id)) {
@@ -202,7 +204,7 @@ const AnalysisEngine = (() => {
                 }
             });
         }
-        
+
         // 4. CHECAGEM DE COMBOS
         if (recommendedCombos) {
             recommendedCombos.forEach(combo => {
@@ -212,9 +214,9 @@ const AnalysisEngine = (() => {
                         presentCount++;
                     }
                 });
-                
+
                 const completeness = (presentCount / combo.attribute_ids.length) * 100;
-                
+
                 if (completeness > 0) {
                     analysisResult.combo_status.push({
                         name: combo.name,
@@ -224,7 +226,7 @@ const AnalysisEngine = (() => {
                 }
             });
         }
-        
+
         return analysisResult;
     };
 
@@ -234,19 +236,19 @@ const AnalysisEngine = (() => {
     const generateSuggestion = (missingAttr, characterBuild) => {
         const elements = ["fogo", "gelo", "luz", "veneno"];
         let bestSlot = null;
-        
+
         if (characterBuild.artifacts) {
             for (const artifact of characterBuild.artifacts) {
                 if (!artifact) continue;
-                for (let i = 0; i < 4; i++) { 
+                for (let i = 0; i < 4; i++) {
                     const gem = artifact.gems[i];
                     const element = elements[i];
-                    
+
                     // 1. O slot aceita o atributo (por elemento)
                     const elementMatches = !missingAttr.required_element || missingAttr.required_element === element;
-                    
+
                     // 2. O slot está vazio?
-                    let isSlotAvailable = !gem; 
+                    let isSlotAvailable = !gem;
 
                     if (elementMatches && isSlotAvailable) {
                         bestSlot = {

@@ -114,23 +114,23 @@ const BuildController = (() => {
         const allBuilds = StorageService.loadAllBuilds();
         const savedBuild = allBuilds.find(b => b.id.toString() === buildId.toString());
         // ------------------------
-        
+
         if (savedBuild) {
             currentBuild = savedBuild;
-            
+
             // Atualiza Título
             const titleEl = document.getElementById('editor-title');
-            if(titleEl) titleEl.textContent = `Editando: ${currentBuild.name || 'Sem Nome'}`;
-            
+            if (titleEl) titleEl.textContent = `Editando: ${currentBuild.name || 'Sem Nome'}`;
+
             // Troca a visualização para o Editor
             if (document.getElementById('dashboard-view')) {
                 document.getElementById('dashboard-view').classList.add('hidden');
                 document.getElementById('build-editor-view').classList.remove('hidden');
             }
-            
+
             // Preenche Nome
             document.getElementById('char-name').value = currentBuild.name || '';
-            
+
             // --- PREENCHE AVATAR E PODER ---
             const avatarInput = document.getElementById('char-avatar');
             if (avatarInput) {
@@ -145,7 +145,7 @@ const BuildController = (() => {
             // Preenche Quantidade de Artefatos
             const countInput = document.getElementById('artifact-count');
             const artCount = currentBuild.artifactCount || (currentBuild.artifacts ? currentBuild.artifacts.length : 4);
-            
+
             if (countInput) {
                 countInput.value = artCount;
             }
@@ -165,7 +165,7 @@ const BuildController = (() => {
                         // Tenta buscar por ID ou por índice (fallback)
                         let nameField = document.querySelector(`.artifact-input[data-field="name"][data-artifact-id="${savedArt.id}"]`);
                         let levelField = document.querySelector(`.artifact-input[data-field="level"][data-artifact-id="${savedArt.id}"]`);
-                        
+
                         // Se não achar pelo ID, tenta pegar pelo índice da tela
                         if (!nameField) {
                             const allNames = document.querySelectorAll('.artifact-input[data-field="name"]');
@@ -200,16 +200,16 @@ const BuildController = (() => {
                                     const slot = gemSlots[gIndex];
                                     slot.classList.remove('empty');
                                     slot.innerHTML = `<div class="text-2xl">${gem.icon}</div>`;
-                                    
+
                                     // Aplica cor da raridade
                                     const rarityClass = `gem-rarity-${gem.rarity || 'common'}`;
                                     slot.className = `gem-slot filled w-10 h-10 rounded-lg border bg-white flex items-center justify-center cursor-pointer shadow-sm relative group ${rarityClass}`;
-                                    
+
                                     // Adiciona tooltip
-                                    if(gem.value) slot.title = `${gem.name} (${gem.value})`;
-                                    
+                                    if (gem.value) slot.title = `${gem.name} (${gem.value})`;
+
                                     // Adiciona bolinha vermelha se tiver valor
-                                    if(gem.value && !slot.querySelector('.absolute')) {
+                                    if (gem.value && !slot.querySelector('.absolute')) {
                                         slot.innerHTML += '<div class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>';
                                     }
                                 }
@@ -217,7 +217,7 @@ const BuildController = (() => {
                         }
                     });
                 }
-                
+
                 if (typeof updateAnalysis === 'function') updateAnalysis();
             }, 100);
 
@@ -525,6 +525,17 @@ const BuildController = (() => {
         }
     };
 
+    const normalizeRemodel = (value) => {
+        if (!value) return 'Comum';
+
+        return value
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/^./, c => c.toUpperCase());
+    };
+
+
     const handleSaveGem = (e) => {
         e.preventDefault();
         const form = e.target;
@@ -540,7 +551,7 @@ const BuildController = (() => {
                 gemAttributes.push({
                     attribute_id: attrId,
                     name: attrObj ? attrObj.name : 'Unknown',
-                    remodel: remodel,
+                    remodel: normalizeRemodel(remodel),
                     tier: tier
                 });
             }
@@ -552,12 +563,25 @@ const BuildController = (() => {
 
         const rarity = document.getElementById('gem-rarity').value;
         const plusLevel = parseInt(document.getElementById('gem-plus-level').value) || 0;
+        const hasAttributes = gemAttributes.length > 0;
+
+        const firstAttr = hasAttributes
+            ? masterAttributes.find(a => a.id === gemAttributes[0].attribute_id)
+            : null;
 
         const newGem = {
             element: AdminService.ELEMENTS[currentSlotIndex],
             rarity: rarity,
             plus_level: plusLevel,
-            attributes: gemAttributes
+            attributes: gemAttributes,
+
+            name: hasAttributes ? `Gema de ${firstAttr?.name}` : 'Gema Vazia',
+
+            icon: firstAttr?.type === 'fire' ? '🔥'
+                : firstAttr?.type === 'ice' ? '🧊'
+                    : firstAttr?.type === 'lightning' ? '⚡'
+                        : firstAttr?.type === 'veneno' ? '☠️'
+                            : '💎'
         };
 
         const artifactIndex = currentBuild.artifacts.findIndex(a => a.id === currentArtifactId);

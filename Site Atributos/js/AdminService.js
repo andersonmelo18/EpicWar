@@ -7,10 +7,27 @@ const AdminService = (() => {
 
     // --- Constantes Globais ---
     const ELEMENTS = ['fogo', 'gelo', 'luz', 'veneno'];
-    const RARITIES = ['Comum', 'Raro', 'Épico', 'Legendário', 'Mítico']; 
-    
+    const RARITIES = [
+        'Comum',
+        'Raro',
+        'Extra',
+        'Perfeito',
+        'Epico',
+        'Lendario',
+        'Mitico'
+    ];
+
+
     // Níveis de Remodelação/Qualidade de atributo
-    const REMODELS = ['comum', 'raro', 'épico', 'legendário', 'mítico'];
+    const REMODELS = [
+        'comum',
+        'raro',
+        'extra',
+        'perfeito',
+        'epico',
+        'lendario',
+        'mitico'
+    ];
 
     // --- Inicialização ---
 
@@ -22,7 +39,7 @@ const AdminService = (() => {
 
     const saveMasterAttribute = (attrData) => {
         let attributes = StorageService.loadMasterAttributes();
-        
+
         if (attrData.id) {
             // Edição
             const index = attributes.findIndex(a => a.id === attrData.id);
@@ -32,7 +49,7 @@ const AdminService = (() => {
             attrData.id = Date.now();
             attributes.push(attrData);
         }
-        
+
         StorageService.saveMasterAttributes(attributes);
         return attrData;
     };
@@ -41,7 +58,7 @@ const AdminService = (() => {
         let attributes = StorageService.loadMasterAttributes();
         attributes = attributes.filter(a => a.id !== id);
         StorageService.saveMasterAttributes(attributes);
-        
+
         // Limpeza em cascata (remove de requeridos e secundários)
         cleanUpDeletedAttribute(id);
     };
@@ -67,7 +84,7 @@ const AdminService = (() => {
 
     const addRequiredAttribute = (attributeId) => {
         const required = StorageService.loadRequiredAttributes();
-        
+
         // Evita duplicatas
         if (required.some(r => r.attribute_id === attributeId)) {
             alert("Este atributo já está na lista de requisitos.");
@@ -77,7 +94,7 @@ const AdminService = (() => {
         // Evita conflito com secundários (não pode ser os dois)
         const secondary = StorageService.loadSecondaryAttributes();
         if (secondary.some(s => s.attribute_id === attributeId)) {
-            if(!confirm("Este atributo está na lista de Secundários. Deseja movê-lo para Essencial?")) return;
+            if (!confirm("Este atributo está na lista de Secundários. Deseja movê-lo para Essencial?")) return;
             // Remove do secundário
             deleteSecondaryAttributeByAttrId(attributeId);
         }
@@ -86,7 +103,7 @@ const AdminService = (() => {
             id: Date.now(),
             attribute_id: attributeId
         });
-        
+
         StorageService.saveRequiredAttributes(required);
     };
 
@@ -100,7 +117,7 @@ const AdminService = (() => {
 
     const addSecondaryAttribute = (attributeId) => {
         const secondary = StorageService.loadSecondaryAttributes();
-        
+
         // Validação 1: Duplicata
         if (secondary.some(s => s.attribute_id === attributeId)) {
             alert("Este atributo já está na lista de secundários.");
@@ -118,7 +135,7 @@ const AdminService = (() => {
             id: Date.now(),
             attribute_id: attributeId
         });
-        
+
         StorageService.saveSecondaryAttributes(secondary);
     };
 
