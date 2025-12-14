@@ -78,13 +78,10 @@ const App = (() => {
     const loadBuild = (id) => {
         if (typeof BuildController !== 'undefined') {
             BuildController.loadBuildForEditing(id);
-            // Não precisa chamar showView aqui se o loadBuildForEditing já fizer isso, 
-            // mas por segurança deixamos aqui ou garantimos no controller.
         }
     };
 
     const deleteBuild = (id) => {
-        // Converte para string para evitar erros de tipo
         const buildId = id.toString();
         
         if(confirm("Tem certeza que deseja excluir esta build permanentemente?")) {
@@ -194,7 +191,7 @@ const App = (() => {
 
                 await new Promise(resolve => setTimeout(resolve, 600)); 
 
-                BuildController.generateReport('pdf'); // Alterado para chamar generateReport direto
+                BuildController.generateReport('pdf');
 
                 runBtn.innerHTML = originalText;
                 runBtn.disabled = false;
@@ -230,7 +227,15 @@ const App = (() => {
         };
 
         addGlobalAnimationStyles(); 
-        if (typeof StorageService !== 'undefined') StorageService.initializeDefaultData(); 
+
+        // --- CORREÇÃO IMPORTANTE AQUI ---
+        // Removemos a chamada para StorageService.initializeDefaultData() (que agora é vazia)
+        // E chamamos o AdminService para garantir a injeção dos dados Hardcore
+        if (typeof AdminService !== 'undefined') {
+            AdminService.initializeMasterData(); 
+        }
+        // --------------------------------
+
         setupListeners();
         
         if (typeof BuildController !== 'undefined') BuildController.init(); 
@@ -243,7 +248,6 @@ const App = (() => {
 
     document.addEventListener('DOMContentLoaded', init);
     
-    // EXPORTAÇÕES
     return {
         showView,
         loadBuild,   
@@ -255,6 +259,4 @@ const App = (() => {
     };
 })();
 
-// --- AQUI ESTAVA O ERRO (FALTA DESSA LINHA) ---
-// Torna o App global para que o onclick="App.deleteBuild(...)" do HTML funcione
 window.App = App;
