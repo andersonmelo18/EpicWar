@@ -827,13 +827,40 @@ const BuildController = (() => {
         document.getElementById('share-link-btn').addEventListener('click', handleShareLink);
     };
 
-    const handleExport = (type, analysis) => {
-        // Formata o nome do arquivo
+    const handleExport = (type, analysisData) => {
+        // Verifica se tem build
+        if (!currentBuild) {
+            alert("Nenhuma build carregada para exportar.");
+            return;
+        }
+
         const buildName = currentBuild.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
-        // --- MUDANÇA: Carregamos as listas do Storage para verificar a flag "Urgente" ---
+        // 1. Carrega dados do banco para comparações
         const masterAttributes = StorageService.loadMasterAttributes();
         const requiredAttributes = StorageService.loadRequiredAttributes();
+        const secondaryAttributes = StorageService.loadSecondaryAttributes();
+
+        // 2. AUTO-CORREÇÃO: Se 'analysisData' vier vazio (undefined), calcula agora.
+        // Isso previne o erro "Cannot read properties of undefined"
+        let analysis = analysisData;
+
+        if (!analysis) {
+            console.log("Dados de análise não recebidos. Calculando internamente...");
+            if (typeof AnalysisEngine !== 'undefined') {
+                analysis = AnalysisEngine.analyze(currentBuild);
+            } else {
+                console.warn("AnalysisEngine não encontrado! Gerando PDF básico.");
+                analysis = {
+                    missing_attributes: [],
+                    present_attributes: new Map(),
+                    secondary_present: [],
+                    duplicates_to_remove: [],
+                    useless_gems: [],
+                    missing_secondaries: []
+                };
+            }
+        }
 
         if (type === 'pdf') {
             if (typeof window.jspdf === 'undefined') { alert("Erro: jsPDF não carregado."); return; }
@@ -860,22 +887,29 @@ const BuildController = (() => {
             y += 8;
 
             doc.setFontSize(10);
-            doc.text(`Essenciais: ${analysis.present_attributes.size}/${requiredAttributes.length}`, 10, y);
+            
+            // Contagens seguras
+            const reqTotal = requiredAttributes ? requiredAttributes.length : 0;
+            const presTotal = analysis.present_attributes ? analysis.present_attributes.size : 0;
+            const secTotal = secondaryAttributes ? secondaryAttributes.length : 0;
+            const secPres = analysis.secondary_present ? analysis.secondary_present.length : 0;
+
+            doc.text(`Essenciais: ${presTotal}/${reqTotal}`, 10, y);
             y += 5;
 
-            doc.text(`Secundários Presentes: ${analysis.secondary_present.length}/${secondaryAttributes.length}`, 10, y);
+            doc.text(`Secundários Presentes: ${secPres}/${secTotal}`, 10, y);
             y += 5;
 
-            doc.text(`Duplicatas Ruins: ${analysis.duplicates_to_remove.length}`, 10, y);
+            doc.text(`Duplicatas Ruins: ${analysis.duplicates_to_remove ? analysis.duplicates_to_remove.length : 0}`, 10, y);
             y += 5;
-            doc.text(`Inúteis: ${analysis.useless_gems.length}`, 10, y);
+            doc.text(`Inúteis: ${analysis.useless_gems ? analysis.useless_gems.length : 0}`, 10, y);
             y += 10;
 
             // =================================================================
-            // --- 1. FALTANDO ESSENCIAIS (AQUI ESTÁ A LÓGICA DE URGÊNCIA) ---
+            // --- 1. FALTANDO ESSENCIAIS (COM LÓGICA DE URGÊNCIA) ---
             // =================================================================
             
-            if (analysis.missing_attributes.length > 0) {
+            if (analysis.missing_attributes && analysis.missing_attributes.length > 0) {
                 // Criamos dois arrays para separar o joio do trigo
                 const missingUrgent = [];
                 const missingNormal = [];
@@ -968,7 +1002,7 @@ const BuildController = (() => {
             }
 
             // --- 3. DUPLICATAS ---
-            if (analysis.duplicates_to_remove.length > 0) {
+            if (analysis.duplicates_to_remove && analysis.duplicates_to_remove.length > 0) {
                 checkPageBreak();
                 doc.setFontSize(12);
                 doc.setTextColor(200, 100, 0); // Laranja
@@ -994,7 +1028,7 @@ const BuildController = (() => {
             }
 
             // --- 4. INÚTEIS ---
-            if (analysis.useless_gems.length > 0) {
+            if (analysis.useless_gems && analysis.useless_gems.length > 0) {
                 checkPageBreak();
                 doc.setFontSize(12);
                 doc.setTextColor(180, 180, 0); // Amarelo Escuro
@@ -1014,26 +1048,28 @@ const BuildController = (() => {
             }
 
             // --- 5. INVENTÁRIO (ESSENCIAIS) ---
-            checkPageBreak();
-            doc.setFontSize(12);
-            doc.setTextColor(0, 100, 0); // Verde
-            doc.text("ATRIBUTOS ESSENCIAIS EQUIPADOS:", 10, y);
-            y += 6;
-            doc.setFontSize(10);
-            doc.setTextColor(0, 0, 0);
-
-            analysis.present_attributes.forEach((locations, id) => {
+            if (analysis.present_attributes && analysis.present_attributes.size > 0) {
                 checkPageBreak();
-                const attr = masterAttributes.find(a => a.id === id);
-                if (attr) {
-                    doc.text(`- ${attr.name} (Lv${attr.tier}): ${locations[0].remodel}`, 15, y);
-                    y += 5;
-                }
-            });
-            y += 5;
+                doc.setFontSize(12);
+                doc.setTextColor(0, 100, 0); // Verde
+                doc.text("ATRIBUTOS ESSENCIAIS EQUIPADOS:", 10, y);
+                y += 6;
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+
+                analysis.present_attributes.forEach((locations, id) => {
+                    checkPageBreak();
+                    const attr = masterAttributes.find(a => a.id === id);
+                    if (attr) {
+                        doc.text(`- ${attr.name} (Lv${attr.tier}): ${locations[0].remodel}`, 15, y);
+                        y += 5;
+                    }
+                });
+                y += 5;
+            }
 
             // --- 5.1. INVENTÁRIO (SECUNDÁRIOS) ---
-            if (analysis.secondary_present.length > 0) {
+            if (analysis.secondary_present && analysis.secondary_present.length > 0) {
                 checkPageBreak();
                 doc.setFontSize(12);
                 doc.setTextColor(0, 0, 150); // Azul
@@ -1071,7 +1107,6 @@ const BuildController = (() => {
             doc.save(`${buildName}.pdf`);
 
         } else if (type === 'csv') {
-            // Lógica CSV mantida igual
             let csv = `Nome,Classe\n${currentBuild.name},${currentBuild.class}\n\nArtefato,Gema\n`;
             currentBuild.artifacts.forEach(a => { 
                 a.gems.forEach((g, i) => {
