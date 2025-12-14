@@ -830,6 +830,10 @@ const BuildController = (() => {
     const handleExport = (type, analysis) => {
         const buildName = currentBuild.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
+        // Carrega dados necessários para verificar a urgência
+        const masterAttributes = StorageService.loadMasterAttributes(); // Garante que temos os nomes
+        const requiredAttributes = StorageService.loadRequiredAttributes(); // Garante que temos a flag isUrgent
+
         if (type === 'pdf') {
             if (typeof window.jspdf === 'undefined') { alert("Erro: jsPDF não carregado."); return; }
             const { jsPDF } = window.jspdf;
@@ -866,25 +870,88 @@ const BuildController = (() => {
             doc.text(`Inúteis: ${analysis.useless_gems.length}`, 10, y);
             y += 10;
 
-            // --- 1. FALTANDO ESSENCIAIS ---
+            // ============================================================
+            // --- 1. FALTANDO ESSENCIAIS (COM LÓGICA DE URGÊNCIA) ---
+            // ============================================================
+            
             if (analysis.missing_attributes.length > 0) {
-                checkPageBreak();
-                doc.setFontSize(12);
-                doc.setTextColor(200, 0, 0); // Vermelho
-                doc.text("FALTANDO ESSENCIAIS (Prioridade):", 10, y);
-                y += 6;
-                doc.setFontSize(10);
-                doc.setTextColor(0, 0, 0);
+                // Separa Urgentes de Normais
+                const missingUrgent = [];
+                const missingNormal = [];
 
                 analysis.missing_attributes.forEach(m => {
-                    checkPageBreak();
-                    const attrInfo = masterAttributes.find(a => a.id === m.id);
-                    const tierInfo = attrInfo ? `(Lv${attrInfo.tier})` : '';
-                    doc.text(`- ${m.attribute} ${tierInfo}`, 15, y);
-                    y += 5;
+                    // Procura no banco de dados se esse ID é urgente
+                    const reqDef = requiredAttributes.find(r => r.attribute_id === m.id);
+                    if (reqDef && reqDef.isUrgent) {
+                        missingUrgent.push(m);
+                    } else {
+                        missingNormal.push(m);
+                    }
                 });
-                y += 5;
+
+                // A. BLOCO VERMELHO (URGENTES)
+                if (missingUrgent.length > 0) {
+                    checkPageBreak(missingUrgent.length * 6 + 20);
+                    
+                    // Desenha Fundo Vermelho
+                    doc.setFillColor(254, 226, 226); // Vermelho claro
+                    doc.setDrawColor(220, 38, 38);   // Borda Vermelha
+                    doc.rect(10, y, 190, 8 + (missingUrgent.length * 6), 'FD');
+                    
+                    y += 6;
+                    doc.setFontSize(12);
+                    doc.setFont("helvetica", "bold");
+                    doc.setTextColor(220, 38, 38); // Texto Vermelho
+                    doc.text("🚨 ATENÇÃO: REQUISITOS URGENTES FALTANDO", 15, y);
+                    y += 6;
+
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "normal");
+                    doc.setTextColor(0, 0, 0); // Texto Preto
+
+                    missingUrgent.forEach(m => {
+                        const attrInfo = masterAttributes.find(a => a.id === m.id);
+                        const tierInfo = attrInfo ? `(Lv${attrInfo.tier})` : '';
+                        doc.text(`• ${m.attribute} ${tierInfo}`, 15, y);
+                        y += 6;
+                    });
+                    y += 5; // Espaço após a caixa
+                }
+
+                // B. LISTA NORMAL (NÃO URGENTES)
+                if (missingNormal.length > 0) {
+                    checkPageBreak();
+                    doc.setFontSize(12);
+                    doc.setFont("helvetica", "bold");
+                    doc.setTextColor(200, 0, 0); // Vermelho escuro padrão
+                    doc.text("Faltando Essenciais (Comum):", 10, y);
+                    y += 6;
+                    
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "normal");
+                    doc.setTextColor(0, 0, 0);
+
+                    missingNormal.forEach(m => {
+                        checkPageBreak();
+                        const attrInfo = masterAttributes.find(a => a.id === m.id);
+                        const tierInfo = attrInfo ? `(Lv${attrInfo.tier})` : '';
+                        doc.text(`- ${m.attribute} ${tierInfo}`, 15, y);
+                        y += 5;
+                    });
+                    y += 5;
+                }
+            } else {
+                // Se não faltar nada
+                doc.setTextColor(22, 163, 74); // Verde
+                doc.setFontSize(11);
+                doc.text("✅ Todos os itens essenciais foram atendidos!", 10, y);
+                y += 10;
+                doc.setTextColor(0,0,0);
             }
+
+            // ============================================================
+            // CONTINUA O RESTANTE DO SEU CÓDIGO NORMALMENTE...
+            // ============================================================
 
             // --- 2. FALTANDO SECUNDÁRIAS ---
             if (analysis.missing_secondaries && analysis.missing_secondaries.length > 0) {
