@@ -382,6 +382,30 @@ const AdminService = (() => {
                 "name": "Redução Dano Garantido",
                 "tier": 1,
                 "default_element": null
+            },
+            {
+                "id": 1765749314725,
+                "name": "Execução de Harolds",
+                "tier": 1,
+                "default_element": null
+            },
+            {
+                "id": 1765749320349,
+                "name": "Execução de Monstros",
+                "tier": 1,
+                "default_element": null
+            },
+            {
+                "id": 1765749326344,
+                "name": "Execução de Titans",
+                "tier": 1,
+                "default_element": null
+            },
+            {
+                "id": 1765749331379,
+                "name": "Executar ( Estágios )",
+                "tier": 1,
+                "default_element": null
             }] // <- Se colar dentro, apague estes colchetes vazios
             ;
 
@@ -492,6 +516,10 @@ const AdminService = (() => {
                 "id": 1765210056063,
                 "attribute_id": 1765209694646,
                 "isUrgent": true
+            },
+            {
+                "id": 1765329913797,
+                "attribute_id": 1765209473208
             }] // <- Se colar dentro, apague estes colchetes vazios
             ;
 
@@ -593,10 +621,6 @@ const AdminService = (() => {
             {
                 "id": 1765329906485,
                 "attribute_id": 1765241953547
-            },
-            {
-                "id": 1765329913797,
-                "attribute_id": 1765209473208
             },
             {
                 "id": 1765330000569,
