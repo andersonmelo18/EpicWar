@@ -516,6 +516,10 @@ const AdminService = (() => {
                 "id": 1765210056063,
                 "attribute_id": 1765209694646,
                 "isUrgent": true
+            },
+            {
+                "id": 1765329913797,
+                "attribute_id": 1765209473208
             }] // <- Se colar dentro, apague estes colchetes vazios
             ;
 
@@ -617,10 +621,6 @@ const AdminService = (() => {
             {
                 "id": 1765329906485,
                 "attribute_id": 1765241953547
-            },
-            {
-                "id": 1765329913797,
-                "attribute_id": 1765209473208
             },
             {
                 "id": 1765330000569,
