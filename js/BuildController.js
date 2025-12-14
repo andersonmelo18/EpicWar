@@ -1094,11 +1094,18 @@ const BuildController = (() => {
         updateArtifactCount,
         renderArtifactCards,
         saveCurrentBuild,
-        generateFinalReport,
+        generateFinalReport, // Essa deve ser a antiga
         setImportedBuild,
         loadBuildForEditing,
-        handleExport,
         refreshDashboard,
-        deleteBuild
+        deleteBuild,
+        
+        // --- CORREÇÃO AQUI ---
+        // Mantemos o handleExport original
+        handleExport, 
+        
+        // E criamos o 'generateReport' apontando para 'handleExport'
+        // Assim o App.js encontra a função que procura!
+        generateReport: handleExport 
     };
 })();
