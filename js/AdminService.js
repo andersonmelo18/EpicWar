@@ -382,6 +382,30 @@ const AdminService = (() => {
                 "name": "Redução Dano Garantido",
                 "tier": 1,
                 "default_element": null
+            },
+            {
+                "id": 1765749314725,
+                "name": "Execução de Harolds",
+                "tier": 1,
+                "default_element": null
+            },
+            {
+                "id": 1765749320349,
+                "name": "Execução de Monstros",
+                "tier": 1,
+                "default_element": null
+            },
+            {
+                "id": 1765749326344,
+                "name": "Execução de Titans",
+                "tier": 1,
+                "default_element": null
+            },
+            {
+                "id": 1765749331379,
+                "name": "Executar ( Estágios )",
+                "tier": 1,
+                "default_element": null
             }] // <- Se colar dentro, apague estes colchetes vazios
             ;
 
