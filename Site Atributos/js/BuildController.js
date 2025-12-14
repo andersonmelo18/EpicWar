@@ -828,7 +828,12 @@ const BuildController = (() => {
     };
 
     const handleExport = (type, analysis) => {
+        // Formata o nome do arquivo
         const buildName = currentBuild.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+        // --- MUDANÇA: Carregamos as listas do Storage para verificar a flag "Urgente" ---
+        const masterAttributes = StorageService.loadMasterAttributes();
+        const requiredAttributes = StorageService.loadRequiredAttributes();
 
         if (type === 'pdf') {
             if (typeof window.jspdf === 'undefined') { alert("Erro: jsPDF não carregado."); return; }
@@ -866,30 +871,86 @@ const BuildController = (() => {
             doc.text(`Inúteis: ${analysis.useless_gems.length}`, 10, y);
             y += 10;
 
-            // --- 1. FALTANDO ESSENCIAIS ---
+            // =================================================================
+            // --- 1. FALTANDO ESSENCIAIS (AQUI ESTÁ A LÓGICA DE URGÊNCIA) ---
+            // =================================================================
+            
             if (analysis.missing_attributes.length > 0) {
-                checkPageBreak();
-                doc.setFontSize(12);
-                doc.setTextColor(200, 0, 0); // Vermelho
-                doc.text("FALTANDO ESSENCIAIS (Prioridade):", 10, y);
-                y += 6;
-                doc.setFontSize(10);
-                doc.setTextColor(0, 0, 0);
+                // Criamos dois arrays para separar o joio do trigo
+                const missingUrgent = [];
+                const missingNormal = [];
 
+                // Percorremos a lista de faltantes que veio da análise
                 analysis.missing_attributes.forEach(m => {
-                    checkPageBreak();
-                    const attrInfo = masterAttributes.find(a => a.id === m.id);
-                    const tierInfo = attrInfo ? `(Lv${attrInfo.tier})` : '';
-                    doc.text(`- ${m.attribute} ${tierInfo}`, 15, y);
-                    y += 5;
+                    // Consultamos o Storage para ver se esse ID tem a flag isUrgent
+                    const reqDef = requiredAttributes.find(r => r.attribute_id === m.id);
+                    
+                    if (reqDef && reqDef.isUrgent) {
+                        missingUrgent.push(m);
+                    } else {
+                        missingNormal.push(m);
+                    }
                 });
-                y += 5;
+
+                // --- A. DESENHA O BLOCO VERMELHO (URGENTES) ---
+                if (missingUrgent.length > 0) {
+                    checkPageBreak(missingUrgent.length * 6 + 20);
+                    
+                    // Caixa Vermelha
+                    doc.setFillColor(254, 226, 226); // Fundo Vermelho claro
+                    doc.setDrawColor(220, 38, 38);   // Borda Vermelha forte
+                    doc.rect(10, y, 190, 8 + (missingUrgent.length * 6), 'FD');
+                    
+                    y += 6;
+                    doc.setFontSize(12);
+                    doc.setFont("helvetica", "bold");
+                    doc.setTextColor(220, 38, 38); // Texto Vermelho
+                    doc.text("🚨 ATENÇÃO: REQUISITOS URGENTES FALTANDO", 15, y);
+                    y += 6;
+
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "normal");
+                    doc.setTextColor(0, 0, 0); // Volta para preto
+
+                    missingUrgent.forEach(m => {
+                        const attrInfo = masterAttributes.find(a => a.id === m.id);
+                        const tierInfo = attrInfo ? `(Lv${attrInfo.tier})` : '';
+                        doc.text(`• ${m.attribute} ${tierInfo}`, 15, y);
+                        y += 6;
+                    });
+                    y += 5; // Espaço extra após a caixa
+                }
+
+                // --- B. DESENHA A LISTA NORMAL (NÃO URGENTES) ---
+                if (missingNormal.length > 0) {
+                    checkPageBreak();
+                    doc.setFontSize(12);
+                    doc.setFont("helvetica", "bold");
+                    doc.setTextColor(200, 0, 0); // Vermelho padrão
+                    doc.text("FALTANDO ESSENCIAIS (Comum):", 10, y);
+                    y += 6;
+                    
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "normal");
+                    doc.setTextColor(0, 0, 0);
+
+                    missingNormal.forEach(m => {
+                        checkPageBreak();
+                        const attrInfo = masterAttributes.find(a => a.id === m.id);
+                        const tierInfo = attrInfo ? `(Lv${attrInfo.tier})` : '';
+                        doc.text(`- ${m.attribute} ${tierInfo}`, 15, y);
+                        y += 5;
+                    });
+                    y += 5;
+                }
             }
+            // =================================================================
 
             // --- 2. FALTANDO SECUNDÁRIAS ---
             if (analysis.missing_secondaries && analysis.missing_secondaries.length > 0) {
                 checkPageBreak();
                 doc.setFontSize(12);
+                doc.setFont("helvetica", "normal"); // Reseta negrito se tiver ficado
                 doc.setTextColor(0, 0, 150); // Azul Escuro
                 doc.text("FALTANDO SECUNDÁRIAS (Opcional/Melhoria):", 10, y);
                 y += 6;
@@ -1010,8 +1071,13 @@ const BuildController = (() => {
             doc.save(`${buildName}.pdf`);
 
         } else if (type === 'csv') {
+            // Lógica CSV mantida igual
             let csv = `Nome,Classe\n${currentBuild.name},${currentBuild.class}\n\nArtefato,Gema\n`;
-            currentBuild.artifacts.forEach(a => { csv += `${a.name},${a.gems.map(g => g ? g.rarity : 'Vazio').join('|')}\n`; });
+            currentBuild.artifacts.forEach(a => { 
+                a.gems.forEach((g, i) => {
+                    if(g) csv += `${a.name},Slot ${i+1},${g.rarity}\n`;
+                });
+            });
             const link = document.createElement("a");
             link.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURI(csv));
             link.setAttribute("download", `${buildName}.csv`);

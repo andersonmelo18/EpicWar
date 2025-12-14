@@ -544,20 +544,40 @@ const Renderer = (() => {
     const renderRequiredAttributesList = (requiredAttributes, masterAttributes) => {
         const container = document.getElementById('required-attributes-list');
         if (!container) return;
-        if (requiredAttributes.length === 0) { container.innerHTML = '<p class="text-slate-400 text-sm italic">Lista vazia.</p>'; return; }
+        
+        if (requiredAttributes.length === 0) { 
+            container.innerHTML = '<p class="text-slate-400 text-sm italic">Lista vazia.</p>'; 
+            return; 
+        }
 
         let html = '';
         requiredAttributes.forEach(req => {
             const masterAttr = masterAttributes.find(a => a.id === req.attribute_id);
             if (!masterAttr) return;
+
+            // Lógica para mostrar se é urgente
+            const urgentBadge = req.isUrgent 
+                ? `<span class="text-[10px] font-bold text-red-600 bg-red-100 border border-red-200 px-1 rounded flex items-center gap-1 ml-1">🔥 Urgente</span>` 
+                : '';
+
             html += `
-                <div class="flex justify-between items-center p-3 bg-white border border-green-100 rounded-lg mb-2 shadow-sm">
-                    <div class="flex items-center gap-2">
+                <div class="flex justify-between items-center p-3 bg-white border border-green-100 rounded-lg mb-2 shadow-sm transition-all hover:shadow-md">
+                    <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-green-500 bg-green-50 p-1 rounded">✅</span>
                         <span class="font-bold text-slate-700 text-sm">${masterAttr.name}</span>
                         <span class="text-[10px] text-slate-400 font-mono bg-slate-50 px-1 rounded border">Lv${masterAttr.tier}</span>
+                        ${urgentBadge}
                     </div>
-                    <button data-action="delete-required-attr" data-id="${req.id}" class="text-red-400 hover:text-red-600 text-xs font-bold uppercase hover:bg-red-50 px-2 py-1 rounded transition-colors">Remover</button>
+                    
+                    <div class="flex items-center gap-2">
+                        <button data-action="edit-required-attr" data-id="${req.id}" class="text-indigo-400 hover:text-indigo-600 text-xs font-bold uppercase hover:bg-indigo-50 px-2 py-1 rounded transition-colors flex items-center gap-1" title="Alterar Prioridade">
+                            ✏️ <span class="hidden sm:inline">Editar</span>
+                        </button>
+
+                        <button data-action="delete-required-attr" data-id="${req.id}" class="text-red-400 hover:text-red-600 text-xs font-bold uppercase hover:bg-red-50 px-2 py-1 rounded transition-colors">
+                            Remover
+                        </button>
+                    </div>
                 </div>`;
         });
         container.innerHTML = html;

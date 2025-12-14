@@ -113,6 +113,17 @@ const AdminService = (() => {
         StorageService.saveRequiredAttributes(required);
     };
 
+    const updateRequiredAttribute = (id, isUrgent) => {
+        const required = StorageService.loadRequiredAttributes();
+        // Encontra o item pelo ID do registro (não o ID do atributo)
+        const itemIndex = required.findIndex(r => r.id.toString() === id.toString());
+        
+        if (itemIndex > -1) {
+            required[itemIndex].isUrgent = isUrgent;
+            StorageService.saveRequiredAttributes(required);
+        }
+    };
+
     const deleteRequiredAttribute = (reqId) => {
         let required = StorageService.loadRequiredAttributes();
         required = required.filter(r => r.id !== reqId);
@@ -188,6 +199,7 @@ const AdminService = (() => {
         saveMasterAttribute,
         deleteMasterAttribute,
         addRequiredAttribute,
+        updateRequiredAttribute,
         deleteRequiredAttribute,
         addSecondaryAttribute,    // <--- Função Exportada
         deleteSecondaryAttribute, // <--- Função Exportada

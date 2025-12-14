@@ -671,16 +671,32 @@ const Renderer = (() => {
     // (Repita a estrutura de modal moderna para Required, Secondary e Combo)
     const renderRequiredAttributeModal = (masterAttributes) => {
         const opts = masterAttributes.map(a => `<option value="${a.id}">${a.name} (Lv${a.tier})</option>`).join('');
+
         const modalHtml = `
             <div id="admin-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-[fadeIn_0.2s_ease-out]">
                     <div class="p-6 border-b bg-green-50 flex justify-between items-center">
                         <h3 class="text-lg font-bold text-green-900">Adicionar Requisito</h3>
-                        <button id="close-admin-modal-btn" class="text-slate-400 hover:text-slate-600">&times;</button>
+                        <button id="close-admin-modal-btn" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
                     </div>
                     <form id="required-attribute-form" class="p-6 space-y-4">
-                        <div><label class="text-xs font-bold text-slate-500 uppercase">Atributo</label><select id="required-attr-id" class="w-full border-slate-300 rounded-lg text-sm mt-1">${opts}</select></div>
-                        <button type="submit" class="w-full bg-green-600 text-white font-bold py-2.5 rounded-xl hover:bg-green-700 transition-colors">Adicionar</button>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase">Atributo</label>
+                            <select id="required-attr-id" class="w-full border-slate-300 rounded-lg text-sm mt-1 p-2 focus:ring-green-500 focus:border-green-500">
+                                ${opts}
+                            </select>
+                        </div>
+
+                        <div class="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-red-100">
+                            <input type="checkbox" id="required-attr-urgent" class="w-5 h-5 text-red-600 rounded border-gray-300 focus:ring-red-500 cursor-pointer">
+                            <label for="required-attr-urgent" class="text-sm font-bold text-red-700 cursor-pointer select-none">
+                                Marcar como Prioridade/Urgente? 🔥
+                            </label>
+                        </div>
+
+                        <button type="submit" class="w-full bg-green-600 text-white font-bold py-2.5 rounded-xl hover:bg-green-700 transition-colors shadow-lg shadow-green-200">
+                            Adicionar
+                        </button>
                     </form>
                 </div>
             </div>`;

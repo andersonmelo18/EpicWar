@@ -299,8 +299,14 @@ const StorageService = (() => {
 
     const deleteBuild = (id) => {
         let builds = loadAllBuilds();
-        builds = builds.filter(b => b.id !== id);
+        // Correção: Converte para string para garantir que Número seja igual a Texto
+        const initialLength = builds.length;
+        builds = builds.filter(b => b.id.toString() !== id.toString());
+
         saveData(KEYS.BUILDS, builds);
+
+        // Retorna true se algo foi deletado
+        return builds.length < initialLength;
     };
 
     const loadMasterAttributes = () => getData(KEYS.MASTER_ATTRIBUTES);
@@ -362,13 +368,14 @@ const StorageService = (() => {
         initializeDefaultData,
         loadAllBuilds,
         loadBuildById,
+        // Adicione este alias para evitar o erro "getBuildById is not a function"
+        getBuildById: loadBuildById, 
         saveBuild,
         deleteBuild,
         loadMasterAttributes,
         saveMasterAttributes,
         loadRequiredAttributes,
         saveRequiredAttributes,
-        // Exportar novas funções
         loadSecondaryAttributes,
         saveSecondaryAttributes,
         loadRecommendedCombos,
@@ -378,7 +385,6 @@ const StorageService = (() => {
         clearAllData,
         loadGlobalNotes,
         saveGlobalNotes,
-        // Novos exports:
         getAdminPassword,
         setAdminPassword
     };
