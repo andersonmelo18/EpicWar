@@ -299,14 +299,13 @@ const StorageService = (() => {
 
     const deleteBuild = (id) => {
         let builds = loadAllBuilds();
-        // CORREÇÃO: Converte tudo para texto (.toString()) antes de comparar
-        // Assim "12345" (texto) é igual a 12345 (número)
+        // Correção: Converte para string para garantir que Número seja igual a Texto
         const initialLength = builds.length;
         builds = builds.filter(b => b.id.toString() !== id.toString());
 
         saveData(KEYS.BUILDS, builds);
 
-        // Retorna true se o tamanho da lista diminuiu (ou seja, deletou algo)
+        // Retorna true se algo foi deletado
         return builds.length < initialLength;
     };
 
@@ -369,8 +368,8 @@ const StorageService = (() => {
         initializeDefaultData,
         loadAllBuilds,
         loadBuildById,
-        // CORREÇÃO: Adiciona este atalho para evitar o erro "getBuildById is not a function"
-        getBuildById: loadBuildById,
+        // Adicione este alias para evitar o erro "getBuildById is not a function"
+        getBuildById: loadBuildById, 
         saveBuild,
         deleteBuild,
         loadMasterAttributes,
