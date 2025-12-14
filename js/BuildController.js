@@ -828,11 +828,12 @@ const BuildController = (() => {
     };
 
     const handleExport = (type, analysis) => {
+        // Formata o nome do arquivo
         const buildName = currentBuild.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
-        // Carrega dados necessários para verificar a urgência
-        const masterAttributes = StorageService.loadMasterAttributes(); // Garante que temos os nomes
-        const requiredAttributes = StorageService.loadRequiredAttributes(); // Garante que temos a flag isUrgent
+        // --- MUDANÇA: Carregamos as listas do Storage para verificar a flag "Urgente" ---
+        const masterAttributes = StorageService.loadMasterAttributes();
+        const requiredAttributes = StorageService.loadRequiredAttributes();
 
         if (type === 'pdf') {
             if (typeof window.jspdf === 'undefined') { alert("Erro: jsPDF não carregado."); return; }
@@ -870,18 +871,20 @@ const BuildController = (() => {
             doc.text(`Inúteis: ${analysis.useless_gems.length}`, 10, y);
             y += 10;
 
-            // ============================================================
-            // --- 1. FALTANDO ESSENCIAIS (COM LÓGICA DE URGÊNCIA) ---
-            // ============================================================
+            // =================================================================
+            // --- 1. FALTANDO ESSENCIAIS (AQUI ESTÁ A LÓGICA DE URGÊNCIA) ---
+            // =================================================================
             
             if (analysis.missing_attributes.length > 0) {
-                // Separa Urgentes de Normais
+                // Criamos dois arrays para separar o joio do trigo
                 const missingUrgent = [];
                 const missingNormal = [];
 
+                // Percorremos a lista de faltantes que veio da análise
                 analysis.missing_attributes.forEach(m => {
-                    // Procura no banco de dados se esse ID é urgente
+                    // Consultamos o Storage para ver se esse ID tem a flag isUrgent
                     const reqDef = requiredAttributes.find(r => r.attribute_id === m.id);
+                    
                     if (reqDef && reqDef.isUrgent) {
                         missingUrgent.push(m);
                     } else {
@@ -889,13 +892,13 @@ const BuildController = (() => {
                     }
                 });
 
-                // A. BLOCO VERMELHO (URGENTES)
+                // --- A. DESENHA O BLOCO VERMELHO (URGENTES) ---
                 if (missingUrgent.length > 0) {
                     checkPageBreak(missingUrgent.length * 6 + 20);
                     
-                    // Desenha Fundo Vermelho
-                    doc.setFillColor(254, 226, 226); // Vermelho claro
-                    doc.setDrawColor(220, 38, 38);   // Borda Vermelha
+                    // Caixa Vermelha
+                    doc.setFillColor(254, 226, 226); // Fundo Vermelho claro
+                    doc.setDrawColor(220, 38, 38);   // Borda Vermelha forte
                     doc.rect(10, y, 190, 8 + (missingUrgent.length * 6), 'FD');
                     
                     y += 6;
@@ -907,7 +910,7 @@ const BuildController = (() => {
 
                     doc.setFontSize(10);
                     doc.setFont("helvetica", "normal");
-                    doc.setTextColor(0, 0, 0); // Texto Preto
+                    doc.setTextColor(0, 0, 0); // Volta para preto
 
                     missingUrgent.forEach(m => {
                         const attrInfo = masterAttributes.find(a => a.id === m.id);
@@ -915,16 +918,16 @@ const BuildController = (() => {
                         doc.text(`• ${m.attribute} ${tierInfo}`, 15, y);
                         y += 6;
                     });
-                    y += 5; // Espaço após a caixa
+                    y += 5; // Espaço extra após a caixa
                 }
 
-                // B. LISTA NORMAL (NÃO URGENTES)
+                // --- B. DESENHA A LISTA NORMAL (NÃO URGENTES) ---
                 if (missingNormal.length > 0) {
                     checkPageBreak();
                     doc.setFontSize(12);
                     doc.setFont("helvetica", "bold");
-                    doc.setTextColor(200, 0, 0); // Vermelho escuro padrão
-                    doc.text("Faltando Essenciais (Comum):", 10, y);
+                    doc.setTextColor(200, 0, 0); // Vermelho padrão
+                    doc.text("FALTANDO ESSENCIAIS (Comum):", 10, y);
                     y += 6;
                     
                     doc.setFontSize(10);
@@ -940,23 +943,14 @@ const BuildController = (() => {
                     });
                     y += 5;
                 }
-            } else {
-                // Se não faltar nada
-                doc.setTextColor(22, 163, 74); // Verde
-                doc.setFontSize(11);
-                doc.text("✅ Todos os itens essenciais foram atendidos!", 10, y);
-                y += 10;
-                doc.setTextColor(0,0,0);
             }
-
-            // ============================================================
-            // CONTINUA O RESTANTE DO SEU CÓDIGO NORMALMENTE...
-            // ============================================================
+            // =================================================================
 
             // --- 2. FALTANDO SECUNDÁRIAS ---
             if (analysis.missing_secondaries && analysis.missing_secondaries.length > 0) {
                 checkPageBreak();
                 doc.setFontSize(12);
+                doc.setFont("helvetica", "normal"); // Reseta negrito se tiver ficado
                 doc.setTextColor(0, 0, 150); // Azul Escuro
                 doc.text("FALTANDO SECUNDÁRIAS (Opcional/Melhoria):", 10, y);
                 y += 6;
@@ -1077,8 +1071,13 @@ const BuildController = (() => {
             doc.save(`${buildName}.pdf`);
 
         } else if (type === 'csv') {
+            // Lógica CSV mantida igual
             let csv = `Nome,Classe\n${currentBuild.name},${currentBuild.class}\n\nArtefato,Gema\n`;
-            currentBuild.artifacts.forEach(a => { csv += `${a.name},${a.gems.map(g => g ? g.rarity : 'Vazio').join('|')}\n`; });
+            currentBuild.artifacts.forEach(a => { 
+                a.gems.forEach((g, i) => {
+                    if(g) csv += `${a.name},Slot ${i+1},${g.rarity}\n`;
+                });
+            });
             const link = document.createElement("a");
             link.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURI(csv));
             link.setAttribute("download", `${buildName}.csv`);
