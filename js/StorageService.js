@@ -48,7 +48,7 @@ const StorageService = (() => {
         { "id": 1765241986990, "name": "Todo Poder das Tropas de Fogo", "tier": 2, "default_element": "fogo" },
 
         // ❄️ GELO
-        { "id": 1765209594158, "name": "Dano de Contra Ataque Recebido", "tier": 2, "default_element": "gelo" },
+        { "id": 1765209594158, "name": "Redução de Dano de Contra Ataque Recebido", "tier": 2, "default_element": "gelo" },
         { "id": 1765242126023, "name": "Capacidade da Tropa do Herói de Gelo", "tier": 2, "default_element": "gelo" },
         { "id": 1765242162340, "name": "Todo Poder das Tropas de Gelo", "tier": 2, "default_element": "gelo" },
 
