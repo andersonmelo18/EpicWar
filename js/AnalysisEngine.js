@@ -8,12 +8,9 @@ const AnalysisEngine = (() => {
     // Define a hierarquia de qualidade para desempate de duplicatas
     const REMODEL_WEIGHTS = {
         comum: 1,
-
         raro: 2,
-
         extra: 3,
         perfeito: 4,
-
         epico: 5,
         lendario: 6,
         mitico: 7
@@ -46,7 +43,15 @@ const AnalysisEngine = (() => {
      * Executa a análise completa da build do personagem.
      * Agora suporta atributos secundários e lógica de duplicatas.
      */
-    const runAnalysis = (characterBuild, masterAttributes, requiredAttributes, secondaryAttributes, recommendedCombos) => {
+    const runAnalysis = (characterBuild, masterAttributes = null, requiredAttributes = null, secondaryAttributes = null, recommendedCombos = null) => {
+        
+        // --- AUTO-CARREGAMENTO (Fallback) ---
+        // Se os dados não forem passados, carrega do StorageService automaticamente.
+        // Isso permite chamar analyze(build) sem passar o resto dos parâmetros.
+        if (!masterAttributes) masterAttributes = StorageService.loadMasterAttributes();
+        if (!requiredAttributes) requiredAttributes = StorageService.loadRequiredAttributes();
+        if (!secondaryAttributes) secondaryAttributes = StorageService.loadSecondaryAttributes();
+        if (!recommendedCombos) recommendedCombos = StorageService.loadRecommendedCombos();
 
         // Mapeia IDs dos requisitos para verificação rápida
         const requiredIds = new Set(requiredAttributes.map(req => req.attribute_id));
@@ -272,6 +277,9 @@ const AnalysisEngine = (() => {
     return {
         validateElementExclusivity,
         runAnalysis,
-        generateSuggestion
+        generateSuggestion,
+        // ALIAS: Cria o "analyze" apontando para o "runAnalysis"
+        // Isso resolve o erro "analyze is not a function"
+        analyze: runAnalysis 
     };
 })();
