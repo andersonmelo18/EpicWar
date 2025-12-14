@@ -1,8 +1,6 @@
 /**
  * js/App.js
- * Módulo principal que inicializa o aplicativo, gerencia a navegação
- * e coordena os outros controladores.
- * Depende de: StorageService, BuildController, AdminController.
+ * Módulo principal que inicializa o aplicativo.
  */
 const App = (() => {
     
@@ -26,7 +24,7 @@ const App = (() => {
             }
         });
 
-        // Aplicar estilo ativo (Visual Moderno)
+        // Aplicar estilo ativo
         if (activeView === 'dashboard' && NAV_BUTTONS['dashboard']) {
             NAV_BUTTONS['dashboard'].classList.add('text-indigo-600', 'bg-indigo-50');
             NAV_BUTTONS['dashboard'].classList.remove('text-slate-600');
@@ -53,7 +51,7 @@ const App = (() => {
             }
         });
         
-        // Mostra a selecionada com Animação
+        // Mostra a selecionada
         if (VIEWS[viewId]) {
             VIEWS[viewId].classList.remove('hidden');
             VIEWS[viewId].classList.add('animate-fade-in'); 
@@ -70,21 +68,31 @@ const App = (() => {
         }
     };
     
-    // Funções públicas de navegação
     const showDashboard = () => showView('dashboard');
     const showReport = () => showView('report');
     const showEditor = () => showView('editor');
     const showHelp = () => showView('help');
 
-    // --- Métodos Públicos para onclick no HTML ---
+    // --- Métodos Públicos (A Ponte para o HTML) ---
+    
     const loadBuild = (id) => {
-        BuildController.loadBuildForEditing(id);
-        showView('editor');
+        if (typeof BuildController !== 'undefined') {
+            BuildController.loadBuildForEditing(id);
+            // Não precisa chamar showView aqui se o loadBuildForEditing já fizer isso, 
+            // mas por segurança deixamos aqui ou garantimos no controller.
+        }
     };
 
     const deleteBuild = (id) => {
+        // Converte para string para evitar erros de tipo
+        const buildId = id.toString();
+        
         if(confirm("Tem certeza que deseja excluir esta build permanentemente?")) {
-            BuildController.deleteBuild(id);
+            if (typeof BuildController !== 'undefined') {
+                BuildController.deleteBuild(buildId);
+            } else {
+                console.error("BuildController não encontrado!");
+            }
         }
     };
 
@@ -138,17 +146,14 @@ const App = (() => {
     const setupListeners = () => {
         if (NAV_BUTTONS['dashboard']) NAV_BUTTONS['dashboard'].addEventListener('click', showDashboard);
         
-        // --- PROTEÇÃO DE SENHA AQUI ---
         if (NAV_BUTTONS['admin']) {
             NAV_BUTTONS['admin'].addEventListener('click', () => {
                 const isLogged = sessionStorage.getItem('admin_session_active');
 
                 if (isLogged === 'true') {
-                    // Já logado nesta sessão
                     if (typeof AdminController !== 'undefined') AdminController.initAdminView();
                     showView('admin');
                 } else {
-                    // Requer Login (Modal)
                     if (typeof Renderer !== 'undefined' && Renderer.renderLoginModal) {
                         Renderer.renderLoginModal(() => {
                             sessionStorage.setItem('admin_session_active', 'true');
@@ -156,7 +161,6 @@ const App = (() => {
                             showView('admin');
                         });
                     } else {
-                        // Fallback caso Renderer não tenha carregado ainda (segurança)
                         const pass = prompt("Digite a senha de administrador:");
                         if (pass === StorageService.getAdminPassword()) {
                             sessionStorage.setItem('admin_session_active', 'true');
@@ -168,18 +172,18 @@ const App = (() => {
                 }
             });
         }
-        // ------------------------------
 
         if (NAV_BUTTONS['help']) NAV_BUTTONS['help'].addEventListener('click', showHelp);
         
         if (NAV_BUTTONS['newChar']) {
             NAV_BUTTONS['newChar'].addEventListener('click', () => { 
-                BuildController.initializeNewBuild(); 
-                showView('editor'); 
+                if (typeof BuildController !== 'undefined') {
+                    BuildController.initializeNewBuild(); 
+                    showView('editor'); 
+                }
             });
         }
 
-        // Listeners do Editor
         const runBtn = document.getElementById('run-full-analysis-btn');
         if (runBtn) {
             runBtn.addEventListener('click', async () => {
@@ -190,7 +194,7 @@ const App = (() => {
 
                 await new Promise(resolve => setTimeout(resolve, 600)); 
 
-                BuildController.generateFinalReport();
+                BuildController.generateReport('pdf'); // Alterado para chamar generateReport direto
 
                 runBtn.innerHTML = originalText;
                 runBtn.disabled = false;
@@ -226,7 +230,7 @@ const App = (() => {
         };
 
         addGlobalAnimationStyles(); 
-        StorageService.initializeDefaultData(); 
+        if (typeof StorageService !== 'undefined') StorageService.initializeDefaultData(); 
         setupListeners();
         
         if (typeof BuildController !== 'undefined') BuildController.init(); 
@@ -239,6 +243,7 @@ const App = (() => {
 
     document.addEventListener('DOMContentLoaded', init);
     
+    // EXPORTAÇÕES
     return {
         showView,
         loadBuild,   
@@ -249,3 +254,7 @@ const App = (() => {
         showHelp
     };
 })();
+
+// --- AQUI ESTAVA O ERRO (FALTA DESSA LINHA) ---
+// Torna o App global para que o onclick="App.deleteBuild(...)" do HTML funcione
+window.App = App;
