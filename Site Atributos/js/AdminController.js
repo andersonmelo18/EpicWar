@@ -126,18 +126,31 @@ const AdminController = (() => {
     const handleSaveRequiredAttribute = (e) => {
         e.preventDefault();
         const form = e.target;
-        const attribute_id = parseInt(form.querySelector('#required-attr-id').value);
 
-        // --- MUDANÇA AQUI: Captura se o checkbox "Urgente" está marcado ---
+        // Captura os valores do formulário
+        const attribute_id = parseInt(form.querySelector('#required-attr-id').value);
         const isUrgent = form.querySelector('#required-attr-urgent').checked;
 
-        if (!attribute_id) {
-            alert('Selecione um atributo mestre.');
-            return;
-        }
+        // --- NOVO: Captura o ID oculto (para saber se é edição) ---
+        // Se este campo tiver valor, estamos editando. Se estiver vazio, é novo.
+        const editId = form.querySelector('#edit-record-id') ? form.querySelector('#edit-record-id').value : null;
 
-        // Passa o ID e a flag de Urgência para o serviço
-        AdminService.addRequiredAttribute(attribute_id, isUrgent);
+        if (editId) {
+            // ===========================
+            // MODO EDIÇÃO (Atualizar)
+            // ===========================
+            AdminService.updateRequiredAttribute(parseInt(editId), isUrgent);
+
+        } else {
+            // ===========================
+            // MODO CRIAÇÃO (Novo)
+            // ===========================
+            if (!attribute_id) {
+                alert('Selecione um atributo mestre.');
+                return;
+            }
+            AdminService.addRequiredAttribute(attribute_id, isUrgent);
+        }
 
         closeModal();
         refreshAdminView();
@@ -308,8 +321,34 @@ const AdminController = (() => {
         });
 
         DOM.requiredAttributesList.addEventListener('click', (e) => {
-            if (e.target.dataset.action === 'delete-required-attr') {
-                handleDeleteRequiredAttribute(parseInt(e.target.dataset.id));
+            // Usa closest para pegar o botão mesmo se clicar no ícone SVG dentro dele
+            const btn = e.target.closest('button');
+            if (!btn) return;
+
+            const action = btn.dataset.action;
+            const id = parseInt(btn.dataset.id);
+
+            // AÇÃO DE DELETAR (Mantida)
+            if (action === 'delete-required-attr') {
+                handleDeleteRequiredAttribute(id);
+            }
+            // AÇÃO DE EDITAR (Nova)
+            else if (action === 'edit-required-attr') {
+                const reqAttrs = StorageService.loadRequiredAttributes();
+                const masterAttrs = StorageService.loadMasterAttributes();
+
+                // Encontra o item específico que queremos editar
+                const itemToEdit = reqAttrs.find(r => r.id === id);
+
+                if (itemToEdit) {
+                    // Abre o modal passando o item para preencher os dados
+                    Renderer.renderRequiredAttributeModal(masterAttrs, itemToEdit);
+
+                    // Reconecta os listeners do modal (fechar e salvar)
+                    Renderer.attachModalCloseListeners();
+                    document.getElementById('required-attribute-form').addEventListener('submit', handleSaveRequiredAttribute);
+                    document.getElementById('close-admin-modal-btn').addEventListener('click', closeModal);
+                }
             }
         });
 

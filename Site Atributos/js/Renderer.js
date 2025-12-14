@@ -544,20 +544,40 @@ const Renderer = (() => {
     const renderRequiredAttributesList = (requiredAttributes, masterAttributes) => {
         const container = document.getElementById('required-attributes-list');
         if (!container) return;
-        if (requiredAttributes.length === 0) { container.innerHTML = '<p class="text-slate-400 text-sm italic">Lista vazia.</p>'; return; }
+        
+        if (requiredAttributes.length === 0) { 
+            container.innerHTML = '<p class="text-slate-400 text-sm italic">Lista vazia.</p>'; 
+            return; 
+        }
 
         let html = '';
         requiredAttributes.forEach(req => {
             const masterAttr = masterAttributes.find(a => a.id === req.attribute_id);
             if (!masterAttr) return;
+
+            // Lógica para mostrar se é urgente
+            const urgentBadge = req.isUrgent 
+                ? `<span class="text-[10px] font-bold text-red-600 bg-red-100 border border-red-200 px-1 rounded flex items-center gap-1 ml-1">🔥 Urgente</span>` 
+                : '';
+
             html += `
-                <div class="flex justify-between items-center p-3 bg-white border border-green-100 rounded-lg mb-2 shadow-sm">
-                    <div class="flex items-center gap-2">
+                <div class="flex justify-between items-center p-3 bg-white border border-green-100 rounded-lg mb-2 shadow-sm transition-all hover:shadow-md">
+                    <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-green-500 bg-green-50 p-1 rounded">✅</span>
                         <span class="font-bold text-slate-700 text-sm">${masterAttr.name}</span>
                         <span class="text-[10px] text-slate-400 font-mono bg-slate-50 px-1 rounded border">Lv${masterAttr.tier}</span>
+                        ${urgentBadge}
                     </div>
-                    <button data-action="delete-required-attr" data-id="${req.id}" class="text-red-400 hover:text-red-600 text-xs font-bold uppercase hover:bg-red-50 px-2 py-1 rounded transition-colors">Remover</button>
+                    
+                    <div class="flex items-center gap-2">
+                        <button data-action="edit-required-attr" data-id="${req.id}" class="text-indigo-400 hover:text-indigo-600 text-xs font-bold uppercase hover:bg-indigo-50 px-2 py-1 rounded transition-colors flex items-center gap-1" title="Alterar Prioridade">
+                            ✏️ <span class="hidden sm:inline">Editar</span>
+                        </button>
+
+                        <button data-action="delete-required-attr" data-id="${req.id}" class="text-red-400 hover:text-red-600 text-xs font-bold uppercase hover:bg-red-50 px-2 py-1 rounded transition-colors">
+                            Remover
+                        </button>
+                    </div>
                 </div>`;
         });
         container.innerHTML = html;
@@ -669,33 +689,57 @@ const Renderer = (() => {
     };
 
     // (Repita a estrutura de modal moderna para Required, Secondary e Combo)
-    const renderRequiredAttributeModal = (masterAttributes) => {
-        const opts = masterAttributes.map(a => `<option value="${a.id}">${a.name} (Lv${a.tier})</option>`).join('');
+    const renderRequiredAttributeModal = (masterAttributes, editItem = null) => {
+        // --- PREPARAÇÃO DOS DADOS (Edição vs Criação) ---
+        const isEdit = !!editItem;
+        const title = isEdit ? 'Editar Requisito' : 'Adicionar Requisito';
+        const btnText = isEdit ? 'Salvar Alterações' : 'Adicionar';
+        
+        // O ID do registro (para o Controller saber quem atualizar)
+        const hiddenId = isEdit ? editItem.id : ''; 
+        
+        // ID do atributo selecionado
+        const selectedAttrId = isEdit ? editItem.attribute_id : '';
+        
+        // Estado do Checkbox
+        const isChecked = (isEdit && editItem.isUrgent) ? 'checked' : '';
+        
+        // Desabilita a troca de atributo na edição (foca só na urgência)
+        const disabledAttr = isEdit ? 'disabled' : '';
+
+        // Gera as opções marcando a selecionada se necessário
+        const opts = masterAttributes.map(a => {
+            const selected = a.id === selectedAttrId ? 'selected' : '';
+            return `<option value="${a.id}" ${selected}>${a.name} (Lv${a.tier})</option>`;
+        }).join('');
 
         const modalHtml = `
             <div id="admin-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                 <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-[fadeIn_0.2s_ease-out]">
                     <div class="p-6 border-b bg-green-50 flex justify-between items-center">
-                        <h3 class="text-lg font-bold text-green-900">Adicionar Requisito</h3>
+                        <h3 class="text-lg font-bold text-green-900">${title}</h3>
                         <button id="close-admin-modal-btn" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
                     </div>
                     <form id="required-attribute-form" class="p-6 space-y-4">
+                        
+                        <input type="hidden" id="edit-record-id" value="${hiddenId}">
+
                         <div>
                             <label class="text-xs font-bold text-slate-500 uppercase">Atributo</label>
-                            <select id="required-attr-id" class="w-full border-slate-300 rounded-lg text-sm mt-1 p-2 focus:ring-green-500 focus:border-green-500">
+                            <select id="required-attr-id" class="w-full border-slate-300 rounded-lg text-sm mt-1 p-2 focus:ring-green-500 focus:border-green-500 disabled:bg-slate-100 disabled:text-slate-500" ${disabledAttr}>
                                 ${opts}
                             </select>
                         </div>
 
                         <div class="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-red-100">
-                            <input type="checkbox" id="required-attr-urgent" class="w-5 h-5 text-red-600 rounded border-gray-300 focus:ring-red-500 cursor-pointer">
+                            <input type="checkbox" id="required-attr-urgent" ${isChecked} class="w-5 h-5 text-red-600 rounded border-gray-300 focus:ring-red-500 cursor-pointer">
                             <label for="required-attr-urgent" class="text-sm font-bold text-red-700 cursor-pointer select-none">
                                 Marcar como Prioridade/Urgente? 🔥
                             </label>
                         </div>
 
                         <button type="submit" class="w-full bg-green-600 text-white font-bold py-2.5 rounded-xl hover:bg-green-700 transition-colors shadow-lg shadow-green-200">
-                            Adicionar
+                            ${btnText}
                         </button>
                     </form>
                 </div>
