@@ -71,7 +71,7 @@ const StorageService = (() => {
     const saveRecommendedCombos = (data) => saveData(KEYS.RECOMMENDED_COMBOS, data);
 
     // Notas Globais
-    const loadGlobalNotes = () => localStorage.getItem(KEYS.GLOBAL_NOTES) || "Dicas gerais para PvP: Mantenha seus atributos essenciais em dia.";
+    const loadGlobalNotes = () => localStorage.getItem(KEYS.GLOBAL_NOTES) || "Dicas gerais para PvP: Mantenha seus atributos essenciais em dia. Caso haja duplicatas, fique atento a troca procure sempre manter os atributos que estão em SSR, mais caso o seu duplicado esteja em um SS ou Inferior com Remodelação Mítica ele vai se destacar nos resultados, então deixe para troca-lo apenas quando seu atributo que virá a ser principal ficar Mítico !";
     const saveGlobalNotes = (text) => localStorage.setItem(KEYS.GLOBAL_NOTES, text);
 
     // --- SEGURANÇA ---
