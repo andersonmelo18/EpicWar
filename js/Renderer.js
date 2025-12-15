@@ -599,7 +599,7 @@ const Renderer = (() => {
 
             // Lógica para mostrar se é urgente
             const urgentBadge = req.isUrgent
-                ? `<span class="text-[10px] font-bold text-red-600 bg-red-100 border border-red-200 px-1 rounded flex items-center gap-1 ml-1 print:text-red-800 print:bg-red-200">! Urgente</span>`
+                ? `<span class="text-[10px] font-bold text-red-600 bg-red-100 border border-red-200 px-1 rounded flex items-center gap-1 ml-1">🔥 Urgente</span>`
                 : '';
 
             html += `
