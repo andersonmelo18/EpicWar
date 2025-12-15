@@ -16,6 +16,15 @@ const AnalysisEngine = (() => {
         mitico: 7
     };
 
+    // NOVO: Define a hierarquia de raridade da Gema/Slot (SSR é melhor)
+    const RARITY_RANKS = {
+        b: 1,
+        a: 2,
+        s: 3,
+        sr: 4,
+        ssr: 5
+        // Adicione outras se necessário
+    };
 
     /**
      * Retorna o peso numérico da remodelação.
@@ -24,6 +33,36 @@ const AnalysisEngine = (() => {
         if (!remodelString) return 0;
         const key = remodelString.toLowerCase().trim();
         return REMODEL_WEIGHTS[key] || 0;
+    };
+
+    /**
+     * NOVO: Retorna o peso numérico da raridade da gema/slot.
+     */
+    const getRarityWeight = (rarityString) => {
+        if (!rarityString) return 0;
+        const key = rarityString.toLowerCase().trim();
+        return RARITY_RANKS[key] || 0;
+    };
+
+    /**
+     * NOVO: Compara dois atributos duplicados para determinar qual slot deve ser mantido.
+     * PRIORIDADE: RAREZA DO SLOT (Potencial) > QUALIDADE DO REMODEL (Atual).
+     */
+    const compareDuplicateSlots = (dupA, dupB) => {
+        // 1. PRIORIDADE 1: RAREZA DO SLOT (SSR vs S)
+        // b - a: Ordena do maior (melhor) para o menor
+        if (dupA.rarity_weight !== dupB.rarity_weight) {
+            return dupB.rarity_weight - dupA.rarity_weight;
+        }
+
+        // 2. PRIORIDADE 2: QUALIDADE DO REMODEL (Mítico vs Épico)
+        // Se a raridade do slot for igual, priorizamos a qualidade atual.
+        if (dupA.weight !== dupB.weight) {
+            return dupB.weight - dupA.weight;
+        }
+
+        // 3. Desempate final (Tudo igual)
+        return 0;
     };
 
     /**
@@ -41,13 +80,11 @@ const AnalysisEngine = (() => {
 
     /**
      * Executa a análise completa da build do personagem.
-     * Agora suporta atributos secundários e lógica de duplicatas.
+     * Agora suporta atributos secundários e lógica de duplicatas baseada em Raridade.
      */
     const runAnalysis = (characterBuild, masterAttributes = null, requiredAttributes = null, secondaryAttributes = null, recommendedCombos = null) => {
-        
+
         // --- AUTO-CARREGAMENTO (Fallback) ---
-        // Se os dados não forem passados, carrega do StorageService automaticamente.
-        // Isso permite chamar analyze(build) sem passar o resto dos parâmetros.
         if (!masterAttributes) masterAttributes = StorageService.loadMasterAttributes();
         if (!requiredAttributes) requiredAttributes = StorageService.loadRequiredAttributes();
         if (!secondaryAttributes) secondaryAttributes = StorageService.loadSecondaryAttributes();
@@ -61,16 +98,15 @@ const AnalysisEngine = (() => {
         const analysisResult = {
             present_attributes: new Map(), // Map<Attribute ID, Array<Location>> (Válidos e Únicos)
             missing_attributes: [],        // Requeridos que faltam
-            missing_secondaries: [],       // Secundários que faltam (NOVO)
+            missing_secondaries: [],       // Secundários que faltam
             secondary_present: [],         // Secundários presentes (Válidos e Únicos)
             duplicates_to_remove: [],      // Duplicatas Piores (Troca Urgente)
             useless_gems: [],              // Inúteis (Troca Urgente) ou Inválidos
-            invalid_placements: [],        // (Opcional, pode ser mesclado com useless)
+            invalid_placements: [],        // (Opcional)
             combo_status: []
         };
 
         // Mapa temporário para agrupar ocorrências por ID de atributo
-        // Chave: ID do Atributo -> Valor: Array de objetos de ocorrência
         const equippedMap = new Map();
 
         // 1. ITERAR SOBRE ARTEFATOS E GEMAS DA BUILD
@@ -97,7 +133,10 @@ const AnalysisEngine = (() => {
                                 // Checagem de elemento
                                 element_valid: validateElementExclusivity(attrId, gemElement, masterAttributes),
                                 remodel: gemAttr.remodel,
-                                weight: getRemodelWeight(gemAttr.remodel),
+                                weight: getRemodelWeight(gemAttr.remodel), // Peso do status atual
+                                // NOVO: Captura dados de raridade para o desempate
+                                gem_rarity: gem.rarity,
+                                rarity_weight: getRarityWeight(gem.rarity),
                                 tier: gemAttr.tier,
                                 location: {
                                     artifact_name: artifact.name || `Artefato ${artifact.position}`,
@@ -120,9 +159,8 @@ const AnalysisEngine = (() => {
         const allValidPresentIds = new Set();
 
         equippedMap.forEach((occurrences, attrId) => {
-            // Ordena as ocorrências por peso (do maior para o menor)
-            // Se houver empate, mantém a ordem original (estabilidade do sort varia, mas ok para este caso)
-            occurrences.sort((a, b) => b.weight - a.weight);
+            // ALTERADO: Usa a nova função de comparação (Raridade > Remodel)
+            occurrences.sort(compareDuplicateSlots);
 
             // O primeiro da lista é o "Melhor" (Keeper)
             const keeper = occurrences[0];
@@ -136,29 +174,25 @@ const AnalysisEngine = (() => {
                         analysisResult.present_attributes.set(attrId, []);
                     }
 
-                    // --- CORREÇÃO DO UNDEFINED ---
-                    // Antes: analysisResult.present_attributes.get(attrId).push(keeper.location);
-                    // Agora: Mesclamos location com remodel para que o PDF consiga ler
                     analysisResult.present_attributes.get(attrId).push({
                         ...keeper.location,
                         remodel: keeper.remodel
                     });
-                    // -----------------------------
 
                     allValidPresentIds.add(attrId);
                 } else if (secondaryIds.has(attrId)) {
                     // É Secundário
                     analysisResult.secondary_present.push(keeper);
-                    allValidPresentIds.add(attrId); // Adiciona aos presentes para cálculo de secundários faltantes
+                    allValidPresentIds.add(attrId);
                 } else {
-                    // É Válido, mas não é Requerido nem Secundário -> Inútil
+                    // É Válido, mas inútil
                     analysisResult.useless_gems.push({
                         ...keeper,
                         reason: "Atributo não listado como Essencial ou Suporte."
                     });
                 }
             } else {
-                // Keeper inválido por elemento -> Marca como inútil/inválido
+                // Keeper inválido por elemento
                 analysisResult.useless_gems.push({
                     ...keeper,
                     reason: "Elemento Incompatível (Bloqueado)."
@@ -168,12 +202,18 @@ const AnalysisEngine = (() => {
             // Todos os outros (índice 1 em diante) são Duplicatas que devem ser removidas
             for (let i = 1; i < occurrences.length; i++) {
                 const duplicate = occurrences[i];
+
+                // --- ALTERAÇÃO AQUI ---
+                // Verifica se existe raridade para montar a string bonitinha (Ex: "SSR - Mitico")
+                const rarityLabel = keeper.gem_rarity ? `${keeper.gem_rarity.toUpperCase()} - ` : '';
+
                 // Adiciona à lista de remoção com uma dica de quem ficou no lugar
                 analysisResult.duplicates_to_remove.push({
                     ...duplicate,
                     keeper_location: keeper.location.position,
                     keeper_remodel: keeper.remodel,
-                    reason: `Duplicado. Mantenha o de ${keeper.location.position} (${keeper.remodel}).`
+                    // MUDANÇA NA MENSAGEM: Adicionamos o rarityLabel
+                    reason: `Duplicado. Mantenha o de ${keeper.location.position} (${rarityLabel}${keeper.remodel}).`
                 });
             }
         });
@@ -186,14 +226,14 @@ const AnalysisEngine = (() => {
                     analysisResult.missing_attributes.push({
                         attribute: masterAttr.name,
                         id: masterAttr.id,
-                        tier: masterAttr.tier, // Importante para o PDF
+                        tier: masterAttr.tier,
                         required_element: masterAttr.default_element
                     });
                 }
             }
         });
 
-        // 5. IDENTIFICAR SECUNDÁRIOS FALTANTES (NOVO)
+        // 5. IDENTIFICAR SECUNDÁRIOS FALTANTES
         if (secondaryAttributes) {
             secondaryAttributes.forEach(sec => {
                 if (!allValidPresentIds.has(sec.attribute_id)) {
@@ -202,7 +242,7 @@ const AnalysisEngine = (() => {
                         analysisResult.missing_secondaries.push({
                             attribute: masterAttr.name,
                             id: masterAttr.id,
-                            tier: masterAttr.tier, // Importante para o PDF
+                            tier: masterAttr.tier,
                             required_element: masterAttr.default_element
                         });
                     }
@@ -278,8 +318,6 @@ const AnalysisEngine = (() => {
         validateElementExclusivity,
         runAnalysis,
         generateSuggestion,
-        // ALIAS: Cria o "analyze" apontando para o "runAnalysis"
-        // Isso resolve o erro "analyze is not a function"
-        analyze: runAnalysis 
+        analyze: runAnalysis
     };
 })();
