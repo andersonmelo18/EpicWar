@@ -945,7 +945,7 @@ const BuildController = (() => {
                     doc.setTextColor(220, 38, 38);
 
                     // CORREÇÃO 1: Removido o emoji e os acentos para compatibilidade com a fonte do PDF.
-                    doc.text("ATENCAO: REQUISITOS URGENTES FALTANDO", 15, y);
+                    doc.text("!! ATENCAO: REQUISITOS URGENTES FALTANDO !!", 15, y);
 
                     y += 6;
 
