@@ -159,7 +159,7 @@ const AnalysisEngine = (() => {
         const allValidPresentIds = new Set();
 
         equippedMap.forEach((occurrences, attrId) => {
-            // ALTERADO: Usa a nova função de comparação (Raridade > Remodel)
+            // Ordena as ocorrências pela nova lógica: PRIORIDADE = RARIDADE DO SLOT
             occurrences.sort(compareDuplicateSlots);
 
             // O primeiro da lista é o "Melhor" (Keeper)
@@ -203,16 +203,14 @@ const AnalysisEngine = (() => {
             for (let i = 1; i < occurrences.length; i++) {
                 const duplicate = occurrences[i];
 
-                // --- ALTERAÇÃO AQUI ---
-                // Verifica se existe raridade para montar a string bonitinha (Ex: "SSR - Mitico")
+                // Formata o label da raridade (ex: "SSR - ")
                 const rarityLabel = keeper.gem_rarity ? `${keeper.gem_rarity.toUpperCase()} - ` : '';
 
-                // Adiciona à lista de remoção com uma dica de quem ficou no lugar
                 analysisResult.duplicates_to_remove.push({
                     ...duplicate,
                     keeper_location: keeper.location.position,
                     keeper_remodel: keeper.remodel,
-                    // MUDANÇA NA MENSAGEM: Adicionamos o rarityLabel
+                    // Mensagem atualizada para mostrar a Raridade
                     reason: `Duplicado. Mantenha o de ${keeper.location.position} (${rarityLabel}${keeper.remodel}).`
                 });
             }
