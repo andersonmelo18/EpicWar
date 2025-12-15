@@ -8,9 +8,9 @@ const App = (() => {
     let VIEWS = {};
     let NAV_BUTTONS = {};
     let currentViewId = 'dashboard';
-    
+
     // --- CONTROLE DE ALTERAÇÕES (Dirty State) ---
-    let hasUnsavedChanges = false; 
+    let hasUnsavedChanges = false;
 
     // --- Lógica de Navegação ---
 
@@ -19,7 +19,7 @@ const App = (() => {
         Object.values(NAV_BUTTONS).forEach(btn => {
             if (btn) {
                 btn.classList.remove('text-indigo-600', 'bg-indigo-50', 'text-white', 'bg-indigo-700');
-                
+
                 if (btn.id === 'nav-new-char') {
                     btn.classList.add('text-white', 'bg-gradient-to-r', 'from-indigo-600', 'to-indigo-700');
                 } else {
@@ -47,11 +47,11 @@ const App = (() => {
         // --- PROTEÇÃO: Verifica se há dados não salvos antes de mudar de tela ---
         if (currentViewId === 'editor' && hasUnsavedChanges && viewId !== 'editor') {
             const confirmExit = confirm("⚠️ Alterações não salvas!\n\nVocê tem dados editados que serão perdidos se sair desta tela.\n\nDeseja realmente sair sem salvar?");
-            
+
             if (!confirmExit) {
                 // Se o usuário cancelar, mantemos o visual do botão na aba editor e abortamos a troca
-                updateNavStyle('editor'); 
-                return; 
+                updateNavStyle('editor');
+                return;
             }
             // Se confirmou sair, resetamos a flag
             hasUnsavedChanges = false;
@@ -65,14 +65,14 @@ const App = (() => {
             const el = VIEWS[key];
             if (el) {
                 el.classList.add('hidden');
-                el.classList.remove('animate-fade-in'); 
+                el.classList.remove('animate-fade-in');
             }
         });
-        
+
         // Mostra a selecionada
         if (VIEWS[viewId]) {
             VIEWS[viewId].classList.remove('hidden');
-            VIEWS[viewId].classList.add('animate-fade-in'); 
+            VIEWS[viewId].classList.add('animate-fade-in');
             updateNavStyle(viewId);
         }
 
@@ -85,7 +85,7 @@ const App = (() => {
             if (typeof AdminController !== 'undefined') AdminController.initAdminView();
         }
     };
-    
+
     const showDashboard = () => showView('dashboard');
     const showReport = () => showView('report');
     const showEditor = () => showView('editor');
@@ -123,14 +123,14 @@ const App = (() => {
     };
 
     // --- Métodos Públicos (A Ponte para o HTML) ---
-    
+
     const loadBuild = (id) => {
         if (typeof BuildController !== 'undefined') {
             // Se tiver mudanças pendentes na tela atual antes de carregar outra
             if (currentViewId === 'editor' && hasUnsavedChanges) {
-                if(!confirm("Deseja descartar as alterações atuais e carregar esta build?")) return;
+                if (!confirm("Deseja descartar as alterações atuais e carregar esta build?")) return;
             }
-            
+
             BuildController.loadBuildForEditing(id);
             markAsSaved(); // Ao carregar, começa limpo
             showView('editor'); // Garante que vai para a tela do editor
@@ -139,7 +139,7 @@ const App = (() => {
 
     const deleteBuild = (id) => {
         const buildId = id.toString();
-        if(confirm("Tem certeza que deseja excluir esta build permanentemente?")) {
+        if (confirm("Tem certeza que deseja excluir esta build permanentemente?")) {
             if (typeof BuildController !== 'undefined') {
                 BuildController.deleteBuild(buildId);
             }
@@ -157,8 +157,8 @@ const App = (() => {
                 const importedBuild = JSON.parse(jsonString);
 
                 if (importedBuild) {
-                    importedBuild.id = null; 
-                    BuildController.setImportedBuild(importedBuild); 
+                    importedBuild.id = null;
+                    BuildController.setImportedBuild(importedBuild);
                     showView('editor');
                     alert(`Build "${importedBuild.name || 'Sem Nome'}" carregada para edição.`);
                     window.history.replaceState(null, null, ' ');
@@ -197,7 +197,7 @@ const App = (() => {
     const setupListeners = () => {
         // --- 1. Navegação Principal ---
         if (NAV_BUTTONS['dashboard']) NAV_BUTTONS['dashboard'].addEventListener('click', showDashboard);
-        
+
         if (NAV_BUTTONS['admin']) {
             NAV_BUTTONS['admin'].addEventListener('click', () => {
                 const isLogged = sessionStorage.getItem('admin_session_active');
@@ -226,24 +226,24 @@ const App = (() => {
         }
 
         if (NAV_BUTTONS['help']) NAV_BUTTONS['help'].addEventListener('click', showHelp);
-        
+
         // Botão "Novo Personagem" da Barra Lateral
         if (NAV_BUTTONS['newChar']) {
-            NAV_BUTTONS['newChar'].addEventListener('click', () => { 
+            NAV_BUTTONS['newChar'].addEventListener('click', () => {
                 if (typeof BuildController !== 'undefined') {
                     // Verifica proteção antes de limpar
                     if (currentViewId === 'editor' && hasUnsavedChanges) {
-                        if(!confirm("Deseja descartar as alterações não salvas e criar um novo?")) return;
+                        if (!confirm("Deseja descartar as alterações não salvas e criar um novo?")) return;
                     }
-                    BuildController.initializeNewBuild(); 
+                    BuildController.initializeNewBuild();
                     markAsSaved(); // Nova build começa limpa
-                    showView('editor'); 
+                    showView('editor');
                 }
             });
         }
 
         // --- 2. Botões Dashboard ---
-        
+
         // Botão "Criar Nova Build" (o grande no centro do Dashboard)
         const dashNewBtn = document.getElementById('dash-new-build-btn');
         if (dashNewBtn) {
@@ -261,26 +261,52 @@ const App = (() => {
         const dashImportInput = document.getElementById('dash-import-input');
 
         if (dashImportBtn && dashImportInput) {
+            // Botão visual aciona o input escondido
             dashImportBtn.addEventListener('click', () => { dashImportInput.click(); });
+
+            // Quando o arquivo é selecionado
             dashImportInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
+
+                // 1. Se o usuário cancelou a seleção, para tudo.
                 if (!file) return;
+
+                // 2. TRAVA DE SEGURANÇA (Para Android/iOS)
+                // Como liberamos selecionar qualquer arquivo no HTML (accept="*/*"),
+                // precisamos garantir aqui que é um JSON.
+                if (!file.name.toLowerCase().endsWith('.json')) {
+                    alert("❌ Arquivo inválido!\n\nPor favor, selecione apenas o arquivo de backup com final .json");
+                    e.target.value = ''; // Limpa o input para tentar de novo
+                    return; // Interrompe o código aqui
+                }
+
                 const reader = new FileReader();
+
                 reader.onload = (event) => {
                     try {
+                        // Tenta converter o texto do arquivo em objeto JavaScript
                         const jsonData = JSON.parse(event.target.result);
+
+                        // Pergunta de confirmação antes de apagar os dados atuais
                         if (confirm("⚠️ ATENÇÃO: Importar um backup substituirá TODAS as suas builds e configurações atuais.\n\nDeseja continuar?")) {
+
+                            // Chama o serviço de importação
                             StorageService.importAllData(jsonData);
+
                             alert("✅ Backup importado com sucesso! A página será recarregada.");
-                            location.reload(); 
+                            location.reload();
                         }
                     } catch (error) {
                         console.error("Erro na importação:", error);
-                        alert("❌ Erro ao ler o arquivo.");
+                        alert("❌ Erro ao ler o arquivo.\nO arquivo pode estar corrompido ou não ser um backup válido.");
                     }
                 };
+
+                // Lê o arquivo como texto
                 reader.readAsText(file);
-                e.target.value = ''; 
+
+                // Limpa o input para permitir selecionar o mesmo arquivo novamente se necessário
+                e.target.value = '';
             });
         }
 
@@ -293,14 +319,14 @@ const App = (() => {
                 runBtn.innerText = 'Gerando Relatório... ⏳';
                 runBtn.disabled = true;
                 runBtn.classList.add('opacity-75', 'cursor-wait');
-                await new Promise(resolve => setTimeout(resolve, 600)); 
+                await new Promise(resolve => setTimeout(resolve, 600));
                 BuildController.generateReport('pdf');
                 runBtn.innerHTML = originalText;
                 runBtn.disabled = false;
                 runBtn.classList.remove('opacity-75', 'cursor-wait');
             });
         }
-        
+
         const clearBtn = document.getElementById('clear-build-btn');
         if (clearBtn) clearBtn.addEventListener('click', () => {
             if (confirm("Limpar build atual?")) {
@@ -318,7 +344,7 @@ const App = (() => {
 
     const init = () => {
         console.log("💎 PvP Build Analyzer: Inicializando...");
-        
+
         VIEWS = {
             'dashboard': document.getElementById('dashboard-view'),
             'editor': document.getElementById('build-editor-view'),
@@ -334,31 +360,31 @@ const App = (() => {
             'newChar': document.getElementById('nav-new-char')
         };
 
-        addGlobalAnimationStyles(); 
+        addGlobalAnimationStyles();
 
         if (typeof AdminService !== 'undefined') {
-            AdminService.initializeMasterData(); 
+            AdminService.initializeMasterData();
         }
 
         setupListeners();
         setupAutoSaveProtection(); // <--- Ativa a vigilância nos inputs
         setupBrowserProtection();  // <--- Ativa a proteção contra F5
-        
-        if (typeof BuildController !== 'undefined') BuildController.init(); 
 
-        const isImporting = checkURLForImport(); 
+        if (typeof BuildController !== 'undefined') BuildController.init();
+
+        const isImporting = checkURLForImport();
         if (!isImporting) {
             showDashboard();
         }
     };
 
     document.addEventListener('DOMContentLoaded', init);
-    
+
     // EXPORTAÇÕES
     return {
         showView,
-        loadBuild,   
-        deleteBuild, 
+        loadBuild,
+        deleteBuild,
         showDashboard,
         showReport,
         showEditor,
