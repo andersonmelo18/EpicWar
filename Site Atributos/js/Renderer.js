@@ -154,34 +154,76 @@ const Renderer = (() => {
                 const remodelClass = `text-remodel-${remodelKey}`;
 
                 // 🔹 Nome do atributo
-                const attrObj = masterAttributes.find(a => a.id === mainAttr.attribute_id);
-                const attrName = attrObj ? attrObj.name : 'Desconhecido';
+                // --- INÍCIO DA SUBSTITUIÇÃO ---
 
+                // 1. Função que replica a lógica original do sistema para gerar a classe de cor
+                // (Remove acentos, coloca em minúsculo e adiciona o prefixo 'text-remodel-')
+                const getRemodelClassLocal = (remodel) => {
+                    if (!remodel) return 'text-remodel-comum';
+
+                    const key = remodel.toString()
+                        .toLowerCase()
+                        .normalize('NFD')
+                        .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+                        .trim();
+
+                    return `text-remodel-${key}`;
+                };
+
+                // 2. Define a lista de atributos (Nova lista ou Fallback para a antiga)
+                const attributesToList = (gem.attributes && Array.isArray(gem.attributes) && gem.attributes.length > 0)
+                    ? gem.attributes
+                    : [mainAttr];
+
+                // 3. Gera o HTML dos atributos
+                const attributesHtml = attributesToList.map(attr => {
+                    // Busca o ID e Nome
+                    const aId = attr.attribute_id || attr.id;
+                    const aObj = masterAttributes.find(ma => ma.id === aId);
+                    const aName = aObj ? aObj.name : (attr.name || 'Desconhecido');
+
+                    // Busca a qualidade (remodel)
+                    const rawQuality = attr.remodel || attr.quality || attr.qualidade || 'Comum';
+
+                    // Gera a classe de cor exata do sistema (ex: text-remodel-mitico)
+                    const colorClass = getRemodelClassLocal(rawQuality);
+
+                    return `
+                    <div class="text-xs font-bold ${colorClass} truncate mb-0.5 leading-tight" 
+                         title="${aName} (${rawQuality})">
+                        ${aName} 
+                        <span class="text-[10px] opacity-70 ml-1 font-normal text-slate-500">
+                            (${rawQuality})
+                        </span>
+                    </div>
+                `;
+                }).join('');
+
+                // 4. Monta o Conteúdo do Card
                 content = `
                 <div class="w-full text-left overflow-hidden">
                     <div class="flex justify-between items-center w-full mb-1">
                         <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">
-                            Tier ${mainAttr.tier}
+                            Tier ${mainAttr.tier || gem.tier || '?'}
                         </span>
-
+                        
                         <span class="text-[10px] font-bold ${rarityClass} px-1 rounded border opacity-90">
-                            +${gem.plus_level}
+                            +${gem.plus_level || 0}
                         </span>
                     </div>
 
-                    <div class="text-xs font-bold ${remodelClass} truncate"
-                         title="${attrName} (${mainAttr.remodel || 'Comum'})">
-                        ${attrName}
-                        <span class="text-[10px] opacity-70 ml-1">
-                            (${mainAttr.remodel || 'Comum'})
-                        </span>
+                    <div class="flex flex-col w-full my-0.5">
+                        ${attributesHtml}
                     </div>
 
-                    <div class="text-[10px] text-slate-400 truncate mt-0.5 font-medium">
+                    <div class="text-[10px] text-slate-400 truncate mt-1 font-medium border-t border-slate-100 pt-1">
                         Raridade: ${gem.rarity || 'B'}
                     </div>
                 </div>
             `;
+
+                // --- FIM DA LÓGICA DE CONTEÚDO ---
+
             } else {
                 content = `
                 <div class="flex flex-col items-center justify-center h-16 text-slate-300 
@@ -544,10 +586,10 @@ const Renderer = (() => {
     const renderRequiredAttributesList = (requiredAttributes, masterAttributes) => {
         const container = document.getElementById('required-attributes-list');
         if (!container) return;
-        
-        if (requiredAttributes.length === 0) { 
-            container.innerHTML = '<p class="text-slate-400 text-sm italic">Lista vazia.</p>'; 
-            return; 
+
+        if (requiredAttributes.length === 0) {
+            container.innerHTML = '<p class="text-slate-400 text-sm italic">Lista vazia.</p>';
+            return;
         }
 
         let html = '';
@@ -556,8 +598,8 @@ const Renderer = (() => {
             if (!masterAttr) return;
 
             // Lógica para mostrar se é urgente
-            const urgentBadge = req.isUrgent 
-                ? `<span class="text-[10px] font-bold text-red-600 bg-red-100 border border-red-200 px-1 rounded flex items-center gap-1 ml-1">🔥 Urgente</span>` 
+            const urgentBadge = req.isUrgent
+                ? `<span class="text-[10px] font-bold text-red-600 bg-red-100 border border-red-200 px-1 rounded flex items-center gap-1 ml-1">🔥 Urgente</span>`
                 : '';
 
             html += `
@@ -694,16 +736,16 @@ const Renderer = (() => {
         const isEdit = !!editItem;
         const title = isEdit ? 'Editar Requisito' : 'Adicionar Requisito';
         const btnText = isEdit ? 'Salvar Alterações' : 'Adicionar';
-        
+
         // O ID do registro (para o Controller saber quem atualizar)
-        const hiddenId = isEdit ? editItem.id : ''; 
-        
+        const hiddenId = isEdit ? editItem.id : '';
+
         // ID do atributo selecionado
         const selectedAttrId = isEdit ? editItem.attribute_id : '';
-        
+
         // Estado do Checkbox
         const isChecked = (isEdit && editItem.isUrgent) ? 'checked' : '';
-        
+
         // Desabilita a troca de atributo na edição (foca só na urgência)
         const disabledAttr = isEdit ? 'disabled' : '';
 

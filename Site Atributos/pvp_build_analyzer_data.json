@@ -1,292 +1,361 @@
 {
   "builds": [
     {
-      "id": 1765330872352,
-      "name": "BuhH",
-      "class": "R4",
+      "id": 1765815477621,
+      "name": "BuUH",
+      "class": "Custom",
+      "avatar": "🔮",
+      "power": "738M",
       "artifacts": [
         {
-          "id": 1765330366788,
-          "name": "Coroa",
+          "id": 1765814836874,
+          "name": "Coro de Dominação",
           "level": 213,
           "position": 1,
           "gems": [
             {
               "element": "fogo",
-              "rarity": "Mítico",
+              "rarity": "SSR",
               "plus_level": 13,
               "attributes": [
                 {
                   "attribute_id": 1765209673667,
-                  "remodel": "mítico",
+                  "name": "Revival",
+                  "remodel": "Mitico",
                   "tier": 1
                 },
                 {
                   "attribute_id": 1765209628027,
-                  "remodel": "legendário",
+                  "name": "Capacidade dos mortos da Primavera",
+                  "remodel": "Lendario",
                   "tier": 2
                 }
-              ]
+              ],
+              "name": "Gema de Revival",
+              "icon": "💎"
             },
             {
               "element": "gelo",
-              "rarity": "Mítico",
+              "rarity": "SSR",
               "plus_level": 13,
               "attributes": [
                 {
                   "attribute_id": 1765209543487,
-                  "remodel": "mítico",
+                  "name": "Guardião",
+                  "remodel": "Mitico",
                   "tier": 2
                 },
                 {
                   "attribute_id": 1765209594158,
-                  "remodel": "raro",
+                  "name": "Redução de Dano de Contra Ataque Recebido",
+                  "remodel": "Perfeito",
                   "tier": 2
                 }
-              ]
+              ],
+              "name": "Gema de Guardião",
+              "icon": "💎"
             },
             {
               "element": "luz",
-              "rarity": "Mítico",
+              "rarity": "SSR",
               "plus_level": 13,
               "attributes": [
                 {
                   "attribute_id": 1765242226305,
-                  "remodel": "legendário",
+                  "name": "Todo Poder de Luz do Herói",
+                  "remodel": "Lendario",
                   "tier": 1
                 }
-              ]
+              ],
+              "name": "Gema de Todo Poder de Luz do Herói",
+              "icon": "💎"
             },
             {
               "element": "veneno",
-              "rarity": "Mítico",
+              "rarity": "SSR",
               "plus_level": 13,
               "attributes": [
                 {
                   "attribute_id": 1765242530809,
-                  "remodel": "legendário",
+                  "name": "Dano de Cerco das Tropas",
+                  "remodel": "Lendario",
                   "tier": 2
                 },
                 {
                   "attribute_id": 1765243349367,
-                  "remodel": "mítico",
+                  "name": "Dano Garantido",
+                  "remodel": "Mitico",
                   "tier": 1
                 }
-              ]
+              ],
+              "name": "Gema de Dano de Cerco das Tropas",
+              "icon": "💎"
             }
           ]
         },
         {
-          "id": 1765330366789,
-          "name": "Cetro",
+          "id": 1765814836875,
+          "name": "Cetro Eterno",
           "level": 202,
           "position": 2,
           "gems": [
             {
               "element": "fogo",
-              "rarity": "Mítico",
+              "rarity": "SSR",
               "plus_level": 14,
               "attributes": [
                 {
                   "attribute_id": 1765242804900,
-                  "remodel": "mítico",
+                  "name": "Todo Poder de Fogo do Herói",
+                  "remodel": "Mitico",
                   "tier": 1
                 },
                 {
                   "attribute_id": 1765209681040,
-                  "remodel": "raro",
+                  "name": "Enfraquecer Revival",
+                  "remodel": "Perfeito",
                   "tier": 1
                 }
-              ]
+              ],
+              "name": "Gema de Todo Poder de Fogo do Herói",
+              "icon": "💎"
             },
             {
               "element": "gelo",
-              "rarity": "Mítico",
+              "rarity": "SSR",
               "plus_level": 13,
               "attributes": [
                 {
                   "attribute_id": 1765242199773,
-                  "remodel": "mítico",
+                  "name": "Todo Poder de Gelo do Herói",
+                  "remodel": "Mitico",
                   "tier": 1
                 },
                 {
                   "attribute_id": 1765207392607,
-                  "remodel": "épico",
+                  "name": "Enfraquecer Tirano",
+                  "remodel": "Epico",
                   "tier": 3
                 }
-              ]
+              ],
+              "name": "Gema de Todo Poder de Gelo do Herói",
+              "icon": "💎"
             },
             {
               "element": "luz",
-              "rarity": "Mítico",
+              "rarity": "SSR",
               "plus_level": 13,
               "attributes": [
                 {
                   "attribute_id": 1765209681040,
-                  "remodel": "mítico",
+                  "name": "Enfraquecer Revival",
+                  "remodel": "Mitico",
                   "tier": 1
                 },
                 {
                   "attribute_id": 1765241906546,
-                  "remodel": "épico",
+                  "name": "Dano de Reunião de Tropas",
+                  "remodel": "Epico",
                   "tier": 2
                 }
-              ]
+              ],
+              "name": "Gema de Enfraquecer Revival",
+              "icon": "💎"
             },
             {
               "element": "veneno",
-              "rarity": "Mítico",
+              "rarity": "SSR",
               "plus_level": 13,
               "attributes": [
                 {
                   "attribute_id": 1765242247346,
-                  "remodel": "mítico",
+                  "name": "Todo Poder de Veneno do Herói",
+                  "remodel": "Mitico",
                   "tier": 1
                 },
                 {
                   "attribute_id": 1765209450240,
-                  "remodel": "mítico",
+                  "name": "Supressão",
+                  "remodel": "Mitico",
                   "tier": 3
                 }
-              ]
+              ],
+              "name": "Gema de Todo Poder de Veneno do Herói",
+              "icon": "💎"
             }
           ]
         },
         {
-          "id": 1765330366790,
-          "name": "Bola",
+          "id": 1765814836876,
+          "name": "Cruz Sagrada",
           "level": 200,
           "position": 3,
           "gems": [
             {
               "element": "fogo",
-              "rarity": "Mítico",
+              "rarity": "SSR",
               "plus_level": 14,
               "attributes": [
                 {
                   "attribute_id": 1765209396487,
-                  "remodel": "mítico",
+                  "name": "Redução de Dano de Tropas",
+                  "remodel": "Mitico",
                   "tier": 3
+                },
+                {
+                  "attribute_id": 1765749326344,
+                  "name": "Execução de Titans",
+                  "remodel": "Comum",
+                  "tier": 1
                 }
-              ]
+              ],
+              "name": "Gema de Redução de Dano de Tropas",
+              "icon": "💎"
             },
             {
               "element": "gelo",
-              "rarity": "Mítico",
+              "rarity": "SSR",
               "plus_level": 13,
               "attributes": [
                 {
                   "attribute_id": 1765209408922,
-                  "remodel": "mítico",
+                  "name": "Dano de Tropas",
+                  "remodel": "Mitico",
                   "tier": 3
                 }
-              ]
+              ],
+              "name": "Gema de Dano de Tropas",
+              "icon": "💎"
             },
             {
               "element": "luz",
-              "rarity": "Legendário",
+              "rarity": "SS",
               "plus_level": 14,
               "attributes": [
                 {
                   "attribute_id": 1765242474029,
-                  "remodel": "mítico",
+                  "name": "Redução de Dano das Tropas de Guarnição",
+                  "remodel": "Mitico",
                   "tier": 2
                 }
-              ]
+              ],
+              "name": "Gema de Redução de Dano das Tropas de Guarnição",
+              "icon": "💎"
             },
             {
               "element": "veneno",
-              "rarity": "Legendário",
+              "rarity": "SSR",
               "plus_level": 14,
               "attributes": [
                 {
                   "attribute_id": 1765209694646,
-                  "remodel": "mítico",
+                  "name": "Enfraquecer Massacre",
+                  "remodel": "Mitico",
                   "tier": 1
                 },
                 {
                   "attribute_id": 1765209428018,
-                  "remodel": "mítico",
+                  "name": "Capacidade de Herói",
+                  "remodel": "Mitico",
                   "tier": 3
                 }
-              ]
+              ],
+              "name": "Gema de Enfraquecer Massacre",
+              "icon": "💎"
             }
           ]
         },
         {
-          "id": 1765330366791,
-          "name": "Anel",
+          "id": 1765814836877,
+          "name": "Anel da Matança",
           "level": 205,
           "position": 4,
           "gems": [
             {
               "element": "fogo",
-              "rarity": "Mítico",
+              "rarity": "SSR",
               "plus_level": 18,
               "attributes": [
                 {
                   "attribute_id": 1765209654779,
-                  "remodel": "épico",
+                  "name": "Capacidade de Fonte de Renovação de Primavera",
+                  "remodel": "Epico",
                   "tier": 2
                 },
                 {
                   "attribute_id": 1765207358906,
-                  "remodel": "mítico",
+                  "name": "Tirano",
+                  "remodel": "Mitico",
                   "tier": 3
                 }
-              ]
+              ],
+              "name": "Gema de Capacidade de Fonte de Renovação de Primavera",
+              "icon": "💎"
             },
             {
               "element": "gelo",
-              "rarity": "Épico",
+              "rarity": "S",
               "plus_level": 16,
               "attributes": [
                 {
                   "attribute_id": 1765207392607,
-                  "remodel": "mítico",
+                  "name": "Enfraquecer Tirano",
+                  "remodel": "Comum",
                   "tier": 3
                 }
-              ]
+              ],
+              "name": "Gema de Enfraquecer Tirano",
+              "icon": "💎"
             },
             {
               "element": "luz",
-              "rarity": "Mítico",
+              "rarity": "SSR",
               "plus_level": 17,
               "attributes": [
                 {
                   "attribute_id": 1765209555857,
-                  "remodel": "mítico",
+                  "name": "Sede de Sangue",
+                  "remodel": "Mitico",
                   "tier": 2
                 },
                 {
                   "attribute_id": 1765207381869,
-                  "remodel": "mítico",
+                  "name": "Benção de Deus",
+                  "remodel": "Mitico",
                   "tier": 3
                 }
-              ]
+              ],
+              "name": "Gema de Sede de Sangue",
+              "icon": "💎"
             },
             {
               "element": "veneno",
-              "rarity": "Mítico",
+              "rarity": "SSR",
               "plus_level": 14,
               "attributes": [
                 {
                   "attribute_id": 1765209440788,
-                  "remodel": "mítico",
+                  "name": "Poder da Unidade",
+                  "remodel": "Mitico",
                   "tier": 3
                 },
                 {
                   "attribute_id": 1765209686619,
-                  "remodel": "mítico",
+                  "name": "Massacre",
+                  "remodel": "Mitico",
                   "tier": 1
                 }
-              ]
+              ],
+              "name": "Gema de Poder da Unidade",
+              "icon": "💎"
             }
           ]
         }
       ],
-      "createdAt": "2025-12-10T01:41:12.352Z",
-      "lastUpdated": "2025-12-10T01:41:12.352Z"
+      "artifactCount": 4,
+      "lastUpdated": "2025-12-15T16:17:57.621Z",
+      "date": "15/12/2025",
+      "createdAt": "2025-12-15T16:17:57.621Z"
     }
   ],
   "masterAttributes": [
@@ -400,7 +469,7 @@
     },
     {
       "id": 1765209594158,
-      "name": "Dano de Contra Ataque Recebido",
+      "name": "Redução de Dano de Contra Ataque Recebido",
       "tier": 2,
       "default_element": "gelo"
     },
@@ -643,20 +712,47 @@
       "name": "Redução Dano Garantido",
       "tier": 1,
       "default_element": null
+    },
+    {
+      "id": 1765749314725,
+      "name": "Execução de Harolds",
+      "tier": 1,
+      "default_element": null
+    },
+    {
+      "id": 1765749320349,
+      "name": "Execução de Monstros",
+      "tier": 1,
+      "default_element": null
+    },
+    {
+      "id": 1765749326344,
+      "name": "Execução de Titans",
+      "tier": 1,
+      "default_element": null
+    },
+    {
+      "id": 1765749331379,
+      "name": "Executar ( Estágios )",
+      "tier": 1,
+      "default_element": null
     }
   ],
   "requiredAttributes": [
     {
       "id": 1765207363321,
-      "attribute_id": 1765207358906
+      "attribute_id": 1765207358906,
+      "isUrgent": true
     },
     {
       "id": 1765207403342,
-      "attribute_id": 1765207381869
+      "attribute_id": 1765207381869,
+      "isUrgent": true
     },
     {
       "id": 1765207408563,
-      "attribute_id": 1765207392607
+      "attribute_id": 1765207392607,
+      "isUrgent": true
     },
     {
       "id": 1765207411356,
@@ -664,11 +760,13 @@
     },
     {
       "id": 1765209833462,
-      "attribute_id": 1765209396487
+      "attribute_id": 1765209396487,
+      "isUrgent": true
     },
     {
       "id": 1765209839510,
-      "attribute_id": 1765209408922
+      "attribute_id": 1765209408922,
+      "isUrgent": true
     },
     {
       "id": 1765209844713,
@@ -704,35 +802,47 @@
     },
     {
       "id": 1765209911920,
-      "attribute_id": 1765209543487
+      "attribute_id": 1765209543487,
+      "isUrgent": true
     },
     {
       "id": 1765209916803,
-      "attribute_id": 1765209555857
+      "attribute_id": 1765209555857,
+      "isUrgent": true
     },
     {
       "id": 1765209924736,
-      "attribute_id": 1765209574691
+      "attribute_id": 1765209574691,
+      "isUrgent": true
     },
     {
       "id": 1765209935904,
-      "attribute_id": 1765209594158
+      "attribute_id": 1765209594158,
+      "isUrgent": true
     },
     {
       "id": 1765210027756,
-      "attribute_id": 1765209673667
+      "attribute_id": 1765209673667,
+      "isUrgent": true
     },
     {
       "id": 1765210038367,
-      "attribute_id": 1765209681040
+      "attribute_id": 1765209681040,
+      "isUrgent": true
     },
     {
       "id": 1765210048074,
-      "attribute_id": 1765209686619
+      "attribute_id": 1765209686619,
+      "isUrgent": true
     },
     {
       "id": 1765210056063,
-      "attribute_id": 1765209694646
+      "attribute_id": 1765209694646,
+      "isUrgent": true
+    },
+    {
+      "id": 1765329913797,
+      "attribute_id": 1765209473208
     }
   ],
   "secondaryAttributes": [
@@ -829,14 +939,11 @@
       "attribute_id": 1765241953547
     },
     {
-      "id": 1765329913797,
-      "attribute_id": 1765209473208
-    },
-    {
       "id": 1765330000569,
       "attribute_id": 1765242199773
     }
   ],
   "recommendedCombos": [],
-  "exportedAt": "2025-12-10T01:46:09.210Z"
+  "globalNotes": "Dicas gerais para PvP: Mantenha seus atributos essenciais em dia.",
+  "exportedAt": "2025-12-15T16:18:59.311Z"
 }

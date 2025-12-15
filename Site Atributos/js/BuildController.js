@@ -895,13 +895,13 @@ const BuildController = (() => {
             y += 8;
 
             doc.setFontSize(10);
-            
+
             // Contagens (Agora protegidas porque 'analysis' e 'present_attributes' GARANTIDAMENTE existem)
             const reqTotal = requiredAttributes.length;
-            
+
             // Verifica se é Map ou Array (para evitar erro de .size vs .length)
-            const presTotal = (analysis.present_attributes instanceof Map) 
-                ? analysis.present_attributes.size 
+            const presTotal = (analysis.present_attributes instanceof Map)
+                ? analysis.present_attributes.size
                 : (Object.keys(analysis.present_attributes || {}).length);
 
             const secTotal = secondaryAttributes.length;
@@ -938,12 +938,15 @@ const BuildController = (() => {
                     doc.setFillColor(254, 226, 226);
                     doc.setDrawColor(220, 38, 38);
                     doc.rect(10, y, 190, 8 + (missingUrgent.length * 6), 'FD');
-                    
+
                     y += 6;
                     doc.setFontSize(12);
                     doc.setFont("helvetica", "bold");
                     doc.setTextColor(220, 38, 38);
-                    doc.text("🚨 ATENÇÃO: REQUISITOS URGENTES FALTANDO", 15, y);
+
+                    // CORREÇÃO 1: Removido o emoji e os acentos para compatibilidade com a fonte do PDF.
+                    doc.text("!! ATENCAO: REQUISITOS URGENTES FALTANDO !!", 15, y);
+
                     y += 6;
 
                     doc.setFontSize(10);
@@ -953,7 +956,8 @@ const BuildController = (() => {
                     missingUrgent.forEach(m => {
                         const attrInfo = masterAttributes.find(a => a.id === m.id);
                         const tierInfo = attrInfo ? `(Lv${attrInfo.tier})` : '';
-                        doc.text(`• ${m.attribute} ${tierInfo}`, 15, y);
+                        // CORREÇÃO 2: Garantindo que o bullet point também não cause problemas.
+                        doc.text(`* ${m.attribute} ${tierInfo}`, 15, y);
                         y += 6;
                     });
                     y += 5;
@@ -967,7 +971,7 @@ const BuildController = (() => {
                     doc.setTextColor(200, 0, 0);
                     doc.text("FALTANDO ESSENCIAIS (Comum):", 10, y);
                     y += 6;
-                    
+
                     doc.setFontSize(10);
                     doc.setFont("helvetica", "normal");
                     doc.setTextColor(0, 0, 0);
@@ -1052,7 +1056,7 @@ const BuildController = (() => {
 
             // --- 5. INVENTÁRIO (ESSENCIAIS) ---
             if (analysis.present_attributes && (
-                (analysis.present_attributes instanceof Map && analysis.present_attributes.size > 0) || 
+                (analysis.present_attributes instanceof Map && analysis.present_attributes.size > 0) ||
                 (typeof analysis.present_attributes === 'object' && Object.keys(analysis.present_attributes).length > 0)
             )) {
                 checkPageBreak();
@@ -1123,9 +1127,9 @@ const BuildController = (() => {
 
         } else if (type === 'csv') {
             let csv = `Nome,Classe\n${currentBuild.name},${currentBuild.class}\n\nArtefato,Gema\n`;
-            currentBuild.artifacts.forEach(a => { 
+            currentBuild.artifacts.forEach(a => {
                 a.gems.forEach((g, i) => {
-                    if(g) csv += `${a.name},Slot ${i+1},${g.rarity}\n`;
+                    if (g) csv += `${a.name},Slot ${i + 1},${g.rarity}\n`;
                 });
             });
             const link = document.createElement("a");
@@ -1149,13 +1153,13 @@ const BuildController = (() => {
         loadBuildForEditing,
         refreshDashboard,
         deleteBuild,
-        
+
         // --- CORREÇÃO AQUI ---
         // Mantemos o handleExport original
-        handleExport, 
-        
+        handleExport,
+
         // E criamos o 'generateReport' apontando para 'handleExport'
         // Assim o App.js encontra a função que procura!
-        generateReport: handleExport 
+        generateReport: handleExport
     };
 })();
