@@ -222,12 +222,6 @@ const AdminService = (() => {
                 "default_element": null
             },
             {
-                "id": 1765209744548,
-                "name": "Capacidade das Tropas De Fogo",
-                "tier": 1,
-                "default_element": "fogo"
-            },
-            {
                 "id": 1765242804900,
                 "name": "Todo Poder de Fogo do Herói",
                 "tier": 1,
@@ -244,12 +238,6 @@ const AdminService = (() => {
                 "name": "Hp do Herói de Fogo",
                 "tier": 1,
                 "default_element": "fogo"
-            },
-            {
-                "id": 1765209778637,
-                "name": "Capacidade das Tropas De Gelo",
-                "tier": 1,
-                "default_element": "gelo"
             },
             {
                 "id": 1765242199773,
@@ -270,12 +258,6 @@ const AdminService = (() => {
                 "default_element": "gelo"
             },
             {
-                "id": 1765209798209,
-                "name": "Capacidade das Tropas De Luz",
-                "tier": 1,
-                "default_element": "luz"
-            },
-            {
                 "id": 1765242226305,
                 "name": "Todo Poder de Luz do Herói",
                 "tier": 1,
@@ -292,12 +274,6 @@ const AdminService = (() => {
                 "name": "Hp do Herói de Luz",
                 "tier": 1,
                 "default_element": "luz"
-            },
-            {
-                "id": 1765209789078,
-                "name": "Capacidade das Tropas De Veneno",
-                "tier": 1,
-                "default_element": "veneno"
             },
             {
                 "id": 1765242247346,
