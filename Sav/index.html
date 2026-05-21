@@ -396,12 +396,9 @@
                             <span>💡</span> Dica Pro: Backup de Dados
                         </h4><br>
                         <p class="text-sm text-slate-500 max-w-2xl mx-auto">
-                            "O sistema vem com uma lista padrão de atributos configurada pela
-                            <strong>administração</strong>.
-                            <strong>Você</strong> é livre para adicionar novos atributos na aba <strong>Admin</strong>.
-                            Ao usar a função <strong>Backup (Exportar JSON)</strong>,
-                            você salva TUDO: suas <strong>builds</strong>, suas personalizações e os novos atributos que
-                            criou."
+                            "O sistema vem com uma lista padrão de atributos configurada pela <strong>administração</strong>.
+                            <strong>Você</strong> é livre para adicionar novos atributos na aba <strong>Admin</strong>. Ao usar a função <strong>Backup (Exportar JSON)</strong>, 
+                            você salva TUDO: suas <strong>builds</strong>, suas personalizações e os novos atributos que criou." 
                         </p><br><br>
                         <p class="text-sm text-slate-500 max-w-2xl mx-auto">
                             Seus dados ficam salvos no navegador. Para não perder nada (ou para passar sua configuração
@@ -497,20 +494,6 @@
             const observer = new MutationObserver(checkState);
             if (listContainer) observer.observe(listContainer, { childList: true, subtree: true });
         });
-
-        // --- 5. TRATAMENTO DE LINKS EXTERNOS (HASHES) ---
-        const handleExternalHash = () => {
-            const hash = window.location.hash;
-            if (hash === '#admin') document.getElementById('nav-admin')?.click();
-            if (hash === '#help') document.getElementById('nav-help')?.click();
-            if (hash === '#new-char') document.getElementById('nav-new-char')?.click();
-            if (hash === '#dashboard') document.getElementById('nav-dashboard')?.click();
-        };
-
-        // Executa ao carregar a página
-        window.addEventListener('DOMContentLoaded', handleExternalHash);
-        // Executa se o hash mudar mesmo já estando na página index
-        window.addEventListener('hashchange', handleExternalHash);
     </script>
 </body>
 
