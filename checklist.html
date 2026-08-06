@@ -374,6 +374,11 @@
                             <div id="overall-progress" class="h-full progress-fill rounded-full" style="width:0%"></div>
                         </div>
                     </div>
+                    <div class="w-full sm:w-auto">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Nome do Personagem</label>
+                        <input type="text" id="character-name-input" placeholder="Nickname"
+                            class="w-full sm:w-48 rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border text-sm bg-white/50">
+                    </div>
                 </div>
 
                 <div id="topics-list" class="space-y-5"></div>
@@ -540,6 +545,9 @@
                 if (raw) {
                     const parsed = JSON.parse(raw);
                     if (Array.isArray(parsed) && parsed.length > 0) {
+                        return { characterName: '', topics: parsed };
+                    }
+                    if (parsed && Array.isArray(parsed.topics)) {
                         return parsed;
                     }
                 }
@@ -547,7 +555,10 @@
                 console.error('Falha ao carregar dados', e);
             }
 
-            const d = defaultData();
+            const d = {
+                characterName: '',
+                topics: defaultData()
+            };
             saveData(d);
             return d;
         }
@@ -567,20 +578,25 @@
 
         function computeOverall() {
             let total = 0, done = 0;
-            state.forEach(t => t.items.forEach(i => { total++; if (i.done) done++; }));
+            state.topics.forEach(t => t.items.forEach(i => { total++; if (i.done) done++; }));
             return { total, done };
         }
 
         function render() {
             topicsList.innerHTML = '';
 
-            if (state.length === 0) {
+            const charInput = document.getElementById('character-name-input');
+            if (charInput && charInput.value !== state.characterName) {
+                charInput.value = state.characterName || '';
+            }
+
+            if (state.topics.length === 0) {
                 emptyState.classList.remove('hidden');
             } else {
                 emptyState.classList.add('hidden');
             }
 
-            state.forEach((topic, idx) => {
+            state.topics.forEach((topic, idx) => {
                 topicsList.appendChild(renderTopic(topic, idx));
             });
 
@@ -759,11 +775,11 @@
         }
 
         function moveTopic(id, dir) {
-            const idx = state.findIndex(t => t.id === id);
+            const idx = state.topics.findIndex(t => t.id === id);
             const newIdx = idx + dir;
-            if (newIdx < 0 || newIdx >= state.length) return;
-            const [t] = state.splice(idx, 1);
-            state.splice(newIdx, 0, t);
+            if (newIdx < 0 || newIdx >= state.topics.length) return;
+            const [t] = state.topics.splice(idx, 1);
+            state.topics.splice(newIdx, 0, t);
             render();
         }
 
@@ -772,7 +788,7 @@
                 `Excluir "${topic.name}"?`,
                 'Todos os pontos deste tópico serão apagados permanentemente.',
                 () => {
-                    state = state.filter(t => t.id !== topic.id);
+                    state.topics = state.topics.filter(t => t.id !== topic.id);
                     render();
                 }
             );
@@ -891,7 +907,7 @@
                     nameInput.focus();
                     return;
                 }
-                state.push({
+                state.topics.push({
                     id: uid(),
                     name,
                     emoji: selectedEmoji,
@@ -962,7 +978,7 @@
                 if (e.target.id === 'reset-modal-backdrop') closeModal();
             });
             document.getElementById('reset-uncheck').addEventListener('click', () => {
-                state.forEach(t => t.items.forEach(i => i.done = false));
+                state.topics.forEach(t => t.items.forEach(i => i.done = false));
                 render();
                 closeModal();
             });
@@ -972,7 +988,7 @@
                     'Restaurar padrão de fábrica?',
                     'Isso apaga todos os seus tópicos e pontos personalizados, recriando a lista original. Esta ação não pode ser desfeita.',
                     () => {
-                        state = defaultData();
+                        state = { characterName: '', topics: defaultData() };
                         render();
                     }
                 );
@@ -995,20 +1011,28 @@
             URL.revokeObjectURL(url);
         });
 
-        document.getElementById('import-input').addEventListener('change', function () {
-            const file = this.files[0];
+        document.getElementById('import-input').addEventListener('change', function (e) {
+            const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = e => {
+            reader.onload = ev => {
                 try {
-                    const parsed = JSON.parse(e.target.result);
-                    if (!Array.isArray(parsed)) throw new Error('Formato inválido');
-                    state = parsed;
+                    const parsed = JSON.parse(ev.target.result);
+                    if (Array.isArray(parsed)) {
+                        state.topics = parsed;
+                    } else if (parsed && Array.isArray(parsed.topics)) {
+                        state.characterName = parsed.characterName || '';
+                        state.topics = parsed.topics;
+                    } else {
+                        throw new Error('Formato inválido');
+                    }
                     render();
+                    alert('Backup importado com sucesso!');
                 } catch (err) {
+                    console.error(err);
                     alert('Não foi possível importar este arquivo. Verifique se é um backup válido.');
                 }
-                this.value = '';
+                e.target.value = '';
             };
             reader.readAsText(file);
         });
@@ -1016,6 +1040,14 @@
         /* ================= Boot ================= */
 
         document.getElementById('nav-add-topic').addEventListener('click', openAddTopicModal);
+
+        const charInputEl = document.getElementById('character-name-input');
+        if (charInputEl) {
+            charInputEl.addEventListener('input', (e) => {
+                state.characterName = e.target.value;
+                saveData(state);
+            });
+        }
 
         render();
         checkFirstAccess();
