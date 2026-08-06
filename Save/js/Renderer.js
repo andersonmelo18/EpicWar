@@ -92,9 +92,6 @@ const Renderer = (() => {
                                 <span>⚡ ${power}</span>
                             </div>
                         </div>
-                        <button onclick="App.exportBuild('${build.id}')" title="Exportar" class="text-slate-400 hover:text-indigo-600 p-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
-                        </button>
                     </div>
 
                     <div class="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-500">

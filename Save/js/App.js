@@ -579,37 +579,11 @@ const App = (() => {
 
     document.addEventListener('DOMContentLoaded', init);
 
-    // --- Exportar build individual ---
-    const exportBuild = (buildId) => {
-        const build = StorageService.loadBuildById(buildId);
-        if (!build) {
-            alert('❌ Build não encontrada.');
-            return;
-        }
-
-        const exportData = {
-            builds: [build],
-            exportedAt: new Date().toISOString()
-        };
-
-        const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(exportData, null, 2));
-        const safeName = (build.name || 'build').replace(/[^a-zA-Z0-9_\- ]/g, '_');
-        const fileName = `backup_${safeName}.json`;
-
-        const anchor = document.createElement('a');
-        anchor.setAttribute('href', dataStr);
-        anchor.setAttribute('download', fileName);
-        document.body.appendChild(anchor);
-        anchor.click();
-        anchor.remove();
-    };
-
     // EXPORTAÇÕES
     return {
         showView,
         loadBuild,
         deleteBuild,
-        exportBuild,
         showDashboard,
         showReport,
         showEditor,
