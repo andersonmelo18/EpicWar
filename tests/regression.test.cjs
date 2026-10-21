@@ -312,6 +312,9 @@ test('tela e PDF usam 20/20 e releem o storage após mudanças, sem regravar bui
     e.api.StorageService.saveMasterAttributes(masters.slice(0, 20));
     const savedBuilds = e.data.get('pvp_builds');
     e.writes.length = 0;
+    // Simula o motor retornando um denominador antigo; o relatório deve usar o catálogo salvo agora.
+    e.run(`const originalAnalysis = AnalysisEngine.runAnalysis;
+        AnalysisEngine.runAnalysis = (...args) => ({ ...originalAnalysis(...args), secondary_total: 24 });`);
     e.run('BuildController.generateFinalReport()');
     assert.match(e.nodes.get('report-view').innerHTML, />20\/20<\/span>/);
     const texts = [];

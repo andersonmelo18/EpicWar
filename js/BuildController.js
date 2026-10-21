@@ -28,6 +28,16 @@ const BuildController = (() => {
         recommendedCombos = StorageService.loadRecommendedCombos();
     };
 
+    // O denominador do relatório vem da lista secundária atualmente salva.
+    // Ignore referências órfãs e atributos que também estão marcados como essenciais.
+    const countConfiguredSecondaryAttributes = () => {
+        const masterIds = new Set(masterAttributes.map(attribute => String(attribute.id)));
+        const requiredIds = new Set(requiredAttributes.map(attribute => String(attribute.attribute_id)));
+        return new Set(secondaryAttributes
+            .map(attribute => String(attribute.attribute_id))
+            .filter(id => masterIds.has(id) && !requiredIds.has(id))).size;
+    };
+
     const init = (buildId) => {
         loadDependencies();
         if (buildId) {
@@ -705,6 +715,7 @@ const BuildController = (() => {
         if (classInput) currentBuild.class = classInput.value;
 
         const analysis = AnalysisEngine.runAnalysis(currentBuild, masterAttributes, requiredAttributes, secondaryAttributes, recommendedCombos);
+        const secondaryTotal = countConfiguredSecondaryAttributes();
 
         App.showView('report');
         const reportView = document.getElementById('report-view');
@@ -730,7 +741,7 @@ const BuildController = (() => {
                     <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-blue-400 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
                         <span class="text-3xl mb-2">💎</span>
                         <span class="text-xs text-slate-500 uppercase font-bold tracking-wider">${t('report.support', 'Suporte')}</span>
-                        <span class="text-2xl font-black text-blue-500">${analysis.secondary_present.length}/${analysis.secondary_total}</span>
+                        <span class="text-2xl font-black text-blue-500">${analysis.secondary_present.length}/${secondaryTotal}</span>
                     </div>
                     <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-orange-400 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
                         <span class="text-3xl mb-2">⚠️</span>
@@ -899,7 +910,7 @@ const BuildController = (() => {
                 ? analysis.present_attributes.size
                 : (Object.keys(analysis.present_attributes || {}).length);
 
-            const secTotal = analysis.secondary_total;
+            const secTotal = countConfiguredSecondaryAttributes();
             const secPres = analysis.secondary_present ? analysis.secondary_present.length : 0;
 
             doc.text(`${t('pdf.essentials', 'Essenciais:')} ${presTotal}/${reqTotal}`, 10, y);
