@@ -12,5 +12,10 @@ const EVENT_CONFIG = {
     // Configuração do Evento de 7 Dias
     event7Days: {
         startDate: "2025-06-01", // <--- MUDE A DATA AQUI
+    },
+
+    // Expedição Eve — data provisória; substitua pela data correta.
+    expeditionEve: {
+        startDate: "2026-11-01", // <--- MUDE A DATA AQUI
     }
 };

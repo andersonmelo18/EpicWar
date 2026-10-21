@@ -71,7 +71,7 @@ const StorageService = (() => {
     const saveRecommendedCombos = (data) => saveData(KEYS.RECOMMENDED_COMBOS, data);
 
     // Notas Globais
-    const loadGlobalNotes = () => localStorage.getItem(KEYS.GLOBAL_NOTES) || "Dicas gerais para PvP: Mantenha seus atributos essenciais em dia. Caso haja duplicatas, fique atento a troca procure sempre manter os atributos que estão em SSR, mais caso o seu duplicado esteja em um SS ou Inferior com Remodelação Mítica ele vai se destacar nos resultados, então deixe para troca-lo apenas quando seu atributo que virá a ser principal ficar Mítico !";
+    const loadGlobalNotes = () => localStorage.getItem(KEYS.GLOBAL_NOTES) ?? "Dicas gerais para PvP: Mantenha seus atributos essenciais em dia. Caso haja duplicatas, fique atento a troca procure sempre manter os atributos que estão em SSR, mais caso o seu duplicado esteja em um SS ou Inferior com Remodelação Mítica ele vai se destacar nos resultados, então deixe para troca-lo apenas quando seu atributo que virá a ser principal ficar Mítico !";
     const saveGlobalNotes = (text) => localStorage.setItem(KEYS.GLOBAL_NOTES, text);
 
     // --- SEGURANÇA ---
@@ -93,18 +93,44 @@ const StorageService = (() => {
     };
 
     const importAllData = (jsonData) => {
-        if (jsonData.builds) saveData(KEYS.BUILDS, jsonData.builds);
-        if (jsonData.masterAttributes) saveData(KEYS.MASTER_ATTRIBUTES, jsonData.masterAttributes);
-        if (jsonData.requiredAttributes) saveData(KEYS.REQUIRED_ATTRIBUTES, jsonData.requiredAttributes);
-        if (jsonData.secondaryAttributes) saveData(KEYS.SECONDARY_ATTRIBUTES, jsonData.secondaryAttributes);
-        if (jsonData.recommendedCombos) saveData(KEYS.RECOMMENDED_COMBOS, jsonData.recommendedCombos);
-        if (jsonData.globalNotes) saveGlobalNotes(jsonData.globalNotes);
+        // Validação completa ANTES de qualquer escrita, inclusive de campos opcionais.
+        DataValidation.backup(jsonData);
+        const fields = {
+            builds: KEYS.BUILDS,
+            masterAttributes: KEYS.MASTER_ATTRIBUTES,
+            requiredAttributes: KEYS.REQUIRED_ATTRIBUTES,
+            secondaryAttributes: KEYS.SECONDARY_ATTRIBUTES,
+            recommendedCombos: KEYS.RECOMMENDED_COMBOS,
+            globalNotes: KEYS.GLOBAL_NOTES
+        };
+        const changes = Object.entries(fields)
+            .filter(([field]) => Object.prototype.hasOwnProperty.call(jsonData, field))
+            .map(([field, key]) => ({
+                key,
+                previous: localStorage.getItem(key),
+                next: field === 'globalNotes' ? jsonData[field] : JSON.stringify(jsonData[field])
+            }));
+        const written = [];
+        try {
+            changes.forEach(change => {
+                localStorage.setItem(change.key, change.next);
+                written.push(change);
+            });
+        } catch (error) {
+            // Libera o espaço das novas entradas antes de restaurar os valores originais.
+            written.forEach(change => localStorage.removeItem(change.key));
+            written.forEach(change => {
+                if (change.previous !== null) localStorage.setItem(change.key, change.previous);
+            });
+            throw new Error('Não foi possível importar o backup. Os dados anteriores foram mantidos.', { cause: error });
+        }
     };
 
     const clearAllData = () => {
-        localStorage.clear();
-        // A recriação dos dados agora acontecerá automaticamente
-        // quando a página recarregar, graças ao AdminService.js
+        // Mesmo escopo do backup: não apagar dados das outras páginas, senha ou avisos.
+        [KEYS.BUILDS, KEYS.MASTER_ATTRIBUTES, KEYS.REQUIRED_ATTRIBUTES,
+            KEYS.SECONDARY_ATTRIBUTES, KEYS.RECOMMENDED_COMBOS, KEYS.GLOBAL_NOTES]
+            .forEach(key => localStorage.removeItem(key));
     };
 
     // --- FUNÇÃO VAZIA PARA COMPATIBILIDADE ---

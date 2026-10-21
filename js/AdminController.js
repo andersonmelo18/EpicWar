@@ -247,7 +247,7 @@ const AdminController = (() => {
             return;
         }
 
-        if (!confirm('ATENÇÃO: A importação irá SOBRESCREVER TODOS os dados. Deseja continuar?')) {
+        if (!confirm('A importação substituirá as builds e regras presentes no arquivo. Os dados das outras páginas serão preservados. Deseja continuar?')) {
             return;
         }
 
@@ -257,11 +257,9 @@ const AdminController = (() => {
                 const importedData = JSON.parse(event.target.result);
                 StorageService.importAllData(importedData);
                 alert('Dados importados com sucesso! Recarregando painel.');
-                refreshAdminView();
-                if (DOM.globalNotesArea) DOM.globalNotesArea.value = StorageService.loadGlobalNotes();
-                fileInput.value = '';
+                location.reload();
             } catch (e) {
-                alert('Erro ao processar o arquivo JSON.');
+                alert('Erro ao processar o arquivo JSON.\n' + e.message);
                 console.error('Erro de importação:', e);
             }
         };
@@ -269,11 +267,10 @@ const AdminController = (() => {
     };
 
     const handleClearAllData = () => {
-        if (confirm("ALERTA MÁXIMO: Limpar TUDO? Essa ação é irreversível.")) {
+        if (confirm("Apagar as builds e regras deste navegador? Exporte um backup antes de continuar. Checklist, equipamentos, rebeliões, idioma e senha serão preservados.")) {
             StorageService.clearAllData();
             alert('Dados apagados. Recarregando.');
-            refreshAdminView();
-            if (DOM.globalNotesArea) DOM.globalNotesArea.value = StorageService.loadGlobalNotes();
+            location.reload();
         }
     };
 

@@ -21,7 +21,8 @@ const AnalysisEngine = (() => {
         b: 1,
         a: 2,
         s: 3,
-        sr: 4,
+        ss: 4,
+        sr: 4, // Compatibilidade com builds antigas; não regrava dados salvos.
         ssr: 5
         // Adicione outras se necessário
     };
@@ -92,14 +93,19 @@ const AnalysisEngine = (() => {
 
         // Mapeia IDs dos requisitos para verificação rápida
         const requiredIds = new Set(requiredAttributes.map(req => req.attribute_id));
-        // Mapeia IDs dos secundários (se a lista for fornecida)
-        const secondaryIds = new Set(secondaryAttributes ? secondaryAttributes.map(sec => sec.attribute_id) : []);
+        // Referências antigas podem continuar no backup após a exclusão de um mestre.
+        // Conte uma vez cada secundário existente, sem modificar os dados salvos.
+        const masterIds = new Set(masterAttributes.map(attribute => attribute.id));
+        const secondaryIds = new Set(secondaryAttributes
+            .map(secondary => secondary.attribute_id)
+            .filter(id => masterIds.has(id) && !requiredIds.has(id)));
 
         const analysisResult = {
             present_attributes: new Map(), // Map<Attribute ID, Array<Location>> (Válidos e Únicos)
             missing_attributes: [],        // Requeridos que faltam
             missing_secondaries: [],       // Secundários que faltam
             secondary_present: [],         // Secundários presentes (Válidos e Únicos)
+            secondary_total: secondaryIds.size, // Total do mesmo conjunto usado na análise
             duplicates_to_remove: [],      // Duplicatas Piores (Troca Urgente)
             useless_gems: [],              // Inúteis (Troca Urgente) ou Inválidos
             invalid_placements: [],        // (Opcional)
@@ -159,7 +165,18 @@ const AnalysisEngine = (() => {
         const allValidPresentIds = new Set();
 
         equippedMap.forEach((occurrences, attrId) => {
-            // Ordena as ocorrências pela nova lógica: PRIORIDADE = RARIDADE DO SLOT
+            // Elementos incompatíveis nunca disputam a posição de atributo a manter.
+            const invalid = occurrences.filter(occurrence => !occurrence.element_valid);
+            invalid.forEach(occurrence => {
+                analysisResult.useless_gems.push({
+                    ...occurrence,
+                    reason: "Elemento Incompatível (Bloqueado)."
+                });
+                analysisResult.invalid_placements.push(occurrence);
+            });
+            occurrences = occurrences.filter(occurrence => occurrence.element_valid);
+            if (occurrences.length === 0) return;
+            // Somente ocorrências válidas: raridade, depois remodelação.
             occurrences.sort(compareDuplicateSlots);
 
             // O primeiro da lista é o "Melhor" (Keeper)
@@ -232,21 +249,19 @@ const AnalysisEngine = (() => {
         });
 
         // 5. IDENTIFICAR SECUNDÁRIOS FALTANTES
-        if (secondaryAttributes) {
-            secondaryAttributes.forEach(sec => {
-                if (!allValidPresentIds.has(sec.attribute_id)) {
-                    const masterAttr = masterAttributes.find(a => a.id === sec.attribute_id);
-                    if (masterAttr) {
-                        analysisResult.missing_secondaries.push({
-                            attribute: masterAttr.name,
-                            id: masterAttr.id,
-                            tier: masterAttr.tier,
-                            required_element: masterAttr.default_element
-                        });
-                    }
+        secondaryIds.forEach(attributeId => {
+            if (!allValidPresentIds.has(attributeId)) {
+                const masterAttr = masterAttributes.find(a => a.id === attributeId);
+                if (masterAttr) {
+                    analysisResult.missing_secondaries.push({
+                        attribute: masterAttr.name,
+                        id: masterAttr.id,
+                        tier: masterAttr.tier,
+                        required_element: masterAttr.default_element
+                    });
                 }
-            });
-        }
+            }
+        });
 
         // 4. CHECAGEM DE COMBOS
         if (recommendedCombos) {

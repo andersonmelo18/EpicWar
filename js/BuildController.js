@@ -3,6 +3,7 @@
  * Suporta internalização via I18n.js
  */
 const BuildController = (() => {
+    const h = HtmlSafety.escape;
 
     let currentBuild = null;
     let masterAttributes = [];
@@ -54,6 +55,13 @@ const BuildController = (() => {
         if (noBuildsMessage) noBuildsMessage.classList.add('hidden');
         const html = builds.map(build => Renderer.renderBuildCard(build)).join('');
         container.innerHTML = html;
+        container.querySelectorAll('[data-build-action]').forEach(button => {
+            button.addEventListener('click', () => {
+                const actions = { edit: App.loadBuild, delete: App.deleteBuild, export: App.exportBuild };
+                const action = actions[button.dataset.buildAction];
+                if (action) action(button.dataset.buildId);
+            });
+        });
     };
 
     const deleteBuild = (id) => {
@@ -205,7 +213,7 @@ const BuildController = (() => {
                                 if (gem && gemSlots[gIndex]) {
                                     const slot = gemSlots[gIndex];
                                     slot.classList.remove('empty');
-                                    slot.innerHTML = `<div class="text-2xl">${gem.icon}</div>`;
+                                    slot.innerHTML = `<div class="text-2xl">${h(gem.icon)}</div>`;
 
                                     // Aplica cor da raridade
                                     const rarityClass = `gem-rarity-${gem.rarity || 'common'}`;
@@ -234,10 +242,13 @@ const BuildController = (() => {
     };
 
     const setImportedBuild = (buildData) => {
+        DataValidation.build(buildData);
         currentBuild = buildData;
         document.getElementById('editor-title').textContent = `Importado: ${currentBuild.name || 'Sem Nome'}`;
         document.getElementById('char-name').value = currentBuild.name || '';
         document.getElementById('char-class').value = currentBuild.class || '';
+        document.getElementById('char-avatar').value = currentBuild.avatar || '⚔️';
+        document.getElementById('char-power').value = currentBuild.power || '';
         document.getElementById('artifact-count').value = currentBuild.artifacts.length;
         renderBuildEditor();
     };
@@ -312,6 +323,7 @@ const BuildController = (() => {
             document.getElementById('analysis-summary').innerHTML = '<p class="text-slate-500 italic text-center py-4">Comece adicionando um artefato.</p>';
             return;
         }
+        loadDependencies();
         const analysis = AnalysisEngine.runAnalysis(currentBuild, masterAttributes, requiredAttributes, secondaryAttributes, recommendedCombos);
         renderAnalysisSummary(analysis);
     };
@@ -346,7 +358,7 @@ const BuildController = (() => {
                 <ul class="space-y-1">`;
             analysis.missing_attributes.slice(0, 3).forEach(m => {
                 const elementText = m.required_element ? m.required_element.toUpperCase() : 'GLOBAL';
-                html += `<li class="text-xs text-red-600 truncate">• ${t(m.attribute, m.attribute)} <span class="opacity-75">(${t('element.' + elementText.toLowerCase(), elementText).toUpperCase()})</span></li>`;
+                html += `<li class="text-xs text-red-600 truncate">• ${h(t(m.attribute, m.attribute))} <span class="opacity-75">(${h(t('element.' + elementText.toLowerCase(), elementText).toUpperCase())})</span></li>`;
             });
             if (analysis.missing_attributes.length > 3) html += `<li class="text-xs text-red-500 italic ml-2">${t('report.plusMore', '+ mais {count}...').replace('{count}', analysis.missing_attributes.length - 3)}</li>`;
             html += `</ul></div>`;
@@ -357,7 +369,7 @@ const BuildController = (() => {
                 <h4 class="font-bold text-orange-700 text-xs uppercase mb-2 flex items-center gap-1">⚠️ ${t('report.duplicatesTitle', 'Duplicatas')} (${analysis.duplicates_to_remove.length})</h4>
                 <ul class="space-y-1">`;
             analysis.duplicates_to_remove.slice(0, 2).forEach(d => {
-                html += `<li class="text-xs text-orange-800 truncate">• ${t(d.attr_name, d.attr_name)} ${t('misc.at', 'em')} ${d.location.position}</li>`;
+                html += `<li class="text-xs text-orange-800 truncate">• ${h(t(d.attr_name, d.attr_name))} ${t('misc.at', 'em')} ${h(d.location.position)}</li>`;
             });
             html += `</ul></div>`;
         }
@@ -367,7 +379,7 @@ const BuildController = (() => {
                 <h4 class="font-bold text-yellow-700 text-xs uppercase mb-2 flex items-center gap-1">♻️ ${t('report.uselessTitle', 'Inúteis/Inválidos')} (${analysis.useless_gems.length})</h4>
                 <ul class="space-y-1">`;
             analysis.useless_gems.slice(0, 2).forEach(u => {
-                html += `<li class="text-xs text-yellow-800 truncate">• ${t(u.attr_name, u.attr_name)} ${t('misc.at', 'em')} ${u.location.position}</li>`;
+                html += `<li class="text-xs text-yellow-800 truncate">• ${h(t(u.attr_name, u.attr_name))} ${t('misc.at', 'em')} ${h(u.location.position)}</li>`;
             });
             html += `</ul></div>`;
         }
@@ -417,7 +429,7 @@ const BuildController = (() => {
         });
 
         const attributeOptions = filteredAttributes.map(a =>
-            `<option value="${a.id}" data-tier="${a.tier}">${t(a.name, a.name)}</option>`
+            `<option value="${h(a.id)}" data-tier="${h(a.tier)}">${h(t(a.name, a.name))}</option>`
         ).join('');
 
         attrSelect.innerHTML = `<option value="">Selecione...</option>` + attributeOptions;
@@ -485,7 +497,7 @@ const BuildController = (() => {
                 (!a.default_element || a.default_element === element) && a.tier === defaultTier
             );
 
-            const attributeOptions = filteredAttributes.map(a => `<option value="${a.id}" data-tier="${a.tier}">${t(a.name, a.name)}</option>`).join('');
+            const attributeOptions = filteredAttributes.map(a => `<option value="${h(a.id)}" data-tier="${h(a.tier)}">${h(t(a.name, a.name))}</option>`).join('');
             const remodelOptions = AdminService.REMODELS.map(r => `<option value="${r}">${r.charAt(0).toUpperCase() + r.slice(1)}</option>`).join('');
             const tierOptions = [1, 2, 3].map(t => `<option value="${t}" ${t === defaultTier ? 'selected' : ''}>Lv${t}</option>`).join('');
 
@@ -686,6 +698,7 @@ const BuildController = (() => {
     // --- RELATÓRIO FINAL E EXPORTAÇÃO ---
 
     const generateFinalReport = () => {
+        loadDependencies();
         const nameInput = document.getElementById('char-name');
         const classInput = document.getElementById('char-class');
         if (nameInput) currentBuild.name = nameInput.value;
@@ -703,7 +716,7 @@ const BuildController = (() => {
                 <div class="flex justify-between items-center mb-8 pb-4 border-b border-slate-200">
                     <div>
                         <h2 class="text-3xl font-extrabold text-slate-800">${t('report.title', 'Relatório de Análise')}</h2>
-                        <p class="text-indigo-600 font-medium text-lg">${currentBuild.name || 'Sem Nome'} <span class="text-slate-400 text-sm">(${currentBuild.class || 'Sem Classe'})</span></p>
+                        <p class="text-indigo-600 font-medium text-lg">${h(currentBuild.name || 'Sem Nome')} <span class="text-slate-400 text-sm">(${h(currentBuild.class || 'Sem Classe')})</span></p>
                     </div>
                     <div class="text-4xl">📊</div>
                 </div>
@@ -717,7 +730,7 @@ const BuildController = (() => {
                     <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-blue-400 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
                         <span class="text-3xl mb-2">💎</span>
                         <span class="text-xs text-slate-500 uppercase font-bold tracking-wider">${t('report.support', 'Suporte')}</span>
-                        <span class="text-2xl font-black text-blue-500">${analysis.secondary_present.length}/${secondaryAttributes.length}</span>
+                        <span class="text-2xl font-black text-blue-500">${analysis.secondary_present.length}/${analysis.secondary_total}</span>
                     </div>
                     <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-orange-400 flex flex-col items-center justify-center hover:shadow-md transition-shadow">
                         <span class="text-3xl mb-2">⚠️</span>
@@ -741,9 +754,9 @@ const BuildController = (() => {
                         <div class="grid md:grid-cols-2 gap-3">
                             ${analysis.missing_attributes.map(m => `
                                 <div class="bg-red-50 p-4 rounded-lg border-l-4 border-red-500 shadow-sm">
-                                    <span class="font-bold text-red-900 block">${t(m.attribute, m.attribute)}</span>
+                                    <span class="font-bold text-red-900 block">${h(t(m.attribute, m.attribute))}</span>
                                     <p class="text-xs text-red-700 mt-1 flex gap-1 items-start">
-                                        <span>💡</span> ${AnalysisEngine.generateSuggestion(m, currentBuild)}
+                                        <span>💡</span> ${h(AnalysisEngine.generateSuggestion(m, currentBuild))}
                                     </p>
                                 </div>`).join('')}
                         </div>
@@ -766,7 +779,7 @@ const BuildController = (() => {
                         <ul class="space-y-2">
                             ${analysis.duplicates_to_remove.map(d => `
                                 <li class="bg-orange-50 p-3 rounded-lg border border-orange-200 text-sm text-orange-900 flex justify-between items-center">
-                                    <span><strong>${t(d.attr_name, d.attr_name)}</strong> ${t('misc.at', 'em')} ${d.location.position} (${d.remodel})</span>
+                                    <span><strong>${h(t(d.attr_name, d.attr_name))}</strong> ${t('misc.at', 'em')} ${h(d.location.position)} (${h(d.remodel)})</span>
                                     <span class="text-xs bg-white px-2 py-1 rounded text-orange-600 border border-orange-100 font-medium">${t('report.duplicatesToRemove.action', 'Trocar')}</span>
                                 </li>`).join('')}
                         </ul>
@@ -781,8 +794,8 @@ const BuildController = (() => {
                         <ul class="space-y-2">
                             ${analysis.useless_gems.map(u => `
                                 <li class="bg-yellow-50 p-3 rounded-lg border border-yellow-200 text-sm text-yellow-900 flex justify-between items-center">
-                                    <span><strong>${t(u.attr_name, u.attr_name)}</strong> ${t('misc.at', 'em')} ${u.location.position}</span>
-                                    <span class="text-xs italic text-yellow-600">${u.reason}</span>
+                                    <span><strong>${h(t(u.attr_name, u.attr_name))}</strong> ${t('misc.at', 'em')} ${h(u.location.position)}</span>
+                                    <span class="text-xs italic text-yellow-600">${h(u.reason)}</span>
                                 </li>`).join('')}
                         </ul>
                     </div>
@@ -798,7 +811,7 @@ const BuildController = (() => {
                             <ul class="text-sm space-y-2 text-slate-700">
                                 ${Array.from(analysis.present_attributes).map(([id, locations]) => {
             const attr = masterAttributes.find(a => a.id === id);
-            return attr ? `<li class="flex justify-between border-b border-indigo-100 pb-1"><span>${t(attr.name, attr.name)}</span> <span class="font-mono text-xs text-indigo-500 bg-white px-1 rounded">${locations[0].remodel}</span></li>` : '';
+            return attr ? `<li class="flex justify-between border-b border-indigo-100 pb-1"><span>${h(t(attr.name, attr.name))}</span> <span class="font-mono text-xs text-indigo-500 bg-white px-1 rounded">${h(locations[0].remodel)}</span></li>` : '';
         }).join('')}
                             </ul>
                         </div>
@@ -807,7 +820,7 @@ const BuildController = (() => {
                                 <span class="w-2 h-2 rounded-full bg-blue-500"></span> ${t('report.inventory.secondary', 'Secundários')} (${analysis.secondary_present.length})
                             </h5>
                             <ul class="text-sm space-y-2 text-slate-700">
-                                ${analysis.secondary_present.map(s => `<li class="flex justify-between border-b border-blue-100 pb-1"><span>${t(s.attr_name, s.attr_name)}</span> <span class="font-mono text-xs text-blue-500 bg-white px-1 rounded">${s.remodel}</span></li>`).join('')}
+                                ${analysis.secondary_present.map(s => `<li class="flex justify-between border-b border-blue-100 pb-1"><span>${h(t(s.attr_name, s.attr_name))}</span> <span class="font-mono text-xs text-blue-500 bg-white px-1 rounded">${h(s.remodel)}</span></li>`).join('')}
                             </ul>
                         </div>
                     </div>
@@ -828,12 +841,12 @@ const BuildController = (() => {
         reportView.innerHTML = html;
 
         document.getElementById('save-report-draft-btn').addEventListener('click', () => saveCurrentBuild(true));
-        document.getElementById('export-pdf-btn').addEventListener('click', () => handleExport('pdf', analysis));
-        document.getElementById('export-csv-btn').addEventListener('click', () => handleExport('csv', analysis));
+        document.getElementById('export-pdf-btn').addEventListener('click', () => handleExport('pdf'));
+        document.getElementById('export-csv-btn').addEventListener('click', () => handleExport('csv'));
         document.getElementById('share-link-btn').addEventListener('click', handleShareLink);
     };
 
-    const handleExport = (type, analysisData) => {
+    const handleExport = (type) => {
         // Verifica se tem build
         if (!currentBuild) {
             alert("Nenhuma build carregada para exportar.");
@@ -842,39 +855,16 @@ const BuildController = (() => {
 
         const buildName = currentBuild.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
-        // 1. Carrega dados do banco (com proteção se vier nulo)
-        const masterAttributes = StorageService.loadMasterAttributes() || [];
-        const requiredAttributes = StorageService.loadRequiredAttributes() || [];
-        const secondaryAttributes = StorageService.loadSecondaryAttributes() || [];
-
-        // =================================================================
-        // --- BLINDAGEM CONTRA ERROS (AQUI ESTÁ A CORREÇÃO) ---
-        // =================================================================
-        let analysis = analysisData;
-
-        // Se não veio dados, tenta calcular
-        if (!analysis && typeof AnalysisEngine !== 'undefined') {
-            try {
-                analysis = AnalysisEngine.analyze(currentBuild);
-            } catch (e) {
-                console.error("Erro ao calcular análise:", e);
-            }
+        // Recalcula no momento da exportação; a prévia pode ter regras antigas.
+        let analysis;
+        try {
+            loadDependencies();
+            analysis = AnalysisEngine.runAnalysis(currentBuild, masterAttributes, requiredAttributes, secondaryAttributes, recommendedCombos);
+        } catch (error) {
+            console.error('Erro ao calcular análise:', error);
+            alert('Não foi possível gerar o relatório. Verifique os atributos cadastrados e tente novamente.');
+            return;
         }
-
-        // SE AINDA ASSIM ESTIVER VAZIO (ou se AnalysisEngine não existir),
-        // CRIA UM OBJETO VAZIO PARA NÃO TRAVAR O PDF
-        if (!analysis || !analysis.present_attributes) {
-            console.warn("⚠️ Análise vazia ou inválida. Gerando objeto de fallback.");
-            analysis = {
-                missing_attributes: [],
-                present_attributes: new Map(), // O erro acontecia aqui (esperava um Map)
-                secondary_present: [],
-                duplicates_to_remove: [],
-                useless_gems: [],
-                missing_secondaries: []
-            };
-        }
-        // =================================================================
 
         if (type === 'pdf') {
             if (typeof window.jspdf === 'undefined') { alert("Erro: jsPDF não carregado."); return; }
@@ -909,7 +899,7 @@ const BuildController = (() => {
                 ? analysis.present_attributes.size
                 : (Object.keys(analysis.present_attributes || {}).length);
 
-            const secTotal = secondaryAttributes.length;
+            const secTotal = analysis.secondary_total;
             const secPres = analysis.secondary_present ? analysis.secondary_present.length : 0;
 
             doc.text(`${t('pdf.essentials', 'Essenciais:')} ${presTotal}/${reqTotal}`, 10, y);

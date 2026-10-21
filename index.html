@@ -13,6 +13,7 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
+    <script defer src="js/UpdateNotice.js?v=20261021"></script>
 </head>
 
 <body class="text-slate-800 antialiased">
@@ -365,7 +366,7 @@
                                         <div class="flex-1">
                                             <button id="export-all-data-btn"
                                                 class="w-full btn-hover bg-white border border-slate-300 text-slate-700 px-4 py-3 rounded-xl font-medium shadow-sm hover:bg-slate-50 flex items-center justify-center gap-2">
-                                                <span>📥</span> Exportar Backup
+                                                <span>📥</span> Exportar Backup de Builds e Regras
                                             </button>
                                         </div>
                                         <div class="flex-1">
@@ -384,8 +385,9 @@
                                 <div class="pt-6 mt-6 border-t border-red-100">
                                     <button id="clear-all-data-btn"
                                         class="w-full text-red-600 hover:bg-red-50 py-3 rounded-lg text-sm font-medium transition-colors">
-                                        Apagar Todos os Dados (Reset de Fábrica)
+                                        Apagar Builds e Regras
                                     </button>
+                                    <p class="text-xs text-slate-500 text-center mt-2">Checklist, equipamentos, rebeliões, idioma e senha serão preservados.</p>
                                 </div>
                             </div>
                         </div>
@@ -522,13 +524,15 @@
     </div>
 
     <script src="js/I18n.js"></script>
-    <script src="js/StorageService.js"></script>
+    <script src="js/HtmlSafety.js?v=20261021"></script>
+    <script src="js/DataValidation.js?v=20261021"></script>
+    <script src="js/StorageService.js?v=20261021"></script>
     <script src="js/AdminService.js"></script>
-    <script src="js/AnalysisEngine.js"></script>
-    <script src="js/Renderer.js"></script>
-    <script src="js/AdminController.js"></script>
-    <script src="js/BuildController.js"></script>
-    <script src="js/App.js"></script>
+    <script src="js/AnalysisEngine.js?v=20261021-secondary-count"></script>
+    <script src="js/Renderer.js?v=20261021"></script>
+    <script src="js/AdminController.js?v=20261021"></script>
+    <script src="js/BuildController.js?v=20261021-secondary-count"></script>
+    <script src="js/App.js?v=20261021"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>

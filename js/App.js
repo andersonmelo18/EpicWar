@@ -153,8 +153,10 @@ const App = (() => {
         if (hash.startsWith('#import=')) {
             try {
                 const base64Payload = hash.substring('#import='.length);
-                const jsonString = atob(base64Payload);
+                const bytes = Uint8Array.from(atob(base64Payload), char => char.charCodeAt(0));
+                const jsonString = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
                 const importedBuild = JSON.parse(jsonString);
+                DataValidation.build(importedBuild);
 
                 if (importedBuild) {
                     importedBuild.id = null;
@@ -406,6 +408,7 @@ const App = (() => {
                 reader.onload = (event) => {
                     try {
                         const jsonData = JSON.parse(event.target.result);
+                        DataValidation.backup(jsonData);
 
                         // Se não tiver builds, faz a importação direta
                         if (!jsonData.builds || !Array.isArray(jsonData.builds) || jsonData.builds.length === 0) {
@@ -429,17 +432,7 @@ const App = (() => {
                         // Preencher Lista
                         listContainer.innerHTML = '';
                         jsonData.builds.forEach((build, index) => {
-                            const div = document.createElement('div');
-                            div.className = 'flex items-center gap-3 p-2 hover:bg-slate-100 rounded-lg transition-colors';
-                            div.innerHTML = `
-                                <input type="checkbox" id="import-char-${index}" value="${index}" class="import-char-checkbox w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer" checked>
-                                <label for="import-char-${index}" class="text-sm font-medium text-slate-700 cursor-pointer flex-1 select-none flex items-center gap-2">
-                                    <span class="text-xl">${build.icon || '👤'}</span> 
-                                    ${build.name || 'Sem Nome'} 
-                                    <span class="text-xs text-slate-400">(${build.power || '0'} Poder)</span>
-                                </label>
-                            `;
-                            listContainer.appendChild(div);
+                            HtmlSafety.appendImportPreview(listContainer, build, index);
                         });
 
                         // Select All Event
@@ -457,42 +450,48 @@ const App = (() => {
 
                         // Confirmar Importação
                         confirmBtn.onclick = () => {
-                            const checkedIndexes = Array.from(listContainer.querySelectorAll('.import-char-checkbox:checked')).map(cb => parseInt(cb.value));
-                            if (checkedIndexes.length === 0) {
-                                alert("Selecione pelo menos um personagem para importar.");
-                                return;
+                            try {
+                                const checkedIndexes = Array.from(listContainer.querySelectorAll('.import-char-checkbox:checked')).map(cb => parseInt(cb.value));
+                                if (checkedIndexes.length === 0) {
+                                    alert("Selecione pelo menos um personagem para importar.");
+                                    return;
+                                }
+
+                                const mode = document.querySelector('input[name="import_mode"]:checked').value;
+                                const buildsToImport = checkedIndexes.map(idx => jsonData.builds[idx]);
+
+                                if (mode === 'sum') {
+                                    // Somar aos personagens atuais (Mesclar)
+                                    const currentBuilds = StorageService.loadAllBuilds();
+                                
+                                    // Garantir IDs únicos gerando novos
+                                    buildsToImport.forEach(b => {
+                                        const newId = typeof crypto.randomUUID === 'function'
+                                            ? crypto.randomUUID()
+                                            : Date.now() + Math.random().toString(36).slice(2, 10);
+                                        currentBuilds.push({ ...b, id: newId });
+                                    });
+                                
+                                    StorageService.importAllData({ builds: currentBuilds }); // Apenas salva as builds, não toca nas regras (pois enviamos só 'builds')
+                                
+                                } else {
+                                    // Substituir Tudo
+                                    StorageService.importAllData({ ...jsonData, builds: buildsToImport });
+                                }
+
+                                closeModal();
+                                alert(t('alert.importSuccess', '✅ Backup importado com sucesso! A página será recarregada.'));
+                                location.reload();
+                            } catch (error) {
+                                console.error('Erro ao importar backup:', error);
+                                alert(error.message);
                             }
-
-                            const mode = document.querySelector('input[name="import_mode"]:checked').value;
-                            const buildsToImport = checkedIndexes.map(idx => jsonData.builds[idx]);
-
-                            if (mode === 'sum') {
-                                // Somar aos personagens atuais (Mesclar)
-                                const currentBuilds = StorageService.loadAllBuilds();
-                                
-                                // Garantir IDs únicos gerando novos
-                                buildsToImport.forEach(b => {
-                                    b.id = Date.now() + Math.random().toString(36).substr(2, 5); // novo ID
-                                    currentBuilds.push(b);
-                                });
-                                
-                                StorageService.importAllData({ builds: currentBuilds }); // Apenas salva as builds, não toca nas regras (pois enviamos só 'builds')
-                                
-                            } else {
-                                // Substituir Tudo
-                                jsonData.builds = buildsToImport; // Filtra as builds
-                                StorageService.importAllData(jsonData);
-                            }
-
-                            closeModal();
-                            alert(t('alert.importSuccess', '✅ Backup importado com sucesso! A página será recarregada.'));
-                            location.reload();
                         };
 
                         modal.classList.remove('hidden');
                     } catch (error) {
                         console.error("Erro na importação:", error);
-                        alert(t('alert.importError', '❌ Erro ao ler o arquivo.\nO arquivo pode estar corrompido ou não ser um backup válido.'));
+                        alert(t('alert.importError', '❌ Erro ao ler o arquivo.\nO arquivo pode estar corrompido ou não ser um backup válido.') + '\n' + error.message);
                     }
                 };
 

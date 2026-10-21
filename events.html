@@ -10,10 +10,25 @@
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📅</text></svg>">
 
-    <meta name="description" content="Guia de eventos de 5 e 7 dias para otimizar sua coleta e crescimento.">
+    <meta name="description" content="Guia dos eventos de 7 dias, 5 dias e Expedição Eve para otimizar sua coleta e crescimento.">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .event-group > summary { position: relative; list-style: none; cursor: pointer; }
+        .event-group > summary::-webkit-details-marker { display: none; }
+        .event-group > summary > div:first-child { padding-left: 2.5rem; padding-right: 2.5rem; }
+        .event-group > summary::after {
+            content: ''; position: absolute; top: 1.5rem; right: 1.1rem;
+            width: .6rem; height: .6rem; border-right: 2px solid white;
+            border-bottom: 2px solid white; transform: rotate(45deg);
+            transition: transform .2s ease;
+        }
+        .event-group[open] > summary::after { transform: rotate(225deg); }
+        .event-group > summary:focus-visible { outline: 3px solid #334155; outline-offset: 4px; }
+        @media (prefers-reduced-motion: reduce) { .event-group > summary::after { transition: none; } }
+    </style>
+    <script defer src="js/UpdateNotice.js?v=20261021"></script>
 </head>
 
 <body class="antialiased text-slate-800">
@@ -167,128 +182,14 @@
             <div class="mb-8 text-center">
                 <h2 class="text-3xl font-bold text-slate-800">Calendário de Eventos</h2>
                 <p class="text-slate-500 mt-2">Guia completo de recursos e pontuação para os eventos semanais.</p>
+                <p class="text-slate-500 text-sm mt-2">Clique em um evento para expandir ou recolher as informações de cada dia.</p>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 items-start">
 
-                <section>
-                    <div
-                        class="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-xl overflow-hidden shadow-lg mb-6 border border-indigo-500">
-                        <div class="p-4 text-center">
-                            <h2 class="text-xl font-extrabold text-white tracking-wider drop-shadow-sm">EVENTO DE 5 DIAS
-                            </h2>
-                        </div>
-                        <div
-                            class="bg-indigo-900/50 p-2 flex justify-center items-center gap-2 text-indigo-100 text-sm font-medium border-t border-indigo-500/30">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-300" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            Início: <span id="display-date-5" class="text-white font-bold tracking-wide">A
-                                definir</span>
-                        </div>
-                    </div>
-
-                    <div class="space-y-6">
-                        <div class="event-card">
-                            <div class="day-title">Dia 1: Coleta</div>
-                            <ul class="task-list">
-                                <li class="task-item"><span>Carta de recrutamento premium</span> <span
-                                        class="task-value">540</span></li>
-                                <li class="task-item"><span>Coleta 500 de ouro</span> <span class="task-value">32</span>
-                                </li>
-                                <li class="task-item"><span>Coleta 500 de comida</span> <span
-                                        class="task-value">160</span></li>
-                                <li class="task-item"><span>Coleta 500 de madeira</span> <span
-                                        class="task-value">200</span></li>
-                                <li class="task-item"><span>Coleta 500 de cristal</span> <span
-                                        class="task-value">320</span></li>
-                            </ul>
-                        </div>
-
-                        <div class="event-card">
-                            <div class="day-title">Dia 2: Titãs</div>
-                            <span class="evt-note">É necessário criar grupos - Participar não conta</span>
-                            <ul class="task-list">
-                                <li class="task-item"><span>Derrote um Titã nível 6</span> <span
-                                        class="task-value">22.000</span></li>
-                                <li class="task-item"><span>Derrote um Titã nível 7</span> <span
-                                        class="task-value">24.000</span></li>
-                                <span class="evt-highlight">Apenas no Território de Pico</span>
-                                <li class="task-item"><span>Derrote um Titã nível 8</span> <span
-                                        class="task-value">26.000</span></li>
-                                <span class="evt-highlight">Apenas na Expedição</span>
-                                <li class="task-item"><span>Derrote um Titã nível 9</span> <span
-                                        class="task-value">28.000</span></li>
-                                <li class="task-item"><span>Derrote um Titã nível 10</span> <span
-                                        class="task-value">30.000</span></li>
-                                <li class="task-item"><span>Derrote um Titã nível 11</span> <span
-                                        class="task-value">32.000</span></li>
-                                <li class="task-item"><span>Derrote um Titã nível 12</span> <span
-                                        class="task-value">34.000</span></li>
-                            </ul>
-                        </div>
-
-                        <div class="event-card">
-                            <div class="day-title">Dia 3: Harolds</div>
-                            <span class="evt-note">É necessário criar grupos - Participar não conta</span>
-                            <ul class="task-list">
-                                <li class="task-item"><span>1 pergaminho de forja</span> <span
-                                        class="task-value">1.080</span></li>
-                                <li class="task-item"><span>Derrotar Harold Verde</span> <span
-                                        class="task-value">10.000</span></li>
-                                <li class="task-item"><span>Derrotar Harold Azul</span> <span
-                                        class="task-value">14.000</span></li>
-                                <li class="task-item"><span>Derrotar Harold Roxo</span> <span
-                                        class="task-value">18.000</span></li>
-                                <li class="task-item"><span>Derrotar Harold Dourado</span> <span
-                                        class="task-value">22.000</span></li>
-                                <li class="task-item"><span>Derrotar Harold Vermelho</span> <span
-                                        class="task-value">26.000</span></li>
-                            </ul>
-                        </div>
-
-                        <div class="event-card">
-                            <div class="day-title">Dia 4: Convocar Reservas</div>
-                            <span class="evt-note">Reviver de fontes não conta</span>
-                            <ul class="task-list">
-                                <li class="task-item"><span>Convocar 10 reservas</span> <span
-                                        class="task-value">30</span></li>
-                            </ul>
-                        </div>
-
-                        <div class="event-card ring-2 ring-indigo-200">
-                            <div class="day-title"><span>Dia 5: Surto de Poder</span></div>
-                            <ul class="task-list">
-                                <li class="task-item"><span>Gaste 1 fragmento SSR para infundir</span> <span
-                                        class="task-value">7.500</span></li>
-                                <li class="task-item"><span>Gaste 1 Essência de Herói Normal</span> <span
-                                        class="task-value">3</span></li>
-                                <li class="task-item"><span>Gaste 1 Essência de Herói Avançada</span> <span
-                                        class="task-value">3</span></li>
-                                <li class="task-item"><span>Gaste 1 Acelerador</span> <span class="task-value">5</span>
-                                </li>
-                                <li class="task-item"><span>Gaste 1 Fogo Sagrado</span> <span
-                                        class="task-value">1M</span></li>
-                                <li class="task-item"><span>Gastar 1 Pergaminho Secreto</span> <span
-                                        class="task-value">480.000</span></li>
-                                <li class="task-item"><span>Gastar 1 Pedra de Talento</span> <span
-                                        class="task-value">3</span></li>
-                                <li class="task-item"><span>Gastar 1 Cristal de Talento</span> <span
-                                        class="task-value">3.000</span></li>
-                                <li class="task-item"><span>Sorteio Normal de Medalhas 1 vez</span> <span
-                                        class="task-value">2.000</span></li>
-                                <li class="task-item"><span>Sorteio Avançado de Medalhas 1 vez</span> <span
-                                        class="task-value">135.000</span></li>
-                            </ul>
-                        </div>
-                    </div>
-                </section>
-
-                <section>
-                    <div
-                        class="bg-gradient-to-r from-emerald-600 to-emerald-700 rounded-xl overflow-hidden shadow-lg mb-6 border border-emerald-500">
+                <details id="event-7-days" class="event-group">
+                    <summary
+                        class="bg-gradient-to-r from-emerald-600 to-emerald-700 rounded-xl overflow-hidden shadow-lg border border-emerald-500">
                         <div class="p-4 text-center">
                             <h2 class="text-xl font-extrabold text-white tracking-wider drop-shadow-sm">EVENTO DE 7 DIAS
                             </h2>
@@ -303,9 +204,9 @@
                             Início: <span id="display-date-7" class="text-white font-bold tracking-wide">A
                                 definir</span>
                         </div>
-                    </div>
+                    </summary>
 
-                    <div class="space-y-6">
+                    <div class="space-y-6 mt-6">
                         <div class="event-card">
                             <div class="day-title">Dia 1: Mesclagem</div>
                             <ul class="task-list">
@@ -438,7 +339,182 @@
                             <span class="evt-note">Dias 1 a 6 combinados em um só. Prepare-se!</span>
                         </div>
                     </div>
-                </section>
+                </details>
+
+                <details id="event-5-days" class="event-group">
+                    <summary
+                        class="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-xl overflow-hidden shadow-lg border border-indigo-500">
+                        <div class="p-4 text-center">
+                            <h2 class="text-xl font-extrabold text-white tracking-wider drop-shadow-sm">EVENTO DE 5 DIAS
+                            </h2>
+                        </div>
+                        <div
+                            class="bg-indigo-900/50 p-2 flex justify-center items-center gap-2 text-indigo-100 text-sm font-medium border-t border-indigo-500/30">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-300" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Início: <span id="display-date-5" class="text-white font-bold tracking-wide">A
+                                definir</span>
+                        </div>
+                    </summary>
+
+                    <div class="space-y-6 mt-6">
+                        <div class="event-card">
+                            <div class="day-title">Dia 1: Coleta</div>
+                            <ul class="task-list">
+                                <li class="task-item"><span>Carta de recrutamento premium</span> <span
+                                        class="task-value">540</span></li>
+                                <li class="task-item"><span>Coleta 500 de ouro</span> <span class="task-value">32</span>
+                                </li>
+                                <li class="task-item"><span>Coleta 500 de comida</span> <span
+                                        class="task-value">160</span></li>
+                                <li class="task-item"><span>Coleta 500 de madeira</span> <span
+                                        class="task-value">200</span></li>
+                                <li class="task-item"><span>Coleta 500 de cristal</span> <span
+                                        class="task-value">320</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="event-card">
+                            <div class="day-title">Dia 2: Titãs</div>
+                            <span class="evt-note">É necessário criar grupos - Participar não conta</span>
+                            <ul class="task-list">
+                                <li class="task-item"><span>Derrote um Titã nível 6</span> <span
+                                        class="task-value">22.000</span></li>
+                                <li class="task-item"><span>Derrote um Titã nível 7</span> <span
+                                        class="task-value">24.000</span></li>
+                                <span class="evt-highlight">Apenas no Território de Pico</span>
+                                <li class="task-item"><span>Derrote um Titã nível 8</span> <span
+                                        class="task-value">26.000</span></li>
+                                <span class="evt-highlight">Apenas na Expedição</span>
+                                <li class="task-item"><span>Derrote um Titã nível 9</span> <span
+                                        class="task-value">28.000</span></li>
+                                <li class="task-item"><span>Derrote um Titã nível 10</span> <span
+                                        class="task-value">30.000</span></li>
+                                <li class="task-item"><span>Derrote um Titã nível 11</span> <span
+                                        class="task-value">32.000</span></li>
+                                <li class="task-item"><span>Derrote um Titã nível 12</span> <span
+                                        class="task-value">34.000</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="event-card">
+                            <div class="day-title">Dia 3: Harolds</div>
+                            <span class="evt-note">É necessário criar grupos - Participar não conta</span>
+                            <ul class="task-list">
+                                <li class="task-item"><span>1 pergaminho de forja</span> <span
+                                        class="task-value">1.080</span></li>
+                                <li class="task-item"><span>Derrotar Harold Verde</span> <span
+                                        class="task-value">10.000</span></li>
+                                <li class="task-item"><span>Derrotar Harold Azul</span> <span
+                                        class="task-value">14.000</span></li>
+                                <li class="task-item"><span>Derrotar Harold Roxo</span> <span
+                                        class="task-value">18.000</span></li>
+                                <li class="task-item"><span>Derrotar Harold Dourado</span> <span
+                                        class="task-value">22.000</span></li>
+                                <li class="task-item"><span>Derrotar Harold Vermelho</span> <span
+                                        class="task-value">26.000</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="event-card">
+                            <div class="day-title">Dia 4: Convocar Reservas</div>
+                            <span class="evt-note">Reviver de fontes não conta</span>
+                            <ul class="task-list">
+                                <li class="task-item"><span>Convocar 10 reservas</span> <span
+                                        class="task-value">30</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="event-card ring-2 ring-indigo-200">
+                            <div class="day-title"><span>Dia 5: Surto de Poder</span></div>
+                            <ul class="task-list">
+                                <li class="task-item"><span>Gaste 1 fragmento SSR para infundir</span> <span
+                                        class="task-value">7.500</span></li>
+                                <li class="task-item"><span>Gaste 1 Essência de Herói Normal</span> <span
+                                        class="task-value">3</span></li>
+                                <li class="task-item"><span>Gaste 1 Essência de Herói Avançada</span> <span
+                                        class="task-value">3</span></li>
+                                <li class="task-item"><span>Gaste 1 Acelerador</span> <span class="task-value">5</span>
+                                </li>
+                                <li class="task-item"><span>Gaste 1 Fogo Sagrado</span> <span
+                                        class="task-value">1M</span></li>
+                                <li class="task-item"><span>Gastar 1 Pergaminho Secreto</span> <span
+                                        class="task-value">480.000</span></li>
+                                <li class="task-item"><span>Gastar 1 Pedra de Talento</span> <span
+                                        class="task-value">3</span></li>
+                                <li class="task-item"><span>Gastar 1 Cristal de Talento</span> <span
+                                        class="task-value">3.000</span></li>
+                                <li class="task-item"><span>Sorteio Normal de Medalhas 1 vez</span> <span
+                                        class="task-value">2.000</span></li>
+                                <li class="task-item"><span>Sorteio Avançado de Medalhas 1 vez</span> <span
+                                        class="task-value">135.000</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </details>
+
+                <details id="event-eve" class="event-group">
+                    <summary
+                        class="bg-gradient-to-r from-red-600 to-red-700 rounded-xl overflow-hidden shadow-lg border border-red-500">
+                        <div class="p-4 text-center">
+                            <h2 class="text-xl font-extrabold text-white tracking-wider drop-shadow-sm">EXPEDIÇÃO EVE
+                            </h2>
+                        </div>
+                        <div
+                            class="bg-red-900/50 p-2 flex justify-center items-center gap-2 text-red-100 text-sm font-medium border-t border-red-500/30">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-300" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Início: <span id="display-date-eve" class="text-white font-bold tracking-wide">A
+                                definir</span>
+                        </div>
+                    </summary>
+
+                    <div class="space-y-6 mt-6">
+                        <div class="event-card">
+                            <div class="day-title">Completar pesquisa da Expedição</div>
+                            <span class="evt-note">Recursos necessários</span>
+                            <ul class="task-list">
+                                <li class="task-item"><span>Madeira</span> <span class="task-value">14M</span></li>
+                                <li class="task-item"><span>Cristal</span> <span class="task-value">9M</span></li>
+                                <li class="task-item"><span>Mithril</span> <span class="task-value">1,7</span></li>
+                                <li class="task-item"><span>Aceleração de pesquisa</span> <span class="task-value">32 dias</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="event-card">
+                            <div class="day-title">Dia 1: Monstros</div>
+                        </div>
+
+                        <div class="event-card">
+                            <div class="day-title">Dia 2: Coleta de Recursos</div>
+                            <ul class="task-list">
+                                <li class="task-item"><span>Coleta 500 de ouro</span> <span class="task-value">32</span>
+                                </li>
+                                <li class="task-item"><span>Coleta 500 de comida</span> <span
+                                        class="task-value">160</span></li>
+                                <li class="task-item"><span>Coleta 500 de madeira</span> <span
+                                        class="task-value">200</span></li>
+                                <li class="task-item"><span>Coleta 500 de cristal</span> <span
+                                        class="task-value">320</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="event-card">
+                            <div class="day-title">Dia 3: Convocar Reservas</div>
+                            <span class="evt-note">Reviver de fontes não conta</span>
+                            <ul class="task-list">
+                                <li class="task-item"><span>Convocar 10 reservas</span> <span
+                                        class="task-value">30</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </details>
 
             </div>
 
@@ -449,7 +525,7 @@
         </footer>
     </div>
 
-    <script src="js/event-dates.js"></script>
+    <script src="js/event-dates.js?v=20261021-eve"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -469,6 +545,9 @@
 
                 const date7Element = document.getElementById('display-date-7');
                 if (date7Element) date7Element.textContent = formatDate(EVENT_CONFIG.event7Days.startDate);
+
+                const dateEveElement = document.getElementById('display-date-eve');
+                if (dateEveElement) dateEveElement.textContent = formatDate(EVENT_CONFIG.expeditionEve?.startDate);
             }
 
             // --- 2. MENU HAMBÚRGUER ---
